@@ -1,0 +1,39 @@
+import React from 'react'
+import { Scene, Engine, SceneEventArgs } from 'react-babylonjs'
+// import { Vector3, ArcRotateCamera} from '@babylonjs/core';
+import { ArcRotateCamera, Vector3, MeshBuilder, HemisphericLight} from '@babylonjs/core';
+
+const  onSceneMount = (e: SceneEventArgs) => {
+  const { canvas, scene } = e
+  {
+    const alpha = -Math.PI / 2;
+    const beta = Math.PI / 2.5;
+    const radius = 3;
+    const target = new Vector3(0, 0, 0);
+    const camera = new ArcRotateCamera("camera", alpha, beta , radius, target, scene);
+    camera.attachControl(canvas, true);
+  }
+  {
+    const direction = new Vector3(0, 1, 0);
+    /* const light  = */ new HemisphericLight("light", direction, scene);
+  }
+  {
+    const options = {}
+    /*const box = */ MeshBuilder.CreateBox("box", options);
+  }
+  scene.getEngine().runRenderLoop(() => {
+      if (scene) {
+          scene.render();
+      }
+  });
+}
+
+const MyScene: React.FC = () => {
+  return (
+    <Engine canvasId="sample-canvas" antialias width={window.innerWidth} height={window.innerHeight} /*adaptToDeviceRatio*/ >
+      <Scene onSceneMount={onSceneMount} >
+      </Scene>
+    </Engine>
+  );
+}
+export default MyScene;
