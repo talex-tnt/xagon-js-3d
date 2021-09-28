@@ -1,3 +1,4 @@
+/* eslint-disable react/no-children-prop */
 import React from 'react';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 // import { Vector3, ArcRotateCamera} from '@babylonjs/core';
@@ -48,7 +49,7 @@ const MyScene: React.FC = () => (
     width={window.innerWidth}
     height={window.innerHeight} /* adaptToDeviceRatio */
   >
-    <Scene onSceneMount={onSceneMount}></Scene>
+    <Scene onSceneMount={onSceneMount} children={undefined}></Scene>
   </Engine>
 );
 export default MyScene;

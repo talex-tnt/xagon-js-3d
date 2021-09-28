@@ -6,10 +6,10 @@ type onRenderCallback = (a: Scene) => void;
 type onSceneReadyCallback = (a: Scene) => void;
 
 interface SceneComponentProps {
-  antialias: boolean;
-  engineOptions: EngineOptions;
-  adaptToDeviceRatio: boolean;
-  sceneOptions: SceneOptions;
+  antialias?: boolean;
+  engineOptions?: EngineOptions;
+  adaptToDeviceRatio?: boolean;
+  sceneOptions?: SceneOptions;
   onRender: onRenderCallback;
   onSceneReady: onSceneReadyCallback;
 }
@@ -70,6 +70,13 @@ const SceneComponent: React.FC<SceneComponentProps> = (props) => {
     return undefined;
   }, [reactCanvas]);
 
-  return <canvas ref={reactCanvas} {...rest} />;
+  return (
+    <canvas
+      ref={reactCanvas}
+      width={window.innerWidth}
+      height={window.innerHeight}
+      {...rest}
+    />
+  );
 };
 export default SceneComponent;
