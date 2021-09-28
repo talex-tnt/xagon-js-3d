@@ -29,6 +29,7 @@ const onSceneMount = (e: SceneEventArgs) => {
   {
     const direction = new Vector3(0, 1, 0);
     // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const light = new HemisphericLight('light', direction, scene);
   }
   {
