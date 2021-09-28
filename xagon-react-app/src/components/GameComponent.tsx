@@ -7,8 +7,7 @@ import {
   Mesh,
   Scene,
 } from '@babylonjs/core';
-
-import SceneComponent from './SceneComponent'; // uses above component in same directory
+import SceneComponent from 'components/SceneComponent'; // uses above component in same directory
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
 let box: Mesh | undefined;
