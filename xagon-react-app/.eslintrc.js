@@ -29,6 +29,7 @@ module.exports = {
         quotes: ['error', 'single'],
         'comma-dangle': ['error', 'always-multiline'],
         '@typescript-eslint/no-explicit-any': 0,
+        'react/jsx-props-no-spreading': 0,
       },
     },
   ],
