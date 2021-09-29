@@ -1,3 +1,4 @@
+/* eslint-disable react/no-children-prop */
 import React from 'react';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
 // import { Vector3, ArcRotateCamera} from '@babylonjs/core';
@@ -28,6 +29,7 @@ const onSceneMount = (e: SceneEventArgs) => {
   {
     const direction = new Vector3(0, 1, 0);
     // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const light = new HemisphericLight('light', direction, scene);
   }
   {
@@ -48,7 +50,7 @@ const MyScene: React.FC = () => (
     width={window.innerWidth}
     height={window.innerHeight} /* adaptToDeviceRatio */
   >
-    <Scene onSceneMount={onSceneMount}></Scene>
+    <Scene onSceneMount={onSceneMount} children={undefined}></Scene>
   </Engine>
 );
 export default MyScene;
