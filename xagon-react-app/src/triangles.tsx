@@ -13,44 +13,6 @@ const trianglesGenerator = (scene: Scene): Scene => {
   const customMesh = new Mesh('custom', scene);
 
   // Set arrays for positions and indices
-  // const goldenRatio = (1 + Math.sqrt(5)) / 2;
-  // const positions = [
-  //   0,
-  //   0,
-  //   -goldenRatio,
-  //   //
-  //   -goldenRatio,
-  //   0,
-  //   goldenRatio,
-  //   //
-  //   goldenRatio,
-  //   0,
-  //   goldenRatio,
-  //   //
-  //   goldenRatio,
-  //   0,
-  //   goldenRatio,
-  //   //
-  //   0,
-  //   0,
-  //   -goldenRatio,
-  //   //
-  //   0,
-  //   2,
-  //   0,
-  //   //
-  //   0,
-  //   2,
-  //   0,
-  //   //
-  //   0,
-  //   0,
-  //   -goldenRatio,
-  //   //
-  //   -goldenRatio,
-  //   0,
-  //   goldenRatio,
-  // ];
   // vertices[0] = new VertexPositionColor(new Vector3(-0.26286500f, 0.0000000f, 0.42532500f), Color.Red);
   // vertices[1] = new VertexPositionColor(new Vector3(0.26286500f, 0.0000000f, 0.42532500f), Color.Orange);
   // vertices[2] = new VertexPositionColor(new Vector3(-0.26286500f, 0.0000000f, -0.42532500f), Color.Yellow);
@@ -63,9 +25,9 @@ const trianglesGenerator = (scene: Scene): Scene => {
   // vertices[9] = new VertexPositionColor(new Vector3(-0.42532500f, 0.26286500f, 0.0000000f), Color.Black);
   // vertices[10] = new VertexPositionColor(new Vector3(0.42532500f, -0.26286500f, 0.0000000f), Color.DodgerBlue);
   // vertices[11] = new VertexPositionColor(new Vector3(-0.42532500f, -0.26286500f, 0.0000000f), Color.Crimson);
-  // const phi = (1.0 + Math.sqrt(5.0)) * 0.5; // golden ratio
-  // const a = 1.0;
-  // const b = 1.0 / phi;
+  const phi = (1.0 + Math.sqrt(5.0)) * 0.5; // golden ratio
+  const a = 1.0;
+  const b = 1.0 / phi;
   const p1 = new Vector3(1, 2, 3);
   const p2 = new Vector3(4, 2, 6);
   const p3 = new Vector3(5, 4, 1);

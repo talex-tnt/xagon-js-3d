@@ -3,7 +3,6 @@ import {
   ArcRotateCamera,
   Vector3,
   HemisphericLight,
-  MeshBuilder,
   Mesh,
   Scene,
 } from '@babylonjs/core';
@@ -36,12 +35,6 @@ const onSceneReady = (scene: Scene) => {
   light.intensity = 0.7;
 
   trianglesGenerator(scene);
-
-  // box = MeshBuilder.CreateBox('box', { size: 2 }, scene);
-
-  // box.position.y = 1;
-
-  // MeshBuilder.CreateGround('ground', { width: 6, height: 6 }, scene);
 };
 
 const onRender = (scene: Scene) => {
