@@ -41,7 +41,7 @@ const onRender = (scene: Scene) => {
   if (box !== undefined) {
     const deltaTimeInMillis = scene.getEngine().getDeltaTime();
 
-    const rpm = 60;
+    const rpm = 10;
     box.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
   }
 };
