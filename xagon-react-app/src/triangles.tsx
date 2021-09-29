@@ -67,22 +67,36 @@ const trianglesGenerator = (scene: Scene): Scene => {
   // const a = 1.0;
   // const b = 1.0 / phi;
   const p1 = new Vector3(1, 2, 3);
-  const triangleTest = new Triangle(p1, p1, p1);
+  const p2 = new Vector3(4, 2, 6);
+  const p3 = new Vector3(5, 4, 1);
+  const triangleTest = new Triangle(p1, p2, p3).getVertices();
+  const positions = triangleTest.reduce(
+    (prev: number[], curr: Vector3): number[] => [
+      ...prev,
+      curr.x,
+      curr.y,
+      curr.z,
+    ],
+    [],
+  );
+
+  // eslint-disable-next-line no-console
+  console.log(positions);
   const indices = [0, 1, 2];
 
   // Empty array to contain calculated values
   const normals: Array<number> = [];
 
   const vertexData = new VertexData();
-  VertexData.ComputeNormals(triangleTest.getVertices(), indices, normals);
+  VertexData.ComputeNormals(positions, indices, normals);
 
-  // // Assign positions, indices and normals to vertexData
-  vertexData.positions = triangleTest.getVertices();
+  // Assign positions, indices and normals to vertexData
+  vertexData.positions = positions;
   vertexData.indices = indices;
   vertexData.normals = normals;
 
-  // // Apply vertexData to custom mesh
-  // vertexData.applyToMesh(customMesh);
+  // Apply vertexData to custom mesh
+  vertexData.applyToMesh(customMesh);
 
   /** ****Display custom mesh in wireframe view to show its creation*************** */
   const mat = new StandardMaterial('mat', scene);

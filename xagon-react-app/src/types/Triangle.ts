@@ -1,10 +1,7 @@
 import { Vector3 } from '@babylonjs/core';
 
-interface TriangleVertices {
-  0: Vector3;
-  1: Vector3;
-  2: Vector3;
-}
+type TriangleVertices = Array<Vector3>;
+
 //
 class Triangle {
   private vertices: TriangleVertices;
