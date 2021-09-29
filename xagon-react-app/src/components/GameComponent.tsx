@@ -32,7 +32,9 @@ const onSceneReady = (scene: Scene) => {
 
   const light = new HemisphericLight('light', new Vector3(0, 1, 0), scene);
 
-  light.intensity = 0.7;
+  light.intensity = 1.1;
+  light.setDirectionToTarget(target);
+  // light.parent = camera;
 
   trianglesGenerator(scene);
 };
