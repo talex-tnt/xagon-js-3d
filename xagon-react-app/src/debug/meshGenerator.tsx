@@ -1,4 +1,5 @@
 import {
+  TransformNode,
   Vector3,
   Scene,
   Mesh,
@@ -17,14 +18,19 @@ const getMeshName = (triangleId: TriangleId): string => {
 };
 
 const meshGenerator = (
+  name: string,
   scene: Scene,
   triangles: Array<Triangle>,
   renderNormals = false,
 ): void => {
+  //
+  const rootNode = new TransformNode(name, scene);
+
   triangles.forEach((triangle) => {
     const vertexData = createVertexData(triangle, renderNormals);
     const meshName = getMeshName(triangle.getId());
     const mesh = createMesh(meshName, scene, vertexData);
+    mesh.parent = rootNode;
     mesh.metadata = { triangle };
   });
 
