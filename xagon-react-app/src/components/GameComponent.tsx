@@ -3,7 +3,6 @@ import {
   ArcRotateCamera,
   Vector3,
   HemisphericLight,
-  Mesh,
   Scene,
 } from '@babylonjs/core';
 import SceneComponent from 'components/SceneComponent';
@@ -11,9 +10,8 @@ import meshGenerator from 'debug/meshGenerator';
 import Icosahedron from 'models/Icosahedron';
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
-let box: Mesh | undefined;
-
-const onSceneReady = (scene: Scene) => {
+const onSceneReady = (sceneArg: Scene) => {
+  const scene: Scene = sceneArg;
   const alpha = -Math.PI / 2;
   const beta = Math.PI / 2.5;
   const radius = 3;
@@ -37,16 +35,17 @@ const onSceneReady = (scene: Scene) => {
   light.setDirectionToTarget(target);
   // light.parent = camera;
   const icosahedron = new Icosahedron();
-
-  meshGenerator(scene, icosahedron.getTriangles());
+  scene.metadata = { icosahedron };
+  meshGenerator('icosahedron', scene, icosahedron.getTriangles());
 };
 
 const onRender = (scene: Scene) => {
-  if (box !== undefined) {
+  const icosahedron = scene.getTransformNodeByName('icosahedron');
+  if (icosahedron) {
     const deltaTimeInMillis = scene.getEngine().getDeltaTime();
-
     const rpm = 10;
-    box.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
+    icosahedron.rotation.y +=
+      (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
   }
 };
 
