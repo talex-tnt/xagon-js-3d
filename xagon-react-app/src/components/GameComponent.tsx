@@ -7,7 +7,8 @@ import {
   Scene,
 } from '@babylonjs/core';
 import SceneComponent from 'components/SceneComponent';
-import trianglesGenerator from 'triangles';
+import meshGenerator from 'debug/meshGenerator';
+import Icosahedron from 'models/Icosahedron';
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
 let box: Mesh | undefined;
@@ -35,8 +36,9 @@ const onSceneReady = (scene: Scene) => {
   light.intensity = 1.1;
   light.setDirectionToTarget(target);
   // light.parent = camera;
+  const icosahedron = new Icosahedron();
 
-  trianglesGenerator(scene);
+  meshGenerator(scene, icosahedron.getTriangles());
 };
 
 const onRender = (scene: Scene) => {
