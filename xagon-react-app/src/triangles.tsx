@@ -5,7 +5,7 @@ import {
   StandardMaterial,
   VertexData,
   Color3,
-  MeshBuilder,
+  // MeshBuilder,
 } from '@babylonjs/core';
 
 import Icosahedron from 'types/Icosahedron';
@@ -14,15 +14,6 @@ import Triangle from 'types/Triangle';
 const trianglesGenerator = (scene: Scene): void => {
   const icosahedron = new Icosahedron();
   icosahedron.getTriangles().forEach((triangle) => {
-    // const e1 = triangle.p2().subtract(triangle.p1());
-    // const e2 = triangle.p3().subtract(triangle.p2());
-    // const n = e1.cross(e2);
-    // const options = {
-    //   points: [triangle.p1(), triangle.p1().add(n)],
-    //   updatable: true,
-    // };
-    // const lines = MeshBuilder.CreateLines('lines', options, scene);
-    // lines.color = new Color3(1, 0, 0);
     const vertexData = createVertexData(triangle);
     createMesh(scene, vertexData);
   });
@@ -48,39 +39,42 @@ const createVertexData = (triangle: Triangle) => {
   vertexData.positions = positions;
   vertexData.indices = indices;
   vertexData.normals = normals;
-  {
-    const options = {
-      points: [
-        triangle.p1(),
-        triangle.p1().add(new Vector3(normals[0], normals[1], normals[2])),
-      ],
-      updatable: true,
-    };
-    const lines = MeshBuilder.CreateLines('lines', options);
-    lines.color = new Color3(1, 0, 0);
-  }
-  {
-    const options = {
-      points: [
-        triangle.p2(),
-        triangle.p2().add(new Vector3(normals[3], normals[4], normals[5])),
-      ],
-      updatable: true,
-    };
-    const lines = MeshBuilder.CreateLines('lines', options);
-    lines.color = new Color3(1, 0, 0);
-  }
-  {
-    const options = {
-      points: [
-        triangle.p3(),
-        triangle.p3().add(new Vector3(normals[6], normals[7], normals[8])),
-      ],
-      updatable: true,
-    };
-    const lines = MeshBuilder.CreateLines('lines', options);
-    lines.color = new Color3(1, 0, 0);
-  }
+
+  // Setup to debugging triangles face direction
+  // {
+  //   const options = {
+  //     points: [
+  //       triangle.p1(),
+  //       triangle.p1().add(new Vector3(normals[0], normals[1], normals[2])),
+  //     ],
+  //     updatable: true,
+  //   };
+  //   const lines = MeshBuilder.CreateLines('lines', options);
+  //   lines.color = new Color3(1, 0, 0);
+  // }
+  // {
+  //   const options = {
+  //     points: [
+  //       triangle.p2(),
+  //       triangle.p2().add(new Vector3(normals[3], normals[4], normals[5])),
+  //     ],
+  //     updatable: true,
+  //   };
+  //   const lines = MeshBuilder.CreateLines('lines', options);
+  //   lines.color = new Color3(1, 0, 0);
+  // }
+  // {
+  //   const options = {
+  //     points: [
+  //       triangle.p3(),
+  //       triangle.p3().add(new Vector3(normals[6], normals[7], normals[8])),
+  //     ],
+  //     updatable: true,
+  //   };
+  //   const lines = MeshBuilder.CreateLines('lines', options);
+  //   lines.color = new Color3(1, 0, 0);
+  // }
+  //
   return vertexData;
 };
 
