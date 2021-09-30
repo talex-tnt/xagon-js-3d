@@ -1,21 +1,31 @@
 import React from 'react';
 import {
-  FreeCamera,
+  ArcRotateCamera,
   Vector3,
   HemisphericLight,
-  MeshBuilder,
   Mesh,
   Scene,
 } from '@babylonjs/core';
 import SceneComponent from 'components/SceneComponent';
+import meshGenerator from 'debug/meshGenerator';
+import Icosahedron from 'models/Icosahedron';
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
 let box: Mesh | undefined;
 
 const onSceneReady = (scene: Scene) => {
-  const camera = new FreeCamera('camera1', new Vector3(0, 5, -10), scene);
-
-  camera.setTarget(Vector3.Zero());
+  const alpha = -Math.PI / 2;
+  const beta = Math.PI / 2.5;
+  const radius = 3;
+  const target = new Vector3(0, 0, 0);
+  const camera = new ArcRotateCamera(
+    'camera',
+    alpha,
+    beta,
+    radius,
+    target,
+    scene,
+  );
 
   const canvas = scene.getEngine().getRenderingCanvas();
 
@@ -23,20 +33,19 @@ const onSceneReady = (scene: Scene) => {
 
   const light = new HemisphericLight('light', new Vector3(0, 1, 0), scene);
 
-  light.intensity = 0.7;
+  light.intensity = 1.1;
+  light.setDirectionToTarget(target);
+  // light.parent = camera;
+  const icosahedron = new Icosahedron();
 
-  box = MeshBuilder.CreateBox('box', { size: 2 }, scene);
-
-  box.position.y = 1;
-
-  MeshBuilder.CreateGround('ground', { width: 6, height: 6 }, scene);
+  meshGenerator(scene, icosahedron.getTriangles());
 };
 
 const onRender = (scene: Scene) => {
   if (box !== undefined) {
     const deltaTimeInMillis = scene.getEngine().getDeltaTime();
 
-    const rpm = 60;
+    const rpm = 10;
     box.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
   }
 };
