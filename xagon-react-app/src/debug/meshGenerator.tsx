@@ -35,16 +35,23 @@ const meshGenerator = (
           const mesh =
             pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
           const metadata = mesh && mesh.metadata;
-          const { triangle } = metadata;
-          const adjacentIds: Array<TriangleId> = triangle
-            .getAdjacents()
-            .map((tr: Triangle) => tr?.getId() || -1);
-          // eslint-disable-next-line no-console
-          console.log('picked triangle', triangle, adjacentIds);
-          adjacentIds.forEach((adjId) => {
-            const adjMesh = scene.getMeshByName(getMeshName(adjId));
-            console.log('adj mesh', adjMesh);
-          });
+          if (metadata) {
+            const { triangle } = metadata;
+
+            const adjacentIds: Array<TriangleId> = triangle
+              .getAdjacents()
+              .map((tr: Triangle) => tr?.getId() || -1);
+            // eslint-disable-next-line no-console
+            // console.log('picked triangle', triangle, adjacentIds);
+            adjacentIds.forEach((adjId) => {
+              const adjMesh = scene.getMeshByName(getMeshName(adjId));
+              // console.log('adj mesh', adjMesh);
+
+              if (adjMesh && adjMesh.material) {
+                adjMesh.material.alpha = 0.5;
+              }
+            });
+          }
         }
 
         break;

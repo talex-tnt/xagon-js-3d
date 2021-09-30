@@ -10,7 +10,7 @@ class Triangle {
 
   private triangleId: TriangleId;
 
-  private adjacents: AdjacentTriangles = [null, null, null];
+  private adjacents: AdjacentTriangles = [this, this, this];
 
   public constructor(id: TriangleId, p1: Vector3, p2: Vector3, p3: Vector3) {
     this.triangleId = id;
