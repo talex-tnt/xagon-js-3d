@@ -3,7 +3,6 @@ import {
   ArcRotateCamera,
   Vector3,
   HemisphericLight,
-  Mesh,
   Scene,
 } from '@babylonjs/core';
 import SceneComponent from 'components/SceneComponent';
