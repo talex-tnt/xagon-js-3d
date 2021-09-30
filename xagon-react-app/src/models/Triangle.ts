@@ -1,11 +1,24 @@
-import { Vector3 } from '@babylonjs/core';
+import { Nullable, Vector3 } from '@babylonjs/core';
 
-type TriangleVertices = Array<Vector3>;
+export type TriangleVertices = Array<Vector3>;
+export type TriangleId = bigint;
+export type AdjacentTriangles = Array<AdjacentTriangle>;
+export type AdjacentTriangle = Nullable<Triangle>;
 class Triangle {
+  //
   private vertices: TriangleVertices;
 
-  public constructor(p1: Vector3, p2: Vector3, p3: Vector3) {
+  private triangleId: TriangleId;
+
+  private adjacents: AdjacentTriangles = [null, null, null];
+
+  public constructor(id: TriangleId, p1: Vector3, p2: Vector3, p3: Vector3) {
+    this.triangleId = id;
     this.vertices = [p1, p2, p3];
+  }
+
+  public getId(): TriangleId {
+    return this.triangleId;
   }
 
   public p1(): Vector3 {
@@ -22,6 +35,14 @@ class Triangle {
 
   public getVertices(): TriangleVertices {
     return this.vertices;
+  }
+
+  public getAdjacents(): AdjacentTriangles {
+    return this.adjacents;
+  }
+
+  public setAdjacent(triangle: AdjacentTriangle, index: number): void {
+    this.adjacents[index] = triangle;
   }
 
   public log(): void {

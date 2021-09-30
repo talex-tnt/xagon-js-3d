@@ -6,9 +6,15 @@ import {
   VertexData,
   Color3,
   MeshBuilder,
+  PointerEventTypes,
 } from '@babylonjs/core';
 
-import Triangle from 'models/Triangle';
+import Triangle, { TriangleId } from 'models/Triangle';
+
+const getMeshName = (triangleId: TriangleId): string => {
+  const meshName = `${triangleId}`;
+  return meshName;
+};
 
 const meshGenerator = (
   scene: Scene,
@@ -17,7 +23,34 @@ const meshGenerator = (
 ): void => {
   triangles.forEach((triangle) => {
     const vertexData = createVertexData(triangle, renderNormals);
-    createMesh(scene, vertexData);
+    const meshName = getMeshName(triangle.getId());
+    const mesh = createMesh(meshName, scene, vertexData);
+    mesh.metadata = { triangle };
+  });
+
+  scene.onPointerObservable.add((pointerInfo) => {
+    switch (pointerInfo.type) {
+      case PointerEventTypes.POINTERDOWN:
+        {
+          const mesh =
+            pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
+          const metadata = mesh && mesh.metadata;
+          const { triangle } = metadata;
+          const adjacentIds: Array<TriangleId> = triangle
+            .getAdjacents()
+            .map((tr: Triangle) => tr?.getId() || -1);
+          // eslint-disable-next-line no-console
+          console.log('picked triangle', triangle, adjacentIds);
+          adjacentIds.forEach((adjId) => {
+            const adjMesh = scene.getMeshByName(getMeshName(adjId));
+            console.log('adj mesh', adjMesh);
+          });
+        }
+
+        break;
+      default:
+        break;
+    }
   });
 };
 
@@ -82,8 +115,12 @@ const createVertexData = (triangle: Triangle, renderNormals: boolean) => {
   return vertexData;
 };
 
-const createMesh = (scene: Scene, vertexData: VertexData): Mesh => {
-  const customMesh = new Mesh('custom', scene);
+const createMesh = (
+  name: string,
+  scene: Scene,
+  vertexData: VertexData,
+): Mesh => {
+  const customMesh = new Mesh(name, scene);
   const material = new StandardMaterial('myMaterial', scene);
   const hue = Math.random() * 255;
   const saturation = 1;

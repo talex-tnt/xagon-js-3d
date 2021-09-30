@@ -4,6 +4,13 @@ import Triangle from './Triangle';
 class Icosahedron {
   private triangles: Array<Triangle>;
 
+  private triangleCount = 0n;
+
+  private generateId(): bigint {
+    this.triangleCount += 1n;
+    return this.triangleCount;
+  }
+
   public constructor() {
     const phi = (1.0 + Math.sqrt(5.0)) * 0.5; // golden ratio
     const a = 1.0;
@@ -23,26 +30,26 @@ class Icosahedron {
     const p12 = new Vector3(-b, -a, 0);
 
     this.triangles = [
-      new Triangle(p1, p2, p3),
-      new Triangle(p4, p3, p2),
-      new Triangle(p4, p5, p6),
-      new Triangle(p4, p9, p5),
-      new Triangle(p1, p7, p8),
-      new Triangle(p1, p10, p7),
-      new Triangle(p5, p11, p12),
-      new Triangle(p7, p12, p11),
-      new Triangle(p3, p6, p10),
-      new Triangle(p12, p10, p6),
-      new Triangle(p2, p8, p9),
-      new Triangle(p11, p9, p8),
-      new Triangle(p4, p6, p3),
-      new Triangle(p4, p2, p9),
-      new Triangle(p1, p3, p10),
-      new Triangle(p1, p8, p2),
-      new Triangle(p7, p10, p12),
-      new Triangle(p7, p11, p8),
-      new Triangle(p5, p12, p6),
-      new Triangle(p5, p9, p11),
+      new Triangle(this.generateId(), p1, p2, p3),
+      new Triangle(this.generateId(), p4, p3, p2),
+      new Triangle(this.generateId(), p4, p5, p6),
+      new Triangle(this.generateId(), p4, p9, p5),
+      new Triangle(this.generateId(), p1, p7, p8),
+      new Triangle(this.generateId(), p1, p10, p7),
+      new Triangle(this.generateId(), p5, p11, p12),
+      new Triangle(this.generateId(), p7, p12, p11),
+      new Triangle(this.generateId(), p3, p6, p10),
+      new Triangle(this.generateId(), p12, p10, p6),
+      new Triangle(this.generateId(), p2, p8, p9),
+      new Triangle(this.generateId(), p11, p9, p8),
+      new Triangle(this.generateId(), p4, p6, p3),
+      new Triangle(this.generateId(), p4, p2, p9),
+      new Triangle(this.generateId(), p1, p3, p10),
+      new Triangle(this.generateId(), p1, p8, p2),
+      new Triangle(this.generateId(), p7, p10, p12),
+      new Triangle(this.generateId(), p7, p11, p8),
+      new Triangle(this.generateId(), p5, p12, p6),
+      new Triangle(this.generateId(), p5, p9, p11),
     ];
   }
 
