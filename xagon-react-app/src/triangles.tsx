@@ -1,101 +1,98 @@
-import * as BABYLON from '@babylonjs/core';
+import {
+  Vector3,
+  Scene,
+  Mesh,
+  StandardMaterial,
+  VertexData,
+  Color3,
+  // MeshBuilder,
+} from '@babylonjs/core';
 
-const trianglesGenerator = (scene: BABYLON.Scene) => {
-  // Create a custom mesh
-  const customMesh = new BABYLON.Mesh('custom', scene);
+import Icosahedron from 'types/Icosahedron';
+import Triangle from 'types/Triangle';
 
-  // Set arrays for positions and indices
-  const goldenRatio = (1 + Math.sqrt(5)) / 2;
-  //   const positions = [
-  //     0,
-  //     1,
-  //     goldenRatio,
-  //     0,
-  //     -1,
-  //     goldenRatio,
-  //     0,
-  //     1,
-  //     -goldenRatio,
-  //     0,
-  //     -1,
-  //     -goldenRatio,
-  //     1,
-  //     goldenRatio,
-  //     0,
-  //     -1,
-  //     goldenRatio,
-  //     0,
-  //     1,
-  //     -goldenRatio,
-  //     0,
-  //     -1,
-  //     -goldenRatio,
-  //     0,
-  //     goldenRatio,
-  //     0,
-  //     1,
-  //     -goldenRatio,
-  //     0,
-  //     1,
-  //     goldenRatio,
-  //     0,
-  //     -1,
-  //     -goldenRatio,
-  //     0,
-  //     -1,
-  //   ];
-  const positions = [
-    0,
-    0,
-    -goldenRatio,
-    -goldenRatio,
-    0,
-    goldenRatio,
-    goldenRatio,
-    0,
-    goldenRatio,
-    goldenRatio,
-    0,
-    goldenRatio,
-    0,
-    0,
-    -goldenRatio,
-    0,
-    2,
-    0,
-    0,
-    2,
-    0,
-    0,
-    0,
-    -goldenRatio,
-    -goldenRatio,
-    0,
-    goldenRatio,
-  ];
-  const indices = [0, 1, 2, 3, 4, 5, 6, 7, 8 /* 9, 10, 11 */];
+const trianglesGenerator = (scene: Scene): void => {
+  const icosahedron = new Icosahedron();
+  icosahedron.getTriangles().forEach((triangle) => {
+    const vertexData = createVertexData(triangle);
+    createMesh(scene, vertexData);
+  });
+};
 
-  // Empty array to contain calculated values
+const createVertexData = (triangle: Triangle) => {
   const normals: Array<number> = [];
+  const indices: Array<number> = [0, 1, 2];
+  const positions = triangle
+    .getVertices()
+    .reduce(
+      (prev: number[], curr: Vector3): number[] => [
+        ...prev,
+        curr.x,
+        curr.y,
+        curr.z,
+      ],
+      [],
+    );
+  const vertexData = new VertexData();
+  VertexData.ComputeNormals(positions, indices, normals);
 
-  const vertexData = new BABYLON.VertexData();
-  BABYLON.VertexData.ComputeNormals(positions, indices, normals);
-
-  // Assign positions, indices and normals to vertexData
   vertexData.positions = positions;
   vertexData.indices = indices;
   vertexData.normals = normals;
 
-  // Apply vertexData to custom mesh
-  vertexData.applyToMesh(customMesh);
+  // Setup to debugging triangles face direction
+  // {
+  //   const options = {
+  //     points: [
+  //       triangle.p1(),
+  //       triangle.p1().add(new Vector3(normals[0], normals[1], normals[2])),
+  //     ],
+  //     updatable: true,
+  //   };
+  //   const lines = MeshBuilder.CreateLines('lines', options);
+  //   lines.color = new Color3(1, 0, 0);
+  // }
+  // {
+  //   const options = {
+  //     points: [
+  //       triangle.p2(),
+  //       triangle.p2().add(new Vector3(normals[3], normals[4], normals[5])),
+  //     ],
+  //     updatable: true,
+  //   };
+  //   const lines = MeshBuilder.CreateLines('lines', options);
+  //   lines.color = new Color3(1, 0, 0);
+  // }
+  // {
+  //   const options = {
+  //     points: [
+  //       triangle.p3(),
+  //       triangle.p3().add(new Vector3(normals[6], normals[7], normals[8])),
+  //     ],
+  //     updatable: true,
+  //   };
+  //   const lines = MeshBuilder.CreateLines('lines', options);
+  //   lines.color = new Color3(1, 0, 0);
+  // }
+  //
+  return vertexData;
+};
 
-  /** ****Display custom mesh in wireframe view to show its creation*************** */
-  const mat = new BABYLON.StandardMaterial('mat', scene);
-  mat.backFaceCulling = false;
-  customMesh.material = mat;
-  /** **************************************************************************** */
-
-  return scene;
+const createMesh = (scene: Scene, vertexData: VertexData): Mesh => {
+  const customMesh = new Mesh('custom', scene);
+  const material = new StandardMaterial('myMaterial', scene);
+  const hue = Math.random() * 255;
+  const saturation = 1;
+  const value = 1;
+  Color3.HSVtoRGBToRef(hue, saturation, value, material.diffuseColor);
+  // material.specularColor = new Color3(0.5, 0.6, 0.87);
+  // material.emissiveColor = new Color3(0, 1, 1);
+  // material.ambientColor = new Color3(0.23, 0.98, 0.53);
+  material.backFaceCulling = false;
+  // material.alpha = 0.5;
+  customMesh.material = material;
+  vertexData.applyToMesh(customMesh, true);
+  return customMesh;
 };
 
 export default trianglesGenerator;
