@@ -37,7 +37,6 @@ const meshGenerator = (
           const metadata = mesh && mesh.metadata;
           if (metadata) {
             const { triangle } = metadata;
-
             const adjacentIds: Array<TriangleId> = triangle
               .getAdjacents()
               .map((tr: Triangle) => tr?.getId() || -1);
@@ -48,7 +47,8 @@ const meshGenerator = (
               // console.log('adj mesh', adjMesh);
 
               if (adjMesh && adjMesh.material) {
-                adjMesh.material.alpha = 0.5;
+                // adjMesh.material.alpha = 0.5;
+                adjMesh.material.diffuseColor = new Color3(0, 0, 0);
               }
             });
           }

@@ -51,6 +51,8 @@ class Icosahedron {
       new Triangle(this.generateId(), p5, p12, p6),
       new Triangle(this.generateId(), p5, p9, p11),
     ];
+
+    computeAdjacentTriangles(this.triangles);
   }
 
   public getTriangles(): Array<Triangle> {
@@ -58,4 +60,43 @@ class Icosahedron {
   }
 }
 
+function computeAdjacentTriangles(triangles: Triangle[]) {
+  const hasPoint = (triangle: Triangle, point: Vector3): boolean => {
+    const epsilon = 0.00000001;
+    const found = triangle.getVertices().find((trPoint: Vector3) => {
+      if (Math.abs(point.subtract(trPoint).length()) < epsilon) {
+        return true;
+      }
+      return false;
+    });
+    return !!found;
+  };
+  triangles.forEach((tr1) => {
+    triangles.forEach((tr2) => {
+      if (tr1.getId() !== tr2.getId()) {
+        const tr1HasPoint1 = hasPoint(tr1, tr2.p1());
+        const tr1HasPoint2 = hasPoint(tr1, tr2.p2());
+        const tr1HasPoint3 = hasPoint(tr1, tr2.p3());
+        if (tr1HasPoint1 && tr1HasPoint2) {
+          tr1.pushAdjacent(tr2);
+          tr2.pushAdjacent(tr1);
+        }
+        if (tr1HasPoint2 && tr1HasPoint3) {
+          tr1.pushAdjacent(tr2);
+          tr2.pushAdjacent(tr1);
+        }
+        if (tr1HasPoint3 && tr1HasPoint1) {
+          tr1.pushAdjacent(tr2);
+          tr2.pushAdjacent(tr1);
+        }
+      }
+    });
+  });
+}
+
 export default Icosahedron;
+
+/*
+edgeTrianglesMap[p1][p2] = [triangle0];
+
+*/

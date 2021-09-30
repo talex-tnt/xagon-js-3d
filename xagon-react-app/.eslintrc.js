@@ -108,6 +108,8 @@ module.exports = {
     'redux-saga/yield-effects': 2,
     'require-yield': 0,
     'import/extensions': ['error', 'never', { ignorePackages: true }],
+    'no-shadow': 'off',
+    '@typescript-eslint/no-shadow': ['error'],
   },
   settings: {
     'import/resolver': {

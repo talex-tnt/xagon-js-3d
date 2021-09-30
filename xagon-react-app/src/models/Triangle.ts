@@ -4,13 +4,20 @@ export type TriangleVertices = Array<Vector3>;
 export type TriangleId = bigint;
 export type AdjacentTriangles = Array<AdjacentTriangle>;
 export type AdjacentTriangle = Nullable<Triangle>;
+
+export enum TriangleEdge {
+  First = 0,
+  Second,
+  Third,
+}
+
 class Triangle {
   //
   private vertices: TriangleVertices;
 
   private triangleId: TriangleId;
 
-  private adjacents: AdjacentTriangles = [this, this, this];
+  private adjacents: AdjacentTriangles = [];
 
   public constructor(id: TriangleId, p1: Vector3, p2: Vector3, p3: Vector3) {
     this.triangleId = id;
@@ -41,8 +48,16 @@ class Triangle {
     return this.adjacents;
   }
 
-  public setAdjacent(triangle: AdjacentTriangle, index: number): void {
+  public setAdjacent(triangle: AdjacentTriangle, index: TriangleEdge): void {
     this.adjacents[index] = triangle;
+  }
+
+  public pushAdjacent(triangle: Triangle): void {
+    // eslint-disable-next-line no-console
+    console.assert(this.adjacents.length <= 3, 'FATAL ERROR!!!');
+    if (!this.adjacents.find((tr) => tr?.getId() === triangle.getId())) {
+      this.adjacents.push(triangle);
+    }
   }
 
   public log(): void {
