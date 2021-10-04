@@ -62,6 +62,43 @@ class Icosahedron {
   public getTriangles(): Array<Triangle> {
     return this.triangles;
   }
+
+  private subdivideTriangle(triangle: Triangle): Array<Triangle> {
+    const s1 = triangle.p2().subtract(triangle.p1());
+    s1.x /= 2;
+    s1.y /= 2;
+    s1.z /= 2;
+    const ps1 = triangle.p1().add(s1);
+
+    const s2 = triangle.p3().subtract(triangle.p2());
+    s2.x /= 2;
+    s2.y /= 2;
+    s2.z /= 2;
+    const ps2 = triangle.p2().add(s2);
+
+    const s3 = triangle.p1().subtract(triangle.p3());
+    s3.x /= 2;
+    s3.y /= 2;
+    s3.z /= 2;
+    const ps3 = triangle.p3().add(s3);
+
+    const tr1 = new Triangle(this.generateId(), triangle.p1(), ps1, ps3);
+    const tr2 = new Triangle(this.generateId(), ps1, triangle.p2(), ps2);
+    const tr3 = new Triangle(this.generateId(), ps1, ps2, ps3);
+    const tr4 = new Triangle(this.generateId(), ps3, ps2, triangle.p3());
+
+    return [tr1, tr2, tr3, tr4];
+  }
+
+  public subdivide(): void {
+    this.triangles = this.triangles.reduce(
+      (prev: Array<Triangle>, curr: Triangle) => [
+        ...prev,
+        ...this.subdivideTriangle(curr),
+      ],
+      [],
+    );
+  }
 }
 
 function computeAdjacentTriangles(triangles: Triangle[]) {
