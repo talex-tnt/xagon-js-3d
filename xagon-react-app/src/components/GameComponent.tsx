@@ -40,22 +40,25 @@ const onSceneReady = (sceneArg: Scene) => {
   scene.metadata = { icosahedron };
   meshGenerator('icosahedron', scene, icosahedron.getTriangles());
 
-  // SceneLoader.ImportMeshAsync('', './assets/models/', 'triangle.babylon').then(
-  //   () => {
-  //     const triangle = scene.getMeshByName('Triangle');
-  //     console.log('loaded', triangle);
-  //   },
-  // );
+  SceneLoader.ImportMeshAsync('', './assets/models/', 'triangle.babylon').then(
+    () => {
+      const triangle = scene.getMeshByName('Triangle');
+      if (triangle) {
+        triangle.scaling = new Vector3(0.5, 0.5, 0.5);
+        console.log('loaded', triangle);
+      }
+    },
+  );
 };
 
 const onRender = (scene: Scene) => {
-  const icosahedron = scene.getTransformNodeByName('icosahedron');
-  if (icosahedron) {
-    const deltaTimeInMillis = scene.getEngine().getDeltaTime();
-    const rpm = 10;
-    icosahedron.rotation.y +=
-      (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
-  }
+  // const icosahedron = scene.getTransformNodeByName('icosahedron');
+  // if (icosahedron) {
+  //   const deltaTimeInMillis = scene.getEngine().getDeltaTime();
+  //   const rpm = 10;
+  //   icosahedron.rotation.y +=
+  //     (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
+  // }
 };
 
 const GameComponent: React.FC = () => (

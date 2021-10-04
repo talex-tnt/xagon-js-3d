@@ -143,7 +143,7 @@ const createMesh = (
   // material.emissiveColor = new Color3(0, 1, 1);
   // material.ambientColor = new Color3(0.23, 0.98, 0.53);
   material.backFaceCulling = false;
-  // material.alpha = 0.5;
+  material.alpha = 0.5;
   customMesh.material = material;
   vertexData.applyToMesh(customMesh, true);
   return customMesh;

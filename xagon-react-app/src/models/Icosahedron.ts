@@ -16,40 +16,44 @@ class Icosahedron {
     const a = 1.0;
     const b = 1.0 / phi;
 
-    const p1 = new Vector3(0, b, -a);
-    const p2 = new Vector3(b, a, 0);
-    const p3 = new Vector3(-b, a, 0);
-    const p4 = new Vector3(0, b, a);
-    const p5 = new Vector3(0, -b, a);
-    const p6 = new Vector3(-a, 0, b);
-    const p7 = new Vector3(0, -b, -a);
-    const p8 = new Vector3(a, 0, -b);
-    const p9 = new Vector3(a, 0, b);
-    const p10 = new Vector3(-a, 0, -b);
-    const p11 = new Vector3(b, -a, 0);
-    const p12 = new Vector3(-b, -a, 0);
+    const points = [
+      new Vector3(0, b, -a),
+      new Vector3(b, a, 0),
+      new Vector3(-b, a, 0),
+      new Vector3(0, b, a),
+      new Vector3(0, -b, a),
+      new Vector3(-a, 0, b),
+      new Vector3(0, -b, -a),
+      new Vector3(a, 0, -b),
+      new Vector3(a, 0, b),
+      new Vector3(-a, 0, -b),
+      new Vector3(b, -a, 0),
+      new Vector3(-b, -a, 0),
+    ];
+
+    points.forEach((p: Vector3) => p.normalize());
 
     this.triangles = [
-      new Triangle(this.generateId(), p1, p2, p3),
-      new Triangle(this.generateId(), p4, p3, p2),
-      new Triangle(this.generateId(), p4, p5, p6),
-      new Triangle(this.generateId(), p4, p9, p5),
-      new Triangle(this.generateId(), p1, p7, p8),
-      new Triangle(this.generateId(), p1, p10, p7),
-      new Triangle(this.generateId(), p5, p11, p12),
-      new Triangle(this.generateId(), p7, p12, p11),
-      new Triangle(this.generateId(), p3, p6, p10),
-      new Triangle(this.generateId(), p12, p10, p6),
-      new Triangle(this.generateId(), p2, p8, p9),
-      new Triangle(this.generateId(), p11, p9, p8),
-      new Triangle(this.generateId(), p4, p6, p3),
-      new Triangle(this.generateId(), p4, p2, p9),
-      new Triangle(this.generateId(), p1, p3, p10),
-      new Triangle(this.generateId(), p1, p8, p2),
-      new Triangle(this.generateId(), p7, p10, p12),
-      new Triangle(this.generateId(), p7, p11, p8),
-      new Triangle(this.generateId(), p5, p12, p6),
-      new Triangle(this.generateId(), p5, p9, p11),
+      new Triangle(this.generateId(), points[0], points[1], points[2]),
+      new Triangle(this.generateId(), points[3], points[2], points[1]),
+      new Triangle(this.generateId(), points[3], points[4], points[5]),
+      new Triangle(this.generateId(), points[3], points[8], points[4]),
+      new Triangle(this.generateId(), points[0], points[6], points[7]),
+      new Triangle(this.generateId(), points[0], points[9], points[6]),
+      new Triangle(this.generateId(), points[4], points[10], points[11]),
+      new Triangle(this.generateId(), points[6], points[11], points[10]),
+      new Triangle(this.generateId(), points[2], points[5], points[9]),
+      new Triangle(this.generateId(), points[11], points[9], points[5]),
+      new Triangle(this.generateId(), points[1], points[7], points[8]),
+      new Triangle(this.generateId(), points[10], points[8], points[7]),
+      new Triangle(this.generateId(), points[3], points[5], points[2]),
+      new Triangle(this.generateId(), points[3], points[1], points[8]),
+      new Triangle(this.generateId(), points[0], points[2], points[9]),
+      new Triangle(this.generateId(), points[0], points[7], points[1]),
+      new Triangle(this.generateId(), points[6], points[9], points[11]),
+      new Triangle(this.generateId(), points[6], points[10], points[7]),
+      new Triangle(this.generateId(), points[4], points[11], points[5]),
+      new Triangle(this.generateId(), points[4], points[8], points[10]),
     ];
 
     computeAdjacentTriangles(this.triangles);
