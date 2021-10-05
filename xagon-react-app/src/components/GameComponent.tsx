@@ -37,14 +37,22 @@ const onSceneReady = (sceneArg: Scene) => {
   light.setDirectionToTarget(target);
   // light.parent = camera;
   const icosahedron = new Icosahedron();
+  icosahedron.subdivide();
+
   scene.metadata = { icosahedron };
   meshGenerator('icosahedron', scene, icosahedron.getTriangles());
 
   SceneLoader.ImportMeshAsync('', './assets/models/', 'triangle.babylon').then(
     () => {
       const triangle = scene.getMeshByName('Triangle');
+
+      const scalingRatio = 1 / Math.sqrt(3); // triangle's edge scaling ratio
       if (triangle) {
-        triangle.scaling = new Vector3(0.5, 0.5, 0.5);
+        triangle.scaling = new Vector3(
+          scalingRatio,
+          scalingRatio,
+          scalingRatio,
+        );
         console.log('loaded', triangle);
       }
     },
