@@ -24,6 +24,10 @@ class Edge {
     return this.edgeId;
   }
 
+  public length(): number {
+    return this.edge.length();
+  }
+
   public getCenterPoint(scaleFactor = 1): Vector3 {
     return this.edgePoints[1].add(this.edge.scale(scaleFactor));
   }
