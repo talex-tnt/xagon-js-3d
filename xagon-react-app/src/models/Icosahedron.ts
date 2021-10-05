@@ -83,13 +83,13 @@ class Icosahedron {
 
   private subdivideTriangle(triangle: Triangle): Array<Triangle> {
     const edge1 = new Edge(this.generateEdgeId(), triangle.p2(), triangle.p1());
-    const center1 = edge1.getCenterPoint(0.5);
+    const center1 = edge1.getMiddlePoint();
 
     const edge2 = new Edge(this.generateEdgeId(), triangle.p3(), triangle.p2());
-    const center2 = edge2.getCenterPoint(0.5);
+    const center2 = edge2.getMiddlePoint();
 
     const edge3 = new Edge(this.generateEdgeId(), triangle.p1(), triangle.p3());
-    const center3 = edge3.getCenterPoint(0.5);
+    const center3 = edge3.getMiddlePoint();
 
     const scaleToOne = 1 / center1.length();
 

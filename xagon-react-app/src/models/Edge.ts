@@ -4,32 +4,29 @@ export type EdgeId = bigint;
 
 class Edge {
   //
-  private edge: Vector3;
 
-  private edgePoints: Array<Vector3>;
+  private p1: Vector3;
+
+  private p2: Vector3;
 
   private edgeId: EdgeId;
 
-  public constructor(id: EdgeId, a: Vector3, b: Vector3) {
+  public constructor(id: EdgeId, p1: Vector3, p2: Vector3) {
     this.edgeId = id;
-    this.edgePoints = [a, b];
-    this.edge = a.subtract(b);
+    this.p1 = p1;
+    this.p2 = p2;
   }
 
-  public getEdge(): Vector3 {
-    return this.edge;
+  public getVector(): Vector3 {
+    return this.p2.subtract(this.p1);
   }
 
   public getId(): EdgeId {
     return this.edgeId;
   }
 
-  public length(): number {
-    return this.edge.length();
-  }
-
-  public getCenterPoint(scaleFactor = 1): Vector3 {
-    return this.edgePoints[1].add(this.edge.scale(scaleFactor));
+  public getMiddlePoint(): Vector3 {
+    return this.p1.add(this.getVector().scale(0.5));
   }
 }
 
