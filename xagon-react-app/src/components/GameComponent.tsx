@@ -42,21 +42,38 @@ const onSceneReady = (sceneArg: Scene) => {
   scene.metadata = { icosahedron };
   meshGenerator('icosahedron', scene, icosahedron.getTriangles());
 
-  SceneLoader.ImportMeshAsync('', './assets/models/', 'triangle.babylon').then(
-    () => {
-      const triangle = scene.getMeshByName('Triangle');
+  SceneLoader.ImportMeshAsync(
+    'TriangleMesh',
+    './assets/models/',
+    'triangle.babylon',
+  ).then(({ meshes, skeletons }) => {
+    if (meshes && meshes.length > 0) {
+      const triangleMesh = meshes[0];
 
-      const scalingRatio = 1 / Math.sqrt(3); // triangle's edge scaling ratio
-      if (triangle) {
-        triangle.scaling = new Vector3(
+      console.log('loaded', triangleMesh);
+      console.log('meshes', meshes);
+
+      if (skeletons && skeletons.length > 0) {
+        const skeleton = skeletons[0];
+        console.log('bones', skeleton.bones);
+        // skeleton.bones[0].scale(0.8, 0.8, 0.8);
+        // skeleton.bones[1].scale(0.8, 0.8, 0.8);
+        // skeleton.bones[2].scale(0.8, 0.8, 0.8);
+      } else {
+        console.warn('No skeletons found');
+      }
+      const triangleRadius = 1;
+      const triangleSide = triangleRadius * (3 / Math.sqrt(3));
+      const scalingRatio = 1 / triangleSide;
+      if (triangleMesh) {
+        triangleMesh.scaling = new Vector3(
           scalingRatio,
           scalingRatio,
           scalingRatio,
         );
-        console.log('loaded', triangle);
       }
-    },
-  );
+    }
+  });
 };
 
 const onRender = (scene: Scene) => {
