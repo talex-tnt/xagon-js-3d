@@ -9,10 +9,14 @@ Exporter version: 2.93.4, Blender version: 2.93.4
 		Vert Color Precision:  3
 		Mat Weight Precision:  2
 		Keep Z-up r-handed  :  no
-		Texture directory   :  /Users/alex/gitarea/games/xagon-js-3d/xagon-react-app/assets/models/
+		Texture directory   :  /Users/alex/gitarea/games/xagon-js-3d/xagon-react-app/public/assets/models/
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently enabled collection
-	processing begun of mesh:  Triangle
+	processing begun of skeleton:  Triangle, id:  0
+		processing begun of bone:  LeftBone, index:  0
+		processing begun of bone:  RightBone, index:  1
+		processing begun of bone:  TopBone, index:  2
+	processing begun of mesh:  TriangleMesh
 		WARNING: No materials have been assigned: 
 		num positions      :  7103
 		num normals        :  7103
@@ -21,8 +25,14 @@ Exporter version: 2.93.4, Blender version: 2.93.4
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  2400
+		Skeleton stats:  
+			Total Influencers:  14095
+			Avg # of influencers per vertex:  1.9844
+			Highest # of influencers observed:  2, num vertices with this:  6992
+			exported as 2 influencers
+			num skeletonWeights and skeletonIndices:  28412
 ========= Writing of JSON file started =========
-	writing mesh:  Triangle
+	writing mesh:  TriangleMesh
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.1396 secs
+elapsed time:  0 min, 0.2862 secs
