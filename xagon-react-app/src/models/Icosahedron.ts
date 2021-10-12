@@ -113,6 +113,7 @@ class Icosahedron {
       ],
       [],
     );
+
     computeAdjacentTriangles(this.triangles);
   }
 }

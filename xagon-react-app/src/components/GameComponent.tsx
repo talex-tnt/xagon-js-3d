@@ -5,11 +5,14 @@ import {
   HemisphericLight,
   Scene,
   SceneLoader,
+  TransformNode,
 } from '@babylonjs/core';
 
 import SceneComponent from 'components/SceneComponent';
 import meshGenerator from 'debug/meshGenerator';
 import Icosahedron from 'models/Icosahedron';
+
+// import addAxisToScene from 'utils/showAxis';
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
 const onSceneReady = (sceneArg: Scene) => {
@@ -38,6 +41,9 @@ const onSceneReady = (sceneArg: Scene) => {
   // light.parent = camera;
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
+  icosahedron.subdivide();
+
+  const triangles = icosahedron.getTriangles();
 
   scene.metadata = { icosahedron };
   meshGenerator('icosahedron', scene, icosahedron.getTriangles());
@@ -49,29 +55,57 @@ const onSceneReady = (sceneArg: Scene) => {
   ).then(({ meshes, skeletons }) => {
     if (meshes && meshes.length > 0) {
       const triangleMesh = meshes[0];
-
-      console.log('loaded', triangleMesh);
-      console.log('meshes', meshes);
+      // console.log('loaded', triangleMesh);
+      // console.log('meshes', meshes);
 
       if (skeletons && skeletons.length > 0) {
         const skeleton = skeletons[0];
         console.log('bones', skeleton.bones);
-        // skeleton.bones[0].scale(0.8, 0.8, 0.8);
-        // skeleton.bones[1].scale(0.8, 0.8, 0.8);
-        // skeleton.bones[2].scale(0.8, 0.8, 0.8);
+        // skeleton.bones[0].scale(1, 1, 1);
+        // skeleton.bones[1].scale(1, 1, 1);
+        // skeleton.bones[2].scale(1, 1, 1);
       } else {
         console.warn('No skeletons found');
       }
       const triangleRadius = 1;
       const triangleSide = triangleRadius * (3 / Math.sqrt(3));
-      const scalingRatio = 1 / triangleSide;
-      if (triangleMesh) {
-        triangleMesh.scaling = new Vector3(
-          scalingRatio,
-          scalingRatio,
-          scalingRatio,
-        );
-      }
+      const triangleEdgeLength = triangles[0]
+        .p2()
+        .subtract(triangles[0].p1())
+        .length();
+
+      const scalingRatio = (1 / triangleSide) * triangleEdgeLength;
+      triangleMesh.scaling = new Vector3(
+        scalingRatio,
+        scalingRatio,
+        scalingRatio,
+      );
+      triangles.map((tr, i) => {
+        const meshClone = triangleMesh?.clone(`Triangle${i}`, triangleMesh);
+        if (meshClone) {
+          const meshNode = new TransformNode(`tranformNode${i}`);
+          meshClone.metadata = { triangle: tr };
+          const direction = tr.getCenterPoint();
+          meshClone.parent = meshNode;
+          meshNode.setDirection(direction, 0, Math.PI / 2, 0);
+          meshClone.position = new Vector3(0, direction.length(), 0);
+          // addAxisToScene(scene, 5, meshNode.right, meshNode.up, meshNode.forward);
+        }
+        // BONES
+        //   if (meshClone && skeletons && triangleMesh.skeleton) {
+        //     meshClone.skeleton = triangleMesh.skeleton.clone(`skeleton${i}`);
+
+        //     const skeletonMesh = meshClone.skeleton;
+        //     skeletonMesh.bones[0].scale(1, 1, 1);
+        //     skeletonMesh.bones[1].scale(1, 1, 1);
+        //     skeletonMesh.bones[2].scale(1, 1, 1);
+        //   }
+        //   console.log(meshClone.skeleton);
+        // });
+
+        return meshClone;
+      });
+      triangleMesh.visibility = 0;
     }
   });
 };
