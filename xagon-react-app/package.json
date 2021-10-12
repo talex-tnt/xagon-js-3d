@@ -17,6 +17,10 @@
     "web-vitals": "^1.0.1"
   },
   "devDependencies": {
+    "@babylonjs/inspector": "^4.2.0",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
     "@types/cannon": "^0.1.7",
     "@types/jest": "^26.0.15",
     "@types/node": "^12.0.0",
@@ -33,10 +37,7 @@
     "eslint-plugin-react": "^7.26.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-redux-saga": "^1.2.1",
-    "prettier": "^2.4.1",
-    "@testing-library/jest-dom": "^5.11.4",
-    "@testing-library/react": "^11.1.0",
-    "@testing-library/user-event": "^12.1.10"
+    "prettier": "^2.4.1"
   },
   "scripts": {
     "start": "react-scripts start",

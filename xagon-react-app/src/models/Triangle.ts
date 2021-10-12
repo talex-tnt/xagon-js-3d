@@ -44,6 +44,17 @@ class Triangle {
     return this.vertices;
   }
 
+  public getCenterPoint(): Vector3 {
+    const middlePoint = this.vertices[0].add(
+      this.vertices[1].subtract(this.vertices[0]).scale(0.5),
+    );
+    const center = this.vertices[2].add(
+      middlePoint.subtract(this.vertices[2]).scale(2 / 3),
+    );
+
+    return center;
+  }
+
   public getAdjacents(): AdjacentTriangles {
     return this.adjacents;
   }
