@@ -70,18 +70,15 @@ const onSceneReady = (sceneArg: Scene) => {
       }
       const triangleRadius = 1;
       const triangleSide = triangleRadius * (3 / Math.sqrt(3));
-      const triangleEdgeLength = triangles[0]
-        .p2()
-        .subtract(triangles[0].p1())
-        .length();
 
-      const scalingRatio = (1 / triangleSide) * triangleEdgeLength;
-      triangleMesh.scaling = new Vector3(
-        scalingRatio,
-        scalingRatio,
-        scalingRatio,
-      );
       triangles.slice(0, 3).map((tr, i) => {
+        const triangleEdgeLength = tr.getShortestEdgeLength();
+        const scalingRatio = (1 / triangleSide) * triangleEdgeLength;
+        triangleMesh.scaling = new Vector3(
+          scalingRatio,
+          scalingRatio,
+          scalingRatio,
+        );
         const meshClone = triangleMesh?.clone(`Triangle${i}`, triangleMesh);
         if (meshClone) {
           const meshNode = new TransformNode(`tranformNode${i}`);
