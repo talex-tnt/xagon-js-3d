@@ -29,7 +29,8 @@ const onSceneReady = (sceneArg: Scene) => {
     target,
     scene,
   );
-  camera.lowerRadiusLimit = 2; // we dont' want to get too close
+  camera.minZ = 0.1;
+  camera.lowerRadiusLimit = 1.5; // we dont' want to get too close
 
   const canvas = scene.getEngine().getRenderingCanvas();
   camera.attachControl(canvas, true);
