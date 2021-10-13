@@ -34,8 +34,8 @@ export const addAxisToScene = (
     const plane = Mesh.CreatePlane('TextPlane', sizePlane, scene, true);
     plane.material = new StandardMaterial('TextPlaneMaterial', scene);
     plane.material.backFaceCulling = false;
-    plane.material.specularColor = new Color3(0, 0, 0);
-    plane.material.diffuseTexture = dynamicTexture;
+    (plane.material as StandardMaterial).specularColor = new Color3(0, 0, 0);
+    (plane.material as StandardMaterial).diffuseTexture = dynamicTexture;
     return plane;
   };
 
