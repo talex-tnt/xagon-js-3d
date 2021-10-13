@@ -29,9 +29,9 @@ const onSceneReady = (sceneArg: Scene) => {
     target,
     scene,
   );
+  camera.lowerRadiusLimit = 2; // we dont' want to get too close
 
   const canvas = scene.getEngine().getRenderingCanvas();
-
   camera.attachControl(canvas, true);
 
   const light = new HemisphericLight('light', new Vector3(0, 1, 0), scene);
