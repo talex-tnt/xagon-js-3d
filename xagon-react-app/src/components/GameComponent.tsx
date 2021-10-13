@@ -12,7 +12,7 @@ import SceneComponent from 'components/SceneComponent';
 import meshGenerator from 'debug/meshGenerator';
 import Icosahedron from 'models/Icosahedron';
 
-// import addAxisToScene from 'utils/showAxis';
+import { addAxisToScene } from 'utils';
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
 const onSceneReady = (sceneArg: Scene) => {
@@ -80,7 +80,7 @@ const onSceneReady = (sceneArg: Scene) => {
         scalingRatio,
         scalingRatio,
       );
-      triangles.map((tr, i) => {
+      triangles.slice(0, 3).map((tr, i) => {
         const meshClone = triangleMesh?.clone(`Triangle${i}`, triangleMesh);
         if (meshClone) {
           const meshNode = new TransformNode(`tranformNode${i}`);
@@ -89,7 +89,7 @@ const onSceneReady = (sceneArg: Scene) => {
           meshClone.parent = meshNode;
           meshNode.setDirection(direction, 0, Math.PI / 2, 0);
           meshClone.position = new Vector3(0, direction.length(), 0);
-          // addAxisToScene(scene, 5, meshNode.right, meshNode.up, meshNode.forward);
+          addAxisToScene({ scene, size: 1, parent: meshClone });
         }
         // BONES
         //   if (meshClone && skeletons && triangleMesh.skeleton) {

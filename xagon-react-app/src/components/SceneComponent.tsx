@@ -66,7 +66,7 @@ const SceneComponent: React.FC<SceneComponentProps> = (props) => {
       if (ENABLE_DEBUG) {
         scene.debugLayer.show();
         // WORLD AXIS
-        addAxisToScene(scene, 5);
+        addAxisToScene({ scene, size: 5 });
       }
 
       return () => {
