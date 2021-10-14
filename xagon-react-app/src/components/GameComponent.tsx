@@ -42,7 +42,7 @@ const onSceneReady = (sceneArg: Scene) => {
   // light.parent = camera;
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
-  icosahedron.subdivide();
+  // icosahedron.subdivide();
   // icosahedron.subdivide();
   const triangles = icosahedron.getTriangles();
 
@@ -94,13 +94,13 @@ const onSceneReady = (sceneArg: Scene) => {
           const p1CenterVector = tr.p1().subtract(triangleCenter);
 
           const angle = Vector3.GetAngleBetweenVectors(
-            p1CenterVector,
             meshNode.forward,
+            p1CenterVector,
             meshNode.up,
           );
           console.log(angle);
 
-          meshClone.rotate(meshClone.up, -angle);
+          meshClone.rotate(meshClone.up, angle);
         }
         // BONES
         //   if (meshClone && skeletons && triangleMesh.skeleton) {
