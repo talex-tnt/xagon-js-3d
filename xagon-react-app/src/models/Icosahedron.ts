@@ -91,11 +91,9 @@ class Icosahedron {
     const edge3 = new Edge(this.generateEdgeId(), triangle.p1(), triangle.p3());
     const center3 = edge3.getMiddlePoint();
 
-    const scaleToOne = 1 / center1.length();
-
-    const p1 = center1.scale(scaleToOne);
-    const p2 = center2.scale(scaleToOne);
-    const p3 = center3.scale(scaleToOne);
+    const p1 = center1.scale(1 / center1.length());
+    const p2 = center2.scale(1 / center2.length());
+    const p3 = center3.scale(1 / center3.length());
 
     const tr1 = new Triangle(this.generateTriangleId(), triangle.p1(), p1, p3);
     const tr2 = new Triangle(this.generateTriangleId(), p1, triangle.p2(), p2);

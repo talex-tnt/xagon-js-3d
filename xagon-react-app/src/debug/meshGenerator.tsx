@@ -54,7 +54,9 @@ const meshGenerator = (
 
               if (adjMesh && adjMesh.material) {
                 // adjMesh.material.alpha = 0.5;
-                adjMesh.material.diffuseColor = new Color3(0, 0, 0);
+                const mat: StandardMaterial =
+                  adjMesh.material as StandardMaterial;
+                mat.diffuseColor = new Color3(0, 0, 0);
               }
             });
           }
