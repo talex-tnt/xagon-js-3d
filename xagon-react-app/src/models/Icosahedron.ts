@@ -114,6 +114,17 @@ class Icosahedron {
 
     computeAdjacentTriangles(this.triangles);
   }
+
+  public findShortestEdgeLength(): number {
+    let shortestEdgeLength = this.triangles[0]?.getShortestEdgeLength();
+    this.triangles.slice(1, 12).forEach((tr) => {
+      shortestEdgeLength = Math.min(
+        tr.getShortestEdgeLength(),
+        shortestEdgeLength,
+      );
+    });
+    return shortestEdgeLength;
+  }
 }
 
 function computeAdjacentTriangles(triangles: Triangle[]) {
