@@ -43,7 +43,7 @@ const onSceneReady = (sceneArg: Scene) => {
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
   icosahedron.subdivide();
-
+  // icosahedron.subdivide();
   const triangles = icosahedron.getTriangles();
 
   scene.metadata = { icosahedron };
@@ -70,9 +70,9 @@ const onSceneReady = (sceneArg: Scene) => {
       }
       const triangleRadius = 1;
       const triangleSide = triangleRadius * (3 / Math.sqrt(3));
+      const triangleEdgeLength = icosahedron.findShortestEdgeLength();
 
-      triangles.slice(0, 3).map((tr, i) => {
-        const triangleEdgeLength = tr.getShortestEdgeLength();
+      triangles.map((tr, i) => {
         const scalingRatio = (1 / triangleSide) * triangleEdgeLength;
         triangleMesh.scaling = new Vector3(
           scalingRatio,
@@ -83,11 +83,24 @@ const onSceneReady = (sceneArg: Scene) => {
         if (meshClone) {
           const meshNode = new TransformNode(`tranformNode${i}`);
           meshClone.metadata = { triangle: tr };
-          const direction = tr.getCenterPoint();
+          const triangleCenter = tr.getCenterPoint();
+          const direction = triangleCenter; // Center - origin
           meshClone.parent = meshNode;
           meshNode.setDirection(direction, 0, Math.PI / 2, 0);
           meshClone.position = new Vector3(0, direction.length(), 0);
-          addAxisToScene({ scene, size: 1, parent: meshClone });
+
+          // addAxisToScene({ scene, size: 1, parent: meshClone });
+
+          const p1CenterVector = tr.p1().subtract(triangleCenter);
+
+          const angle = Vector3.GetAngleBetweenVectors(
+            p1CenterVector,
+            meshNode.forward,
+            meshNode.up,
+          );
+          console.log(angle);
+
+          meshClone.rotate(meshClone.up, -angle);
         }
         // BONES
         //   if (meshClone && skeletons && triangleMesh.skeleton) {
@@ -100,7 +113,6 @@ const onSceneReady = (sceneArg: Scene) => {
         //   }
         //   console.log(meshClone.skeleton);
         // });
-
         return meshClone;
       });
       triangleMesh.visibility = 0;
