@@ -12,7 +12,7 @@ import SceneComponent from 'components/SceneComponent';
 import meshGenerator from 'debug/meshGenerator';
 import Icosahedron from 'models/Icosahedron';
 
-import { addAxisToScene } from 'utils';
+// import { addAxisToScene } from 'utils';
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
 const onSceneReady = (sceneArg: Scene) => {
@@ -44,8 +44,8 @@ const onSceneReady = (sceneArg: Scene) => {
   // light.parent = camera;
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
-  // icosahedron.subdivide();
-  // icosahedron.subdivide();
+  icosahedron.subdivide();
+  icosahedron.subdivide();
   const triangles = icosahedron.getTriangles();
 
   scene.metadata = { icosahedron };
@@ -54,29 +54,28 @@ const onSceneReady = (sceneArg: Scene) => {
   SceneLoader.ImportMeshAsync(
     'TriangleMesh',
     './assets/models/',
-    'triangle.babylon',
+    'triangle1.babylon',
   ).then(({ meshes, skeletons }) => {
     if (meshes && meshes.length > 0) {
       const triangleMesh = meshes[0];
       const TRIANGLE_RADIUS = 1;
       const TRIANGLE_SIDE = TRIANGLE_RADIUS * (3 / Math.sqrt(3));
-      const TRIANGLE_SCALE = 0.9;
-      const triangleEdgeLength = icosahedron.findShortestEdgeLength();
+      const TRIANGLE_SCALE = 1;
+
+      const equilateralTriangle = icosahedron.findEquilateralTriangle();
+
+      const triangleEdgeLength = equilateralTriangle
+        .p1()
+        .subtract(equilateralTriangle.p2())
+        .length();
+
       const scalingRatio =
         (1 / TRIANGLE_SIDE) * triangleEdgeLength * TRIANGLE_SCALE;
 
-      // console.log('loaded', triangleMesh);
-      // console.log('meshes', meshes);
-
-      // if (skeletons && skeletons.length > 0) {
-      //   const skeleton = skeletons[0];
-      //   console.log('bones', skeleton.bones);
-      //   skeleton.bones[0].scale(1, 1, 1);
-      //   skeleton.bones[1].scale(1, 1, 1);
-      //   skeleton.bones[2].scale(1, 1, 1);
-      // } else {
-      //   console.warn('No skeletons found');
-      // }
+      const radiusEquilaterTriangle = equilateralTriangle
+        .p1()
+        .subtract(equilateralTriangle?.getCenterPoint())
+        .length();
 
       triangles.forEach((tr, i) => {
         triangleMesh.scaling = new Vector3(
@@ -96,6 +95,7 @@ const onSceneReady = (sceneArg: Scene) => {
 
           // addAxisToScene({ scene, size: 1, parent: meshClone });
           // addAxisToScene({ scene, size: 1, parent: meshNode });
+
           const p1CenterVector = tr.p1().subtract(triangleCenter);
           const p2CenterVector = tr.p2().subtract(triangleCenter);
           const p3CenterVector = tr.p3().subtract(triangleCenter);
@@ -111,16 +111,8 @@ const onSceneReady = (sceneArg: Scene) => {
             meshClone.skeleton = triangleMesh.skeleton.clone(`skeleton${i}`);
             const skeletonMesh = meshClone.skeleton;
 
-            // const angle2 = Vector3.GetAngleBetweenVectors(
-            //   p3CenterVector,
-            //   p1CenterVector,
-            //   meshNode.up,
-            // );
-            // const R2 = skeletonMesh.bones[2].rotation;
-            // R2.y -= angle2 + Math.PI / (6 / 4);
-
-            const RotationBone1 = skeletonMesh.bones[0].rotation;
-            const RotationBone2 = skeletonMesh.bones[1].rotation;
+            const rotationBone1 = skeletonMesh.bones[0].rotation;
+            const rotationBone2 = skeletonMesh.bones[1].rotation;
 
             const angleP1ToP3 = Vector3.GetAngleBetweenVectors(
               p1CenterVector,
@@ -133,12 +125,23 @@ const onSceneReady = (sceneArg: Scene) => {
               meshNode.up,
             );
 
-            RotationBone1.y += angleP1ToP3 - angle120;
-            RotationBone2.y += angleP1ToP2 + angle120;
+            rotationBone1.y += angleP1ToP3 - angle120;
+            rotationBone2.y += angleP1ToP2 + angle120;
 
-            skeletonMesh.bones[0].setRotation(RotationBone1);
-            skeletonMesh.bones[1].setRotation(RotationBone2);
-            // skeletonMesh.bones[2].setRotation(R2);
+            skeletonMesh.bones[0].setRotation(rotationBone1);
+            skeletonMesh.bones[1].setRotation(rotationBone2);
+
+            if (radiusEquilaterTriangle) {
+              const scaleBone0 =
+                p3CenterVector.length() / radiusEquilaterTriangle;
+              const scaleBone1 =
+                p2CenterVector.length() / radiusEquilaterTriangle;
+              const scaleBone2 =
+                p1CenterVector.length() / radiusEquilaterTriangle;
+              skeletonMesh.bones[0].scale(1, scaleBone0, 1);
+              skeletonMesh.bones[1].scale(1, scaleBone1, 1);
+              skeletonMesh.bones[2].scale(1, scaleBone2, 1);
+            }
           }
         }
       });

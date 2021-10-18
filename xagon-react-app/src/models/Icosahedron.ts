@@ -125,6 +125,23 @@ class Icosahedron {
     });
     return shortestEdgeLength;
   }
+
+  public findEquilateralTriangle(): Triangle {
+    const equilateralTriangle = this.triangles.find((tr) => {
+      const edge1 = tr.p1().subtract(tr.p2()).length();
+      const edge2 = tr.p2().subtract(tr.p3()).length();
+      const edge3 = tr.p3().subtract(tr.p1()).length();
+      return (
+        edge1.toFixed(8) === edge2.toFixed(8) &&
+        edge2.toFixed(8) === edge3.toFixed(8)
+      );
+    });
+    if (!equilateralTriangle) {
+      console.warn(false, 'Equilateral Triangle not found');
+      debugger;
+    }
+    return equilateralTriangle || this.triangles[0];
+  }
 }
 
 function computeAdjacentTriangles(triangles: Triangle[]) {
