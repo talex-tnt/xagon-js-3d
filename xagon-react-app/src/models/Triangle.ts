@@ -70,18 +70,6 @@ class Triangle {
       this.adjacents.push(triangle);
     }
   }
-
-  public getShortestEdgeLength(): number {
-    const p1p2 = this.p2().subtract(this.p1());
-    const p2p3 = this.p3().subtract(this.p2());
-    const p3p1 = this.p1().subtract(this.p3());
-    return Math.min(Math.min(p1p2.length(), p2p3.length()), p3p1.length());
-  }
-
-  public log(): void {
-    // eslint-disable-next-line no-console
-    console.log(this.vertices);
-  }
 }
 
 export default Triangle;

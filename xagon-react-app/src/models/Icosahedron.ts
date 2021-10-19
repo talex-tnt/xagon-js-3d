@@ -115,17 +115,6 @@ class Icosahedron {
     computeAdjacentTriangles(this.triangles);
   }
 
-  public findShortestEdgeLength(): number {
-    let shortestEdgeLength = this.triangles[0]?.getShortestEdgeLength();
-    this.triangles.slice(1, 12).forEach((tr) => {
-      shortestEdgeLength = Math.min(
-        tr.getShortestEdgeLength(),
-        shortestEdgeLength,
-      );
-    });
-    return shortestEdgeLength;
-  }
-
   public findEquilateralTriangle(): Triangle {
     const equilateralTriangle = this.triangles.find((tr) => {
       const edge1 = tr.p1().subtract(tr.p2()).length();
@@ -179,8 +168,3 @@ function computeAdjacentTriangles(triangles: Triangle[]) {
 }
 
 export default Icosahedron;
-
-/*
-edgeTrianglesMap[p1][p2] = [triangle0];
-
-*/

@@ -45,7 +45,7 @@ const onSceneReady = (sceneArg: Scene) => {
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
   icosahedron.subdivide();
-  icosahedron.subdivide();
+  // icosahedron.subdivide();
   const triangles = icosahedron.getTriangles();
 
   scene.metadata = { icosahedron };
@@ -60,7 +60,7 @@ const onSceneReady = (sceneArg: Scene) => {
       const triangleMesh = meshes[0];
       const TRIANGLE_RADIUS = 1;
       const TRIANGLE_SIDE = TRIANGLE_RADIUS * (3 / Math.sqrt(3));
-      const TRIANGLE_SCALE = 1;
+      const TRIANGLE_SCALE = 0.9;
 
       const equilateralTriangle = icosahedron.findEquilateralTriangle();
 
