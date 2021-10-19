@@ -99,6 +99,13 @@ class Icosahedron {
     const tr2 = new Triangle(this.generateTriangleId(), p1, triangle.p2(), p2);
     const tr3 = new Triangle(this.generateTriangleId(), p1, p2, p3);
     const tr4 = new Triangle(this.generateTriangleId(), p3, p2, triangle.p3());
+    const randomType = () =>
+      Math.floor(Math.random() * Triangle.getTypesCount());
+
+    tr1.setType(randomType());
+    tr2.setType(randomType());
+    tr3.setType(randomType());
+    tr4.setType(randomType());
 
     return [tr1, tr2, tr3, tr4];
   }

@@ -11,7 +11,7 @@ import {
 import SceneComponent from 'components/SceneComponent';
 import meshGenerator from 'debug/meshGenerator';
 import Icosahedron from 'models/Icosahedron';
-import { math } from 'utils/math';
+import { math } from 'utils';
 import cameraSetup from './cameraSetup';
 import inputSetup from './inputSetup';
 import lightSetup from './lightSetup';
@@ -79,22 +79,12 @@ const onSceneReady = (sceneArg: Scene) => {
           meshNode.setDirection(direction, 0, math.angle90, 0);
           meshClone.position = new Vector3(0, direction.length(), 0);
           // Clone Color
-          // const material = new StandardMaterial('cloneMaterial', scene);
-          // const colors = {
-          //   0: Color3.Blue(),
-          //   1: Color3.Red(),
-          //   2: Color3.Yellow(),
-          //   3: Color3.Green(),
-          //   4: Color3.Purple(),
-          //   5: Color3.Gray(),
-          // };
-          // const hue = Math.random() * 255;
-          // const saturation = 1;
-          // const value = 1;
-          // Color3.HSVtoRGBToRef(hue, saturation, value, material.diffuseColor);
-          // material.backFaceCulling = false;
-          // material.alpha = 1;
-          // meshClone.material = material;
+          const material = new StandardMaterial('cloneMaterial', scene);
+
+          material.diffuseColor = tr.getColor();
+          material.backFaceCulling = false;
+          material.alpha = 1;
+          meshClone.material = material;
 
           // addAxisToScene({ scene, size: 1, parent: meshClone });
           // addAxisToScene({ scene, size: 1, parent: meshNode });
