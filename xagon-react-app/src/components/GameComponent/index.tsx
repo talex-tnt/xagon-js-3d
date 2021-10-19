@@ -31,6 +31,7 @@ const onSceneReady = (sceneArg: Scene) => {
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
   icosahedron.subdivide();
+  // icosahedron.subdivide();
 
   const triangles = icosahedron.getTriangles();
 
@@ -40,13 +41,13 @@ const onSceneReady = (sceneArg: Scene) => {
   SceneLoader.ImportMeshAsync(
     'TriangleMesh',
     './assets/models/',
-    'triangleDebug.babylon',
+    'triangle.babylon',
   ).then(({ meshes, skeletons }) => {
     if (meshes && meshes.length > 0) {
       const triangleMesh = meshes[0];
       const TRIANGLE_RADIUS = 1;
       const TRIANGLE_SIDE = TRIANGLE_RADIUS * (3 / Math.sqrt(3));
-      const TRIANGLE_SCALE = 0.9;
+      const TRIANGLE_SCALE = 0.85;
 
       const equilateralTriangle = icosahedron.findEquilateralTriangle();
 
@@ -63,6 +64,8 @@ const onSceneReady = (sceneArg: Scene) => {
         .subtract(equilateralTriangle?.getCenterPoint())
         .length();
 
+      const rootNode = new TransformNode('root');
+
       triangles.forEach((tr, i) => {
         triangleMesh.scaling = new Vector3(
           scalingRatio,
@@ -72,6 +75,7 @@ const onSceneReady = (sceneArg: Scene) => {
         const meshClone = triangleMesh?.clone(`Triangle${i}`, triangleMesh);
         if (meshClone) {
           const meshNode = new TransformNode(`tranformNode${i}`);
+          meshNode.parent = rootNode;
           meshClone.metadata = { triangle: tr };
           const triangleCenter = tr.getCenterPoint();
           const direction = triangleCenter; // Center - origin
@@ -144,12 +148,11 @@ const onSceneReady = (sceneArg: Scene) => {
 };
 
 const onRender = (scene: Scene) => {
-  // const icosahedron = scene.getTransformNodeByName('icosahedron');
-  // if (icosahedron) {
+  // const root = scene.getTransformNodeByName('root');
+  // if (root) {
   //   const deltaTimeInMillis = scene.getEngine().getDeltaTime();
-  //   const rpm = 10;
-  //   icosahedron.rotation.y +=
-  //     (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
+  //   const rpm = 5;
+  //   root.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
   // }
 };
 
