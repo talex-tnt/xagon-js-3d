@@ -11,7 +11,7 @@ import {
 import SceneComponent from 'components/SceneComponent';
 import meshGenerator from 'debug/meshGenerator';
 import Icosahedron from 'models/Icosahedron';
-import { angle90, angle120 } from 'utils/math';
+import { math } from 'utils/math';
 import cameraSetup from './cameraSetup';
 import inputSetup from './inputSetup';
 import lightSetup from './lightSetup';
@@ -76,7 +76,7 @@ const onSceneReady = (sceneArg: Scene) => {
           const triangleCenter = tr.getCenterPoint();
           const direction = triangleCenter; // Center - origin
           meshClone.parent = meshNode;
-          meshNode.setDirection(direction, 0, angle90, 0);
+          meshNode.setDirection(direction, 0, math.angle90, 0);
           meshClone.position = new Vector3(0, direction.length(), 0);
           // Clone Color
           // const material = new StandardMaterial('cloneMaterial', scene);
@@ -128,8 +128,8 @@ const onSceneReady = (sceneArg: Scene) => {
               meshNode.up,
             );
 
-            rotationBone1.y += angleP1ToP3 - angle120;
-            rotationBone2.y += angleP1ToP2 + angle120;
+            rotationBone1.y += angleP1ToP3 - math.angle120;
+            rotationBone2.y += angleP1ToP2 + math.angle120;
 
             skeletonMesh.bones[0].setRotation(rotationBone1);
             skeletonMesh.bones[1].setRotation(rotationBone2);

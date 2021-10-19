@@ -1,2 +1,4 @@
-export const angle90 = Math.PI * 0.5;
-export const angle120 = Math.PI * (2 / 3);
+export const math = {
+  angle90: Math.PI * 0.5,
+  angle120: Math.PI * (2 / 3),
+};
