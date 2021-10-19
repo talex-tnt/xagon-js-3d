@@ -142,7 +142,7 @@ const createMesh = (
   const value = 1;
   Color3.HSVtoRGBToRef(hue, saturation, value, material.diffuseColor);
   material.backFaceCulling = false;
-  material.alpha = 0.3;
+  material.alpha = 0;
   customMesh.material = material;
   vertexData.applyToMesh(customMesh, true);
   return customMesh;
