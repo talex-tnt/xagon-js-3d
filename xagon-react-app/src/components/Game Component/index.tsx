@@ -1,51 +1,37 @@
 import React from 'react';
 import {
-  ArcRotateCamera,
   Vector3,
-  HemisphericLight,
   Scene,
   SceneLoader,
   TransformNode,
+  StandardMaterial,
+  Color3,
 } from '@babylonjs/core';
 
 import SceneComponent from 'components/SceneComponent';
 import meshGenerator from 'debug/meshGenerator';
 import Icosahedron from 'models/Icosahedron';
+import { angle90, angle120 } from 'utils/math';
+import cameraSetup from './cameraSetup';
+import inputSetup from './inputSetup';
+import lightSetup from './lightSetup';
 
 // import { addAxisToScene } from 'utils';
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
 const onSceneReady = (sceneArg: Scene) => {
   const scene: Scene = sceneArg;
-  const alpha = -Math.PI / 2;
-  const beta = Math.PI / 2.5;
-  const radius = 3;
-  const angle90 = Math.PI / 2;
-  const angle120 = Math.PI / (6 / 4);
   const target = new Vector3(0, 0, 0);
-  const camera = new ArcRotateCamera(
-    'camera',
-    alpha,
-    beta,
-    radius,
-    target,
-    scene,
-  );
-  camera.minZ = 0.1;
-  camera.lowerRadiusLimit = 1.5; // we dont' want to get too close
+  const camera = cameraSetup(scene, target);
 
-  const canvas = scene.getEngine().getRenderingCanvas();
-  camera.attachControl(canvas, true);
+  inputSetup(scene, camera);
 
-  const light = new HemisphericLight('light', new Vector3(0, 1, 0), scene);
+  lightSetup(scene, target);
 
-  light.intensity = 1.1;
-  light.setDirectionToTarget(target);
-  // light.parent = camera;
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
   icosahedron.subdivide();
-  // icosahedron.subdivide();
+
   const triangles = icosahedron.getTriangles();
 
   scene.metadata = { icosahedron };
@@ -54,7 +40,7 @@ const onSceneReady = (sceneArg: Scene) => {
   SceneLoader.ImportMeshAsync(
     'TriangleMesh',
     './assets/models/',
-    'triangle1.babylon',
+    'triangleDebug.babylon',
   ).then(({ meshes, skeletons }) => {
     if (meshes && meshes.length > 0) {
       const triangleMesh = meshes[0];
@@ -92,6 +78,23 @@ const onSceneReady = (sceneArg: Scene) => {
           meshClone.parent = meshNode;
           meshNode.setDirection(direction, 0, angle90, 0);
           meshClone.position = new Vector3(0, direction.length(), 0);
+          // Clone Color
+          // const material = new StandardMaterial('cloneMaterial', scene);
+          // const colors = {
+          //   0: Color3.Blue(),
+          //   1: Color3.Red(),
+          //   2: Color3.Yellow(),
+          //   3: Color3.Green(),
+          //   4: Color3.Purple(),
+          //   5: Color3.Gray(),
+          // };
+          // const hue = Math.random() * 255;
+          // const saturation = 1;
+          // const value = 1;
+          // Color3.HSVtoRGBToRef(hue, saturation, value, material.diffuseColor);
+          // material.backFaceCulling = false;
+          // material.alpha = 1;
+          // meshClone.material = material;
 
           // addAxisToScene({ scene, size: 1, parent: meshClone });
           // addAxisToScene({ scene, size: 1, parent: meshNode });
@@ -107,7 +110,7 @@ const onSceneReady = (sceneArg: Scene) => {
           );
           //
           meshClone.rotate(meshClone.up, angle);
-          if (meshClone && skeletons && triangleMesh.skeleton) {
+          if (skeletons && triangleMesh.skeleton) {
             meshClone.skeleton = triangleMesh.skeleton.clone(`skeleton${i}`);
             const skeletonMesh = meshClone.skeleton;
 
