@@ -8,9 +8,8 @@ import {
   Color3,
   AbstractMesh,
   PointerEventTypes,
-  PointerDragBehavior,
   Nullable,
-  MeshBuilder,
+  // MeshBuilder,
 } from '@babylonjs/core';
 
 import SceneComponent from 'components/SceneComponent';
@@ -19,8 +18,8 @@ import { math, addAxisToScene } from 'utils';
 import Triangle from 'models/Triangle';
 import { Material } from 'react-babylonjs';
 import setupCamera from './setupCamera';
-import setupInput from './setupInput';
 import setupLight from './setupLight';
+import InputManager from './inputManager/InputManager';
 
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
@@ -38,7 +37,7 @@ const onSceneReady = (sceneArg: Scene) => {
 
   scene.metadata = { icosahedron };
 
-  setupInput(scene, camera, triangles);
+  const inputManager = new InputManager(scene, camera, triangles);
   setupLight(scene, target);
 
   SceneLoader.ImportMeshAsync(
@@ -84,7 +83,16 @@ const onSceneReady = (sceneArg: Scene) => {
           const triangleCenter = tr.getCenterPoint();
           const direction = triangleCenter; // Center - origin
           meshClone.parent = scalingNode;
-          positionNode.setDirection(direction, 0, math.angle90, 0);
+
+          const yawCorrection = 0;
+          const pitchCorrection = math.angle90;
+          const rollCorrection = 0;
+          positionNode.setDirection(
+            direction,
+            yawCorrection,
+            pitchCorrection,
+            rollCorrection,
+          );
           rotationNode.position = new Vector3(0, direction.length(), 0);
           scalingNode.scaling = new Vector3(
             scalingRatio,
@@ -139,93 +147,23 @@ const onSceneReady = (sceneArg: Scene) => {
             skeletonMesh.bones[1].setRotation(rotationBone2);
 
             if (radiusEquilaterTriangle) {
-              const scaleBone0 =
-                p3CenterVector.length() / radiusEquilaterTriangle;
-              const scaleBone1 =
-                p2CenterVector.length() / radiusEquilaterTriangle;
-              const scaleBone2 =
-                p1CenterVector.length() / radiusEquilaterTriangle;
-              skeletonMesh.bones[0].scale(1, scaleBone0, 1);
-              skeletonMesh.bones[1].scale(1, scaleBone1, 1);
-              skeletonMesh.bones[2].scale(1, scaleBone2, 1);
+              const scaleBones = [
+                p3CenterVector.length() / radiusEquilaterTriangle,
+                p2CenterVector.length() / radiusEquilaterTriangle,
+                p1CenterVector.length() / radiusEquilaterTriangle,
+              ];
+
+              skeletonMesh.bones.map((bone, index) =>
+                bone.scale(1, scaleBones[index], 1),
+              );
             }
           }
         }
       });
       triangleMesh.visibility = 0;
 
-      scene.onPointerObservable.add((pointerInfo) => {
-        switch (pointerInfo.type) {
-          case PointerEventTypes.POINTERDOWN:
-            {
-              const mesh =
-                pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
-              if (mesh) {
-                const assetMesh = getAssetMesh(mesh);
-                const { triangle } = mesh.metadata;
-                if (assetMesh && assetMesh.skeleton) {
-                  const flipNode = new TransformNode(
-                    `flipNode${triangle.getId()}`,
-                  );
-                  flipNode.parent = assetMesh.parent;
-                  assetMesh.parent = flipNode;
-
-                  const objSpaceP1 = assetMesh.skeleton.bones[0]
-                    .getDirection(triangleMesh.up)
-                    .scale(scalingRatio);
-                  const objSpaceP2 = assetMesh.skeleton.bones[1]
-                    .getDirection(triangleMesh.up)
-                    .scale(scalingRatio);
-                  const objSpaceP3 = assetMesh.skeleton.bones[2]
-                    .getDirection(triangleMesh.up)
-                    .scale(scalingRatio);
-
-                  const edges = [
-                    objSpaceP1.subtract(objSpaceP3),
-                    objSpaceP1.subtract(objSpaceP2),
-                    objSpaceP3.subtract(objSpaceP2),
-                  ];
-
-                  flipNode.position = Vector3.Center(
-                    objSpaceP2,
-                    objSpaceP3,
-                  ).scale(1 / (scalingRatio * TRIANGLE_SCALE));
-                  assetMesh.position = Vector3.Center(
-                    objSpaceP2,
-                    objSpaceP3,
-                  ).scale(-1 / (scalingRatio * TRIANGLE_SCALE));
-
-                  // debug rotation edge
-                  // MeshBuilder.CreateLines('line', {
-                  //   points: [triangle.p1(), triangle.p2()],
-                  // });
-
-                  scene.registerBeforeRender(() => {
-                    flipNode.rotate(edges[2], Math.PI * 0.01);
-                  });
-                }
-              }
-            }
-            break;
-          default:
-            break;
-        }
-      });
+      inputManager.onMeshLoaded(triangleMesh, scalingRatio);
     }
-
-    const getAssetMesh = (
-      mesh: false | Nullable<AbstractMesh> | undefined,
-    ): Nullable<AbstractMesh> | void => {
-      if (mesh) {
-        const name = mesh.metadata.triangle.getName();
-        const assetMesh = scene.getMeshByName(name);
-        if (assetMesh) {
-          return assetMesh;
-        }
-        return mesh;
-      }
-      return undefined;
-    };
   });
 };
 
