@@ -6,37 +6,40 @@ import {
   TransformNode,
   StandardMaterial,
   Color3,
+  AbstractMesh,
+  PointerEventTypes,
+  PointerDragBehavior,
+  Nullable,
+  MeshBuilder,
 } from '@babylonjs/core';
 
 import SceneComponent from 'components/SceneComponent';
-import meshGenerator from 'debug/meshGenerator';
 import Icosahedron from 'models/Icosahedron';
-import { math } from 'utils';
-import cameraSetup from './cameraSetup';
-import inputSetup from './inputSetup';
-import lightSetup from './lightSetup';
+import { math, addAxisToScene } from 'utils';
+import Triangle from 'models/Triangle';
+import { Material } from 'react-babylonjs';
+import setupCamera from './setupCamera';
+import setupInput from './setupInput';
+import setupLight from './setupLight';
 
-// import { addAxisToScene } from 'utils';
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
 const onSceneReady = (sceneArg: Scene) => {
   const scene: Scene = sceneArg;
   const target = new Vector3(0, 0, 0);
-  const camera = cameraSetup(scene, target);
-
-  inputSetup(scene, camera);
-
-  lightSetup(scene, target);
+  const camera = setupCamera(scene, target);
 
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
-  icosahedron.subdivide();
+  // icosahedron.subdivide();
   // icosahedron.subdivide();
 
   const triangles = icosahedron.getTriangles();
 
   scene.metadata = { icosahedron };
-  meshGenerator('icosahedron', scene, icosahedron.getTriangles());
+
+  setupInput(scene, camera, triangles);
+  setupLight(scene, target);
 
   SceneLoader.ImportMeshAsync(
     'TriangleMesh',
@@ -66,22 +69,28 @@ const onSceneReady = (sceneArg: Scene) => {
 
       const rootNode = new TransformNode('root');
 
-      triangles.forEach((tr, i) => {
-        triangleMesh.scaling = new Vector3(
-          scalingRatio,
-          scalingRatio,
-          scalingRatio,
-        );
-        const meshClone = triangleMesh?.clone(`Triangle${i}`, triangleMesh);
+      triangles.slice(0, 16).forEach((tr, i) => {
+        const meshClone = triangleMesh?.clone(tr.getName(), triangleMesh);
         if (meshClone) {
-          const meshNode = new TransformNode(`tranformNode${i}`);
-          meshNode.parent = rootNode;
+          const positionNode = new TransformNode(`positionNode${i}`);
+          positionNode.parent = rootNode;
+          const rotationNode = new TransformNode(`rotationNode${i}`);
+          rotationNode.parent = positionNode;
+          const scalingNode = new TransformNode(`scalingNode${i}`);
+          scalingNode.parent = rotationNode;
+
           meshClone.metadata = { triangle: tr };
+
           const triangleCenter = tr.getCenterPoint();
           const direction = triangleCenter; // Center - origin
-          meshClone.parent = meshNode;
-          meshNode.setDirection(direction, 0, math.angle90, 0);
-          meshClone.position = new Vector3(0, direction.length(), 0);
+          meshClone.parent = scalingNode;
+          positionNode.setDirection(direction, 0, math.angle90, 0);
+          rotationNode.position = new Vector3(0, direction.length(), 0);
+          scalingNode.scaling = new Vector3(
+            scalingRatio,
+            scalingRatio,
+            scalingRatio,
+          );
           // Clone Color
           const material = new StandardMaterial('cloneMaterial', scene);
 
@@ -91,19 +100,20 @@ const onSceneReady = (sceneArg: Scene) => {
           meshClone.material = material;
 
           // addAxisToScene({ scene, size: 1, parent: meshClone });
-          // addAxisToScene({ scene, size: 1, parent: meshNode });
+          // addAxisToScene({ scene, size: 1, parent: positionNode });
 
           const p1CenterVector = tr.p1().subtract(triangleCenter);
           const p2CenterVector = tr.p2().subtract(triangleCenter);
           const p3CenterVector = tr.p3().subtract(triangleCenter);
 
           const angle = Vector3.GetAngleBetweenVectors(
-            meshNode.forward,
+            positionNode.forward,
             p1CenterVector,
-            meshNode.up,
+            positionNode.up,
           );
           //
-          meshClone.rotate(meshClone.up, angle);
+          rotationNode.rotate(meshClone.up, angle);
+
           if (skeletons && triangleMesh.skeleton) {
             meshClone.skeleton = triangleMesh.skeleton.clone(`skeleton${i}`);
             const skeletonMesh = meshClone.skeleton;
@@ -114,12 +124,12 @@ const onSceneReady = (sceneArg: Scene) => {
             const angleP1ToP3 = Vector3.GetAngleBetweenVectors(
               p1CenterVector,
               p3CenterVector,
-              meshNode.up,
+              positionNode.up,
             );
             const angleP1ToP2 = Vector3.GetAngleBetweenVectors(
               p1CenterVector,
               p2CenterVector,
-              meshNode.up,
+              positionNode.up,
             );
 
             rotationBone1.y += angleP1ToP3 - math.angle120;
@@ -143,7 +153,79 @@ const onSceneReady = (sceneArg: Scene) => {
         }
       });
       triangleMesh.visibility = 0;
+
+      scene.onPointerObservable.add((pointerInfo) => {
+        switch (pointerInfo.type) {
+          case PointerEventTypes.POINTERDOWN:
+            {
+              const mesh =
+                pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
+              if (mesh) {
+                const assetMesh = getAssetMesh(mesh);
+                const { triangle } = mesh.metadata;
+                if (assetMesh && assetMesh.skeleton) {
+                  const flipNode = new TransformNode(
+                    `flipNode${triangle.getId()}`,
+                  );
+                  flipNode.parent = assetMesh.parent;
+                  assetMesh.parent = flipNode;
+
+                  const objSpaceP1 = assetMesh.skeleton.bones[0]
+                    .getDirection(triangleMesh.up)
+                    .scale(scalingRatio);
+                  const objSpaceP2 = assetMesh.skeleton.bones[1]
+                    .getDirection(triangleMesh.up)
+                    .scale(scalingRatio);
+                  const objSpaceP3 = assetMesh.skeleton.bones[2]
+                    .getDirection(triangleMesh.up)
+                    .scale(scalingRatio);
+
+                  const edges = [
+                    objSpaceP1.subtract(objSpaceP3),
+                    objSpaceP1.subtract(objSpaceP2),
+                    objSpaceP3.subtract(objSpaceP2),
+                  ];
+
+                  flipNode.position = Vector3.Center(
+                    objSpaceP2,
+                    objSpaceP3,
+                  ).scale(1 / (scalingRatio * TRIANGLE_SCALE));
+                  assetMesh.position = Vector3.Center(
+                    objSpaceP2,
+                    objSpaceP3,
+                  ).scale(-1 / (scalingRatio * TRIANGLE_SCALE));
+
+                  // debug rotation edge
+                  // MeshBuilder.CreateLines('line', {
+                  //   points: [triangle.p1(), triangle.p2()],
+                  // });
+
+                  scene.registerBeforeRender(() => {
+                    flipNode.rotate(edges[2], Math.PI * 0.01);
+                  });
+                }
+              }
+            }
+            break;
+          default:
+            break;
+        }
+      });
     }
+
+    const getAssetMesh = (
+      mesh: false | Nullable<AbstractMesh> | undefined,
+    ): Nullable<AbstractMesh> | void => {
+      if (mesh) {
+        const name = mesh.metadata.triangle.getName();
+        const assetMesh = scene.getMeshByName(name);
+        if (assetMesh) {
+          return assetMesh;
+        }
+        return mesh;
+      }
+      return undefined;
+    };
   });
 };
 

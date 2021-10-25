@@ -66,6 +66,10 @@ class Triangle {
     return this.triangleId;
   }
 
+  public getName(): string {
+    return `Triangle${this.getId()}`;
+  }
+
   public p1(): Vector3 {
     return this.vertices[0];
   }
@@ -83,9 +87,7 @@ class Triangle {
   }
 
   public getCenterPoint(): Vector3 {
-    const middlePoint = this.vertices[0].add(
-      this.vertices[1].subtract(this.vertices[0]).scale(0.5),
-    );
+    const middlePoint = Vector3.Center(this.vertices[0], this.vertices[1]);
     const center = this.vertices[2].add(
       middlePoint.subtract(this.vertices[2]).scale(2 / 3),
     );
