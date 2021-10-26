@@ -8,6 +8,8 @@ import {
   Scene,
 } from '@babylonjs/core';
 
+export { default as math } from './math';
+
 export const addAxisToScene = ({
   scene,
   size,

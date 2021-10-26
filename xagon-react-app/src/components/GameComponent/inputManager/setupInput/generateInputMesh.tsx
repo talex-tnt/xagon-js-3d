@@ -13,11 +13,11 @@ import {
 import Triangle, { TriangleId } from 'models/Triangle';
 
 const getMeshName = (triangleId: TriangleId): string => {
-  const meshName = `${triangleId}`;
+  const meshName = `Input${triangleId}`;
   return meshName;
 };
 
-const meshGenerator = (
+const generateInputMesh = (
   name: string,
   scene: Scene,
   triangles: Array<Triangle>,
@@ -148,4 +148,4 @@ const createMesh = (
   return customMesh;
 };
 
-export default meshGenerator;
+export default generateInputMesh;

@@ -1,4 +1,4 @@
-import { Nullable, Vector3 } from '@babylonjs/core';
+import { Nullable, Vector3, Color3 } from '@babylonjs/core';
 
 export type TriangleVertices = Array<Vector3>;
 export type TriangleId = bigint;
@@ -11,6 +11,26 @@ export enum TriangleEdge {
   Third,
 }
 
+enum Type {
+  First = 0,
+  Second,
+  Third,
+  Fourth,
+  Fifth,
+  Sixth,
+}
+
+const colors: Record<Type, Color3> = {
+  [Type.First]: Color3.Blue(),
+  [Type.Second]: Color3.Red(),
+  [Type.Third]: Color3.Yellow(),
+  [Type.Fourth]: Color3.Green(),
+  [Type.Fifth]: Color3.Purple(),
+  [Type.Sixth]: Color3.Gray(),
+};
+
+const typesCount = Object.keys(Type).length * 0.5;
+
 class Triangle {
   //
   private vertices: TriangleVertices;
@@ -19,13 +39,35 @@ class Triangle {
 
   private adjacents: AdjacentTriangles = [];
 
+  private type: Type = Type.First;
+
   public constructor(id: TriangleId, p1: Vector3, p2: Vector3, p3: Vector3) {
     this.triangleId = id;
     this.vertices = [p1, p2, p3];
   }
 
+  static getTypesCount(): number {
+    return typesCount;
+  }
+
+  public getType(): Type {
+    return this.type;
+  }
+
+  public setType(type: Type): void {
+    this.type = type;
+  }
+
+  public getColor(): Color3 {
+    return colors[this.type];
+  }
+
   public getId(): TriangleId {
     return this.triangleId;
+  }
+
+  public getName(): string {
+    return `Triangle${this.getId()}`;
   }
 
   public p1(): Vector3 {
@@ -45,9 +87,7 @@ class Triangle {
   }
 
   public getCenterPoint(): Vector3 {
-    const middlePoint = this.vertices[0].add(
-      this.vertices[1].subtract(this.vertices[0]).scale(0.5),
-    );
+    const middlePoint = Vector3.Center(this.vertices[0], this.vertices[1]);
     const center = this.vertices[2].add(
       middlePoint.subtract(this.vertices[2]).scale(2 / 3),
     );
