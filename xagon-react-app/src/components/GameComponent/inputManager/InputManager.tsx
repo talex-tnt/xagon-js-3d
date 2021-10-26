@@ -15,6 +15,7 @@ import setupInput from './setupInput';
 const TRIANGLE_SCALE = 0.85;
 
 class InputManager {
+  //
   private scene: Scene;
 
   public constructor(
@@ -62,7 +63,7 @@ class InputManager {
                 ).scale(-inverseScaling);
 
                 this.scene.registerBeforeRender(() => {
-                  flipNode.rotate(edges[2], Math.PI * 0.01);
+                  flipNode.rotate(edges[1], Math.PI * 0.01);
                 });
               }
             }
@@ -72,7 +73,6 @@ class InputManager {
           break;
       }
     });
-    return undefined;
   }
 }
 

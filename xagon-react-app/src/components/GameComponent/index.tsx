@@ -5,23 +5,16 @@ import {
   SceneLoader,
   TransformNode,
   StandardMaterial,
-  Color3,
-  AbstractMesh,
-  PointerEventTypes,
-  Nullable,
   // MeshBuilder,
 } from '@babylonjs/core';
 
+// import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 import SceneComponent from 'components/SceneComponent';
 import Icosahedron from 'models/Icosahedron';
-import { math, addAxisToScene } from 'utils';
-import Triangle from 'models/Triangle';
-import { Material } from 'react-babylonjs';
+import { math /* , addAxisToScene  */ } from 'utils';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
 import InputManager from './inputManager/InputManager';
-
-// import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 
 const onSceneReady = (sceneArg: Scene) => {
   const scene: Scene = sceneArg;
@@ -99,9 +92,8 @@ const onSceneReady = (sceneArg: Scene) => {
             scalingRatio,
             scalingRatio,
           );
-          // Clone Color
-          const material = new StandardMaterial('cloneMaterial', scene);
 
+          const material = new StandardMaterial('cloneMaterial', scene);
           material.diffuseColor = tr.getColor();
           material.backFaceCulling = false;
           material.alpha = 1;
@@ -119,7 +111,7 @@ const onSceneReady = (sceneArg: Scene) => {
             p1CenterVector,
             positionNode.up,
           );
-          //
+
           rotationNode.rotate(meshClone.up, angle);
 
           if (skeletons && triangleMesh.skeleton) {
@@ -142,7 +134,6 @@ const onSceneReady = (sceneArg: Scene) => {
 
             rotationBone1.y += angleP1ToP3 - math.angle120;
             rotationBone2.y += angleP1ToP2 + math.angle120;
-
             skeletonMesh.bones[0].setRotation(rotationBone1);
             skeletonMesh.bones[1].setRotation(rotationBone2);
 
@@ -168,12 +159,12 @@ const onSceneReady = (sceneArg: Scene) => {
 };
 
 const onRender = (scene: Scene) => {
-  // const root = scene.getTransformNodeByName('root');
-  // if (root) {
-  //   const deltaTimeInMillis = scene.getEngine().getDeltaTime();
-  //   const rpm = 5;
-  //   root.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
-  // }
+  const root = scene.getTransformNodeByName('root');
+  if (root) {
+    // const deltaTimeInMillis = scene.getEngine().getDeltaTime();
+    // const rpm = 5;
+    // root.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
+  }
 };
 
 const GameComponent: React.FC = () => (
