@@ -1,22 +1,19 @@
 import {
-  Vector3,
   Scene,
   PointerEventTypes,
-  TransformNode,
   ArcRotateCamera,
   AbstractMesh,
 } from '@babylonjs/core';
 
 import Triangle from 'models/Triangle';
-
-import { getAssetMesh } from 'utils/scene';
+import FlipGesture from './FlipGesture';
 import setupInput from './setupInput';
-
-const TRIANGLE_SCALE = 0.85;
 
 class InputManager {
   //
   private scene: Scene;
+
+  private gesturesMap: Record<number, FlipGesture> = {};
 
   public constructor(
     scene: Scene,
@@ -27,46 +24,42 @@ class InputManager {
     setupInput(scene, camera, triangles);
   }
 
-  public onMeshLoaded(triangleMesh: AbstractMesh, scalingRatio: number) {
-    const inverseScaling = 1 / (scalingRatio * TRIANGLE_SCALE);
+  public onMeshLoaded(triangleMesh: AbstractMesh, scalingRatio: number): void {
     this.scene.onPointerObservable.add((pointerInfo) => {
+      const { pointerId } = pointerInfo.event;
       switch (pointerInfo.type) {
         case PointerEventTypes.POINTERDOWN:
+        case PointerEventTypes.POINTERTAP:
           {
+            const gestureContext = {
+              scene: this.scene,
+              triangleMesh,
+              scalingRatio,
+            };
             const mesh =
               pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
             if (mesh) {
-              const assetMesh = getAssetMesh(this.scene, mesh);
-              const { triangle } = mesh.metadata;
-              if (assetMesh && assetMesh.skeleton) {
-                const flipNode = new TransformNode(
-                  `flipNode${triangle.getId()}`,
-                );
-                flipNode.parent = assetMesh.parent;
-                assetMesh.parent = flipNode;
-
-                const objSpaceVertices = assetMesh.skeleton.bones.map((bone) =>
-                  bone.getDirection(triangleMesh.up).scale(scalingRatio),
-                );
-
-                const edges = objSpaceVertices.map((v, i) =>
-                  v.subtract(objSpaceVertices[(i + 1) % 3]),
-                );
-
-                flipNode.position = Vector3.Center(
-                  objSpaceVertices[1],
-                  objSpaceVertices[2],
-                ).scale(inverseScaling);
-                assetMesh.position = Vector3.Center(
-                  objSpaceVertices[1],
-                  objSpaceVertices[2],
-                ).scale(-inverseScaling);
-
-                this.scene.registerBeforeRender(() => {
-                  flipNode.rotate(edges[1], Math.PI * 0.01);
-                });
-              }
+              this.gesturesMap[pointerId] = new FlipGesture(gestureContext);
+              this.gesturesMap[pointerId].onDown(pointerInfo);
             }
+          }
+          break;
+
+        case PointerEventTypes.POINTERMOVE:
+          {
+            const gesture = this.gesturesMap[pointerId];
+            if (gesture) {
+              gesture.onMove();
+            }
+          }
+          break;
+        case PointerEventTypes.POINTERUP:
+          {
+            const gesture = this.gesturesMap[pointerId];
+            if (gesture) {
+              gesture.onRelease(pointerInfo);
+            }
+            delete this.gesturesMap[pointerId];
           }
           break;
         default:

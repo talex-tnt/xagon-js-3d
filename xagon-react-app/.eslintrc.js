@@ -110,6 +110,7 @@ module.exports = {
     'import/extensions': ['error', 'never', { ignorePackages: true }],
     'no-shadow': 'off',
     '@typescript-eslint/no-shadow': ['error'],
+    camelcase: 0,
   },
   settings: {
     'import/resolver': {

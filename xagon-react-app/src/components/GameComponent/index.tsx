@@ -7,6 +7,10 @@ import {
   StandardMaterial,
   // MeshBuilder,
 } from '@babylonjs/core';
+import {
+  k_triangleAssetFileName,
+  k_triangleAssetName,
+} from 'constants/identifiers';
 
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 import SceneComponent from 'components/SceneComponent';
@@ -20,6 +24,7 @@ const onSceneReady = (sceneArg: Scene) => {
   const scene: Scene = sceneArg;
   const target = new Vector3(0, 0, 0);
   const camera = setupCamera(scene, target);
+  camera.inputs.attached.pointers.buttons = [1];
 
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
@@ -34,9 +39,9 @@ const onSceneReady = (sceneArg: Scene) => {
   setupLight(scene, target);
 
   SceneLoader.ImportMeshAsync(
-    'TriangleMesh',
+    k_triangleAssetName,
     './assets/models/',
-    'triangle.babylon',
+    k_triangleAssetFileName,
   ).then(({ meshes, skeletons }) => {
     if (meshes && meshes.length > 0) {
       const triangleMesh = meshes[0];
