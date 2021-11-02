@@ -4,7 +4,8 @@ import {
   Scene,
   TransformNode,
   Nullable,
-  Node,
+  StandardMaterial,
+  Vector3,
 } from '@babylonjs/core';
 import { getAssetMesh } from 'utils/scene';
 
@@ -25,11 +26,14 @@ class FlipGesture extends Gesture {
 
   private secondTriangle: Nullable<AbstractMesh>;
 
+  private angleFlip: number;
+
   public constructor(context: GestureContext) {
     super();
     this.context = context;
     this.firstTriangle = null;
     this.secondTriangle = null;
+    this.angleFlip = 0;
   }
 
   public extractMesh(mesh: AbstractMesh): Nullable<AbstractMesh> {
@@ -55,10 +59,13 @@ class FlipGesture extends Gesture {
     return null;
   }
 
-  public flipNode(triangleMesh: AbstractMesh, triangle: Triangle): Node {
+  public getFlipNode(
+    triangleMesh: AbstractMesh,
+    triangle: Triangle,
+  ): TransformNode {
     let flipNode = this.context.scene.getNodeByName(
       `flipNode${triangle.getId()}`,
-    );
+    ) as TransformNode;
     if (!flipNode) {
       flipNode = new TransformNode(`flipNode${triangle.getId()}`);
       flipNode.parent = triangleMesh.parent;
@@ -98,36 +105,56 @@ class FlipGesture extends Gesture {
           if (this.secondTriangle) {
             const secondTriangle = this.secondTriangle.metadata.triangle;
 
-            const flipNodeFirstTriangle = this.flipNode(
+            const flipNodeFirstTriangle = this.getFlipNode(
               this.firstTriangle,
               firstTriangle,
             );
-            const flipNodeSecondTriangle = this.flipNode(
+            const flipNodeSecondTriangle = this.getFlipNode(
               this.secondTriangle,
               secondTriangle,
             );
 
-            // const firstEdges = this.firstTriangle.metadata.edges;
-            // const secondEdges = this.secondTriangle.metadata.edges;
-            // const firstVertices = this.firstTriangle.metadata.vertices;
-            // const secondVertices = this.secondTriangle.metadata.vertices;
+            // const materialFirstTriangle = new StandardMaterial(
+            //   `material${firstTriangle.getId()}`,
+            //   this.context.scene,
+            // );
+            // const materialSecondTriangle = new StandardMaterial(
+            //   `material${secondTriangle.getId()}`,
+            //   this.context.scene,
+            // );
 
-            // flipNode.position = Vector3.Center(
-            //   objSpaceVertices[1],
-            //   objSpaceVertices[2],
-            // ).scale(inverseScaling);
-            // assetMesh.position = Vector3.Center(
-            //   objSpaceVertices[1],
-            //   objSpaceVertices[2],
-            // ).scale(-inverseScaling);
+            // const firstType = firstTriangle.getType();
+            // const secondType = secondTriangle.getType();
+            // firstTriangle.setType(secondType);
+            // secondTriangle.setType(firstType);
 
-            // this.context.scene.registerBeforeRender(() => {
-            //   flipNodeFirst.rotate(edges[1], Math.PI * 0.01);
-            //   if (limit < Math.PI * 2) {
-            //     flipNode.rotate(edges[1], Math.PI * 0.01);
-            //     limit += Math.PI * 0.1;
-            //   }
-            // });
+            // materialFirstTriangle.diffuseColor = secondTriangle.getColor();
+            // materialSecondTriangle.diffuseColor = firstTriangle.getColor();
+
+            // this.firstTriangle.material = materialFirstTriangle;
+            // this.secondTriangle.material = materialSecondTriangle;
+
+            const firstEdges = this.firstTriangle.metadata.edges;
+            const secondEdges = this.secondTriangle.metadata.edges;
+            const firstVertices = this.firstTriangle.metadata.vertices;
+            const secondVertices = this.secondTriangle.metadata.vertices;
+
+            flipNodeFirstTriangle.position = Vector3.Center(
+              firstVertices[1],
+              firstVertices[2],
+            ).scale(inverseScaling);
+            this.firstTriangle.position = Vector3.Center(
+              firstVertices[1],
+              firstVertices[2],
+            ).scale(-inverseScaling);
+            // flipNodeFirstTriangle.rotate(firstEdges[0], this.angleFlip);
+            // if (this.angleFlip < Math.PI) {
+            //   this.angleFlip += Math.PI * 0.001;
+            // }
+
+            this.context.scene.registerBeforeRender(() => {
+              flipNodeFirstTriangle.rotate(firstEdges[0], Math.PI * 0.01);
+            });
           }
         }
       }
@@ -135,8 +162,35 @@ class FlipGesture extends Gesture {
   }
 
   public onRelease(pointerInfo: PointerInfo): void {
-    // eslint-disable-next-line no-console
-    console.log(pointerInfo);
+    if (this.firstTriangle && this.secondTriangle) {
+      const firstTriangle = this.firstTriangle.metadata.triangle;
+      const secondTriangle = this.secondTriangle.metadata.triangle;
+
+      const materialFirstTriangle = new StandardMaterial(
+        `material${firstTriangle.getId()}`,
+        this.context.scene,
+      );
+      const materialSecondTriangle = new StandardMaterial(
+        `material${secondTriangle.getId()}`,
+        this.context.scene,
+      );
+
+      const firstType = firstTriangle.getType();
+      const secondType = secondTriangle.getType();
+      console.log(firstType, secondType);
+
+      materialFirstTriangle.diffuseColor = secondTriangle.getColor();
+      materialSecondTriangle.diffuseColor = firstTriangle.getColor();
+
+      firstTriangle.setType(secondType);
+      secondTriangle.setType(firstType);
+
+      this.firstTriangle.material = materialFirstTriangle;
+      this.secondTriangle.material = materialSecondTriangle;
+
+      // eslint-disable-next-line no-console
+      console.log(pointerInfo);
+    }
   }
 }
 
