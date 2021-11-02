@@ -73,8 +73,10 @@ const onSceneReady = (sceneArg: Scene) => {
           positionNode.parent = rootNode;
           const rotationNode = new TransformNode(`rotationNode${i}`);
           rotationNode.parent = positionNode;
+          const flipNode = new TransformNode(`scalingNode${i}`);
+          flipNode.parent = rotationNode;
           const scalingNode = new TransformNode(`scalingNode${i}`);
-          scalingNode.parent = rotationNode;
+          scalingNode.parent = flipNode;
 
           meshClone.metadata = { triangle: tr };
 
