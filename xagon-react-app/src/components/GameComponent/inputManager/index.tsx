@@ -32,14 +32,14 @@ class InputManager {
         case PointerEventTypes.POINTERDOWN:
         case PointerEventTypes.POINTERTAP:
           {
-            const gestureContext = {
-              scene: this.scene,
-              triangleMesh,
-              scalingRatio,
-            };
             const mesh =
               pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
             if (mesh) {
+              const gestureContext = {
+                scene: this.scene,
+                triangleMesh,
+                scalingRatio,
+              };
               this.gesturesMap[pointerId] = new FlipGesture(gestureContext);
               this.gesturesMap[pointerId].onDown(pointerInfo);
             }
