@@ -8,8 +8,9 @@ import {
   // MeshBuilder,
 } from '@babylonjs/core';
 import {
-  k_triangleAssetFileName,
   k_triangleAssetName,
+  k_triangleAssetFileName,
+  k_triangleAssetDebugFileName,
 } from 'constants/identifiers';
 
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
@@ -41,7 +42,7 @@ const onSceneReady = (sceneArg: Scene) => {
   SceneLoader.ImportMeshAsync(
     k_triangleAssetName,
     './assets/models/',
-    k_triangleAssetFileName,
+    k_triangleAssetDebugFileName,
   ).then(({ meshes, skeletons }) => {
     if (meshes && meshes.length > 0) {
       const triangleMesh = meshes[0];
@@ -66,7 +67,7 @@ const onSceneReady = (sceneArg: Scene) => {
 
       const rootNode = new TransformNode('root');
 
-      triangles.slice(0, 16).forEach((tr, i) => {
+      triangles.forEach((tr, i) => {
         const meshClone = triangleMesh?.clone(tr.getName(), triangleMesh);
         if (meshClone) {
           const positionNode = new TransformNode(`positionNode${i}`);

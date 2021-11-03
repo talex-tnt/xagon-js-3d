@@ -6,6 +6,7 @@ import {
   Vector3,
   TransformNode,
 } from '@babylonjs/core';
+import { k_epsilon, k_triangleScale } from 'constants/index';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
 
@@ -22,11 +23,14 @@ class FlipGesture extends Gesture {
 
   private secondTriangleMesh: Nullable<AbstractMesh>;
 
+  private adjacentsMap: Nullable<Record<number, number>>;
+
   public constructor(context: GestureContext) {
     super();
     this.context = context;
     this.firstTriangleMesh = null;
     this.secondTriangleMesh = null;
+    this.adjacentsMap = null;
   }
 
   private setRotationSpeed(rpm: number): number {
@@ -88,11 +92,12 @@ class FlipGesture extends Gesture {
       );
 
       if (
-        pickinfo?.pickedMesh &&
-        pickinfo?.pickedMesh?.metadata.triangle.triangleId !==
+        pickinfo &&
+        pickinfo.pickedMesh &&
+        pickinfo.pickedMesh.metadata.triangle.triangleId !==
           firstTriangle.triangleId
       ) {
-        const mesh = pickinfo?.pickedMesh;
+        const mesh = pickinfo.pickedMesh;
         if (mesh) {
           const assetMesh = getAssetMesh({
             scene: this.context.scene,
@@ -110,6 +115,35 @@ class FlipGesture extends Gesture {
 
           if (this.secondTriangleMesh) {
             const secondTriangle = this.secondTriangleMesh.metadata.triangle;
+
+            if (!this.adjacentsMap) {
+              const firstTriangleVertices = firstTriangle.getVertices();
+              const secondTriangleVertices = secondTriangle.getVertices();
+              const adjacentsVertices: Record<number, number> = {};
+              firstTriangleVertices.forEach(
+                (
+                  firstTriangleVertice: Vector3,
+                  indexFirstTriangleVertice: number,
+                ) => {
+                  secondTriangleVertices.forEach(
+                    (
+                      secondTriangleVertice: Vector3,
+                      indexSecondTriangleVertice: number,
+                    ) => {
+                      if (
+                        secondTriangleVertice
+                          .subtract(firstTriangleVertice)
+                          .length() < k_epsilon
+                      ) {
+                        adjacentsVertices[indexFirstTriangleVertice] =
+                          indexSecondTriangleVertice;
+                      }
+                    },
+                  );
+                },
+              );
+              this.adjacentsMap = adjacentsVertices;
+            }
 
             // const hasAdjacent = firstTriangle
             //   .getAdjacents()
@@ -130,11 +164,83 @@ class FlipGesture extends Gesture {
             const firstVertices = this.firstTriangleMesh.metadata.vertices;
             const secondVertices = this.secondTriangleMesh.metadata.vertices;
 
+            const firstTriangleVerticeIndices: number[] = [];
+            const secondTriangleVerticeIndices: number[] = [];
+
+            Object.keys(this.adjacentsMap).forEach((k, i) => {
+              switch (k) {
+                case '0':
+                  firstTriangleVerticeIndices[i] = 2;
+                  break;
+                case '1':
+                  firstTriangleVerticeIndices[i] = 1;
+                  break;
+                case '2':
+                  firstTriangleVerticeIndices[i] = 0;
+                  break;
+                default:
+              }
+            });
+            Object.values(this.adjacentsMap).forEach((v, i) => {
+              switch (v) {
+                case 0:
+                  secondTriangleVerticeIndices[i] = 2;
+                  break;
+                case 1:
+                  secondTriangleVerticeIndices[i] = 1;
+                  break;
+                case 2:
+                  secondTriangleVerticeIndices[i] = 0;
+                  break;
+                default:
+              }
+            });
+
+            console.log(
+              firstTriangleVerticeIndices,
+              secondTriangleVerticeIndices,
+            );
+
+            const firstMeshIndex = firstTriangleVerticeIndices.reduce(
+              (curr, prev) => curr + prev,
+            );
+            const secondMeshIndex = secondTriangleVerticeIndices.reduce(
+              (curr, prev) => curr + prev,
+            );
+
+            let firstMeshFlipEdgeIndex: number;
+            let secondMeshFlipEdgeIndex: number;
+
+            switch (firstMeshIndex) {
+              case 1:
+                firstMeshFlipEdgeIndex = 0;
+                break;
+              case 2:
+                firstMeshFlipEdgeIndex = 2;
+                break;
+              case 3:
+                firstMeshFlipEdgeIndex = 1;
+                break;
+              default:
+            }
+            switch (secondMeshIndex) {
+              case 1:
+                secondMeshFlipEdgeIndex = 0;
+                break;
+              case 2:
+                secondMeshFlipEdgeIndex = 2;
+                break;
+              case 3:
+                secondMeshFlipEdgeIndex = 1;
+                break;
+              default:
+            }
+
             if (flipNodeFirstTriangle && flipNodeSecondTriangle) {
               const flipNodeFirstTriangleCenter = Vector3.Zero(); // node position in object space
               const flipFirstTriangleEdgeCenter = Vector3.Center(
-                firstVertices[0],
-                firstVertices[1],
+                firstVertices[firstTriangleVerticeIndices[0]],
+                firstVertices[firstTriangleVerticeIndices[1]],
               );
 
               flipNodeFirstTriangle.position = flipNodeFirstTriangleCenter.add(
@@ -147,21 +253,29 @@ class FlipGesture extends Gesture {
 
               const flipNodeSecondTriangleCenter = Vector3.Zero(); // node position in object space
               const flipSecondTriangleEdgeCenter = Vector3.Center(
-                secondVertices[0],
-                secondVertices[2],
+                secondVertices[secondTriangleVerticeIndices[0]],
+                secondVertices[secondTriangleVerticeIndices[1]],
               );
+              const inverseScaling = 1 / k_triangleScale;
 
-              flipNodeSecondTriangle.position =
-                flipNodeSecondTriangleCenter.add(flipSecondTriangleEdgeCenter);
-              scalingNodeSecondTriangle.position =
-                flipNodeSecondTriangleCenter.subtract(
-                  flipSecondTriangleEdgeCenter,
-                );
+              flipNodeSecondTriangle.position = flipNodeSecondTriangleCenter
+                .add(flipSecondTriangleEdgeCenter)
+                .scale(inverseScaling);
+              scalingNodeSecondTriangle.position = flipNodeSecondTriangleCenter
+                .subtract(flipSecondTriangleEdgeCenter)
+                .scale(inverseScaling);
+
               const rotationSpeed = this.setRotationSpeed(1);
 
               this.context.scene.registerBeforeRender(() => {
-                flipNodeFirstTriangle.rotate(firstEdges[0], rotationSpeed);
-                flipNodeSecondTriangle.rotate(secondEdges[2], -rotationSpeed);
+                flipNodeFirstTriangle.rotate(
+                  firstEdges[firstMeshFlipEdgeIndex],
+                  rotationSpeed,
+                );
+                flipNodeSecondTriangle.rotate(
+                  secondEdges[secondMeshFlipEdgeIndex],
+                  -rotationSpeed,
+                );
               });
             }
           }
@@ -194,6 +308,20 @@ class FlipGesture extends Gesture {
     //   this.secondTriangleMesh.material = materialSecondTriangle;
     //   // eslint-disable-next-line no-console
     //   console.log(pointerInfo);
+    // }
+    // {
+    //   edge[0]: {
+    //     meshPoints(0,1),
+    //     trianglePoints(1,2)
+    //   },
+    //   edge[1]: {
+    //     meshPoints(1,2),
+    //     trianglePoints(0,1)
+    //   },
+    //   edge[2]: {
+    //     meshPoints(0,2),
+    //     trianglePoints(0,2)
+    //   }
     // }
   }
 }
