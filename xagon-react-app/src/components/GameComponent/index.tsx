@@ -18,7 +18,7 @@ import Icosahedron from 'models/Icosahedron';
 import { math /* , addAxisToScene  */ } from 'utils';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
-import InputManager from './inputManager/InputManager';
+import InputManager from './InputManager';
 
 const onSceneReady = (sceneArg: Scene) => {
   const scene: Scene = sceneArg;

@@ -1,4 +1,6 @@
 import { PointerInfo } from '@babylonjs/core';
+export type GestureId = number;
+
 abstract class Gesture {
   public abstract onDown(pointerInfo: PointerInfo): void;
 

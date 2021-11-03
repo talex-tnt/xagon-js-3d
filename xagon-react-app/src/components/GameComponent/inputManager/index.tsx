@@ -6,6 +6,7 @@ import {
 } from '@babylonjs/core';
 
 import Triangle from 'models/Triangle';
+import { GestureId } from './Gesture';
 import FlipGesture from './FlipGesture';
 import setupInput from './setupInput';
 
@@ -13,7 +14,7 @@ class InputManager {
   //
   private scene: Scene;
 
-  private gesturesMap: Record<number, FlipGesture> = {};
+  private gesturesMap: Record<GestureId, FlipGesture> = {};
 
   public constructor(
     scene: Scene,

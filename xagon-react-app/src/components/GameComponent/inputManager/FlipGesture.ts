@@ -3,8 +3,8 @@ import {
   PointerInfo,
   Scene,
   Nullable,
-  StandardMaterial,
   Vector3,
+  TransformNode,
 } from '@babylonjs/core';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
@@ -18,15 +18,21 @@ interface GestureContext {
 class FlipGesture extends Gesture {
   private context: GestureContext;
 
-  private firstTriangle: Nullable<AbstractMesh>;
+  private firstTriangleMesh: Nullable<AbstractMesh>;
 
-  private secondTriangle: Nullable<AbstractMesh>;
+  private secondTriangleMesh: Nullable<AbstractMesh>;
 
   public constructor(context: GestureContext) {
     super();
     this.context = context;
-    this.firstTriangle = null;
-    this.secondTriangle = null;
+    this.firstTriangleMesh = null;
+    this.secondTriangleMesh = null;
+  }
+
+  private setRotationSpeed(rpm: number): number {
+    const deltaTimeInMillis = this.context.scene.getEngine().getDeltaTime();
+    const rotationSpeed = (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
+    return rotationSpeed;
   }
 
   public computeObjSpaceData(assetMesh: AbstractMesh):
@@ -43,7 +49,7 @@ class FlipGesture extends Gesture {
       );
 
       const edges = objSpaceVertices.map((v, i) =>
-        v.subtract(objSpaceVertices[(i + 1) % 3]),
+        v.subtract(objSpaceVertices[(i + 1) % objSpaceVertices.length]),
       );
 
       return { vertices: objSpaceVertices, edges };
@@ -66,15 +72,15 @@ class FlipGesture extends Gesture {
           assetMesh.metadata.vertices = data.vertices;
           assetMesh.metadata.edges = data.edges;
 
-          this.firstTriangle = assetMesh;
+          this.firstTriangleMesh = assetMesh;
         }
       }
     }
   }
 
   public onMove(): void {
-    if (this.firstTriangle) {
-      const firstTriangle = this.firstTriangle.metadata.triangle;
+    if (this.firstTriangleMesh) {
+      const firstTriangle = this.firstTriangleMesh.metadata.triangle;
 
       const pickinfo = this.context.scene.pick(
         this.context.scene.pointerX,
@@ -98,44 +104,64 @@ class FlipGesture extends Gesture {
               assetMesh.metadata.vertices = data.vertices;
               assetMesh.metadata.edges = data.edges;
 
-              this.secondTriangle = assetMesh;
+              this.secondTriangleMesh = assetMesh;
             }
           }
 
-          if (this.secondTriangle) {
-            const secondTriangle = this.secondTriangle.metadata.triangle;
+          if (this.secondTriangleMesh) {
+            const secondTriangle = this.secondTriangleMesh.metadata.triangle;
 
-            const scalingNodeFirstTriangle = this.firstTriangle.parent;
-            const flipNodeFirstTriangle = scalingNodeFirstTriangle?.parent;
-            const scalingNodeSecondTriangle = this.secondTriangle.parent;
-            const flipNodeSecondTriangle = scalingNodeSecondTriangle?.parent;
+            // const hasAdjacent = firstTriangle
+            //   .getAdjacents()
+            //   .find((adj: Triangle) => adj.getId() === secondTriangle.getId());
+            // console.log(hasAdjacent);
 
-            const firstEdges = this.firstTriangle.metadata.edges;
-            const secondEdges = this.secondTriangle.metadata.edges;
-            const firstVertices = this.firstTriangle.metadata.vertices;
-            const secondVertices = this.secondTriangle.metadata.vertices;
+            const scalingNodeFirstTriangle = this.firstTriangleMesh
+              .parent as TransformNode;
+            const flipNodeFirstTriangle =
+              scalingNodeFirstTriangle?.parent as TransformNode;
+            const scalingNodeSecondTriangle = this.secondTriangleMesh
+              .parent as TransformNode;
+            const flipNodeSecondTriangle =
+              scalingNodeSecondTriangle?.parent as TransformNode;
+
+            const firstEdges = this.firstTriangleMesh.metadata.edges;
+            const secondEdges = this.secondTriangleMesh.metadata.edges;
+            const firstVertices = this.firstTriangleMesh.metadata.vertices;
+            const secondVertices = this.secondTriangleMesh.metadata.vertices;
 
             if (flipNodeFirstTriangle && flipNodeSecondTriangle) {
-              flipNodeFirstTriangle.position = Vector3.Center(
+              const flipNodeFirstTriangleCenter = Vector3.Zero(); // node position in object space
+              const flipFirstTriangleEdgeCenter = Vector3.Center(
                 firstVertices[0],
                 firstVertices[1],
               );
-              scalingNodeFirstTriangle.position = Vector3.Center(
-                firstVertices[0],
-                firstVertices[1],
-              ).scale(-1);
-              flipNodeSecondTriangle.position = Vector3.Center(
+
+              flipNodeFirstTriangle.position = flipNodeFirstTriangleCenter.add(
+                flipFirstTriangleEdgeCenter,
+              );
+              scalingNodeFirstTriangle.position =
+                flipNodeFirstTriangleCenter.subtract(
+                  flipFirstTriangleEdgeCenter,
+                );
+
+              const flipNodeSecondTriangleCenter = Vector3.Zero(); // node position in object space
+              const flipSecondTriangleEdgeCenter = Vector3.Center(
                 secondVertices[0],
                 secondVertices[2],
               );
-              scalingNodeSecondTriangle.position = Vector3.Center(
-                secondVertices[0],
-                secondVertices[2],
-              ).scale(-1);
+
+              flipNodeSecondTriangle.position =
+                flipNodeSecondTriangleCenter.add(flipSecondTriangleEdgeCenter);
+              scalingNodeSecondTriangle.position =
+                flipNodeSecondTriangleCenter.subtract(
+                  flipSecondTriangleEdgeCenter,
+                );
+              const rotationSpeed = this.setRotationSpeed(1);
 
               this.context.scene.registerBeforeRender(() => {
-                flipNodeFirstTriangle.rotate(firstEdges[0], Math.PI * 0.01);
-                flipNodeSecondTriangle.rotate(secondEdges[2], -Math.PI * 0.01);
+                flipNodeFirstTriangle.rotate(firstEdges[0], rotationSpeed);
+                flipNodeSecondTriangle.rotate(secondEdges[2], -rotationSpeed);
               });
             }
           }
@@ -145,35 +171,30 @@ class FlipGesture extends Gesture {
   }
 
   public onRelease(pointerInfo: PointerInfo): void {
-    if (this.firstTriangle && this.secondTriangle) {
-      const firstTriangle = this.firstTriangle.metadata.triangle;
-      const secondTriangle = this.secondTriangle.metadata.triangle;
-
-      const materialFirstTriangle = new StandardMaterial(
-        `material${firstTriangle.getId()}`,
-        this.context.scene,
-      );
-      const materialSecondTriangle = new StandardMaterial(
-        `material${secondTriangle.getId()}`,
-        this.context.scene,
-      );
-
-      const firstType = firstTriangle.getType();
-      const secondType = secondTriangle.getType();
-      console.log(firstType, secondType);
-
-      materialFirstTriangle.diffuseColor = secondTriangle.getColor();
-      materialSecondTriangle.diffuseColor = firstTriangle.getColor();
-
-      firstTriangle.setType(secondType);
-      secondTriangle.setType(firstType);
-
-      this.firstTriangle.material = materialFirstTriangle;
-      this.secondTriangle.material = materialSecondTriangle;
-
-      // eslint-disable-next-line no-console
-      console.log(pointerInfo);
-    }
+    // DEBUG TRIANGLE TYPE CHANGE ONRELEASE
+    // if (this.firstTriangleMesh && this.secondTriangleMesh) {
+    //   const firstTriangle = this.firstTriangleMesh.metadata.triangle;
+    //   const secondTriangle = this.secondTriangleMesh.metadata.triangle;
+    //   const materialFirstTriangle = new StandardMaterial(
+    //     `material${firstTriangle.getId()}`,
+    //     this.context.scene,
+    //   );
+    //   const materialSecondTriangle = new StandardMaterial(
+    //     `material${secondTriangle.getId()}`,
+    //     this.context.scene,
+    //   );
+    //   const firstType = firstTriangle.getType();
+    //   const secondType = secondTriangle.getType();
+    //   console.log(firstType, secondType);
+    //   materialFirstTriangle.diffuseColor = secondTriangle.getColor();
+    //   materialSecondTriangle.diffuseColor = firstTriangle.getColor();
+    //   firstTriangle.setType(secondType);
+    //   secondTriangle.setType(firstType);
+    //   this.firstTriangleMesh.material = materialFirstTriangle;
+    //   this.secondTriangleMesh.material = materialSecondTriangle;
+    //   // eslint-disable-next-line no-console
+    //   console.log(pointerInfo);
+    // }
   }
 }
 
