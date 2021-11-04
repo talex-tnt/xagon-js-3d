@@ -7,7 +7,7 @@ import {
   StandardMaterial,
   Nullable,
 } from '@babylonjs/core';
-import { math /* , addAxisToScene  */ } from 'utils';
+import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
 
 class TriangleMesh {
@@ -32,9 +32,9 @@ class TriangleMesh {
 
     if (mesh) {
       const triangleMesh = mesh.clone(triangle.getName(), mesh);
+      this.triangleMesh = triangleMesh;
       if (triangleMesh) {
         triangleMesh.metadata = { triangleMesh: this };
-        this.triangleMesh = triangleMesh;
 
         this.createNodesStructure(scene);
 
@@ -66,7 +66,7 @@ class TriangleMesh {
         `rotationNode${this.triangle.getId()}`,
       );
       rotationNode.parent = positionNode;
-      const flipNode = new TransformNode(`scalingNode${this.triangle.getId()}`);
+      const flipNode = new TransformNode(`flipNode${this.triangle.getId()}`);
       flipNode.parent = rotationNode;
       const scalingNode = new TransformNode(
         `scalingNode${this.triangle.getId()}`,
