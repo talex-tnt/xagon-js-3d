@@ -1,21 +1,15 @@
 import React from 'react';
-import {
-  Vector3,
-  Scene,
-  SceneLoader,
-  TransformNode,
-  // MeshBuilder,
-} from '@babylonjs/core';
+import { Vector3, Scene, SceneLoader } from '@babylonjs/core';
 import {
   k_triangleAssetName,
   k_triangleAssetFileName,
-  k_triangleAssetDebugFileName,
+  k_triangleAssetPath,
+  // k_triangleAssetDebugFileName,
 } from 'constants/identifiers';
 
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 import SceneComponent from 'components/SceneComponent';
 import Icosahedron from 'models/Icosahedron';
-import { math /* , addAxisToScene  */ } from 'utils';
 import TriangleMesh from 'rendering/TriangleMesh';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
@@ -41,41 +35,23 @@ const onSceneReady = (sceneArg: Scene) => {
 
   SceneLoader.ImportMeshAsync(
     k_triangleAssetName,
-    './assets/models/',
-    k_triangleAssetDebugFileName,
+    k_triangleAssetPath,
+    k_triangleAssetFileName,
   ).then(({ meshes, skeletons }) => {
-    if (meshes && meshes.length > 0) {
+    if (meshes && meshes.length > 0 && skeletons) {
       const assetMesh = meshes[0];
-      const TRIANGLE_RADIUS = 1;
-      const TRIANGLE_SIDE = TRIANGLE_RADIUS * (3 / Math.sqrt(3));
-      const TRIANGLE_SCALE = 0.85;
 
-      const equilateralTriangle = icosahedron.findEquilateralTriangle();
-
-      const triangleEdgeLength = equilateralTriangle
-        .p1()
-        .subtract(equilateralTriangle.p2())
-        .length();
-
-      const scalingRatio =
-        (1 / TRIANGLE_SIDE) * triangleEdgeLength * TRIANGLE_SCALE;
-
-      const radiusEquilaterTriangle = equilateralTriangle
-        .p1()
-        .subtract(equilateralTriangle?.getCenterPoint())
-        .length();
-
-      triangles.forEach((tr) => {
-        const triangleMesh = new TriangleMesh({
-          scene,
-          triangle: tr,
-          radiusEquilaterTriangle,
-          triangleMeshScalingRatio: scalingRatio,
-        });
-      });
+      const triangleMeshes = triangles.map(
+        (tr) =>
+          new TriangleMesh({
+            scene,
+            triangle: tr,
+            equilateralTriangleProvider: icosahedron,
+          }),
+      );
       assetMesh.visibility = 0;
 
-      inputManager.onMeshLoaded(assetMesh, scalingRatio);
+      inputManager.onMeshLoaded(assetMesh, triangleMeshes[0].getScalingRatio());
     }
   });
 };

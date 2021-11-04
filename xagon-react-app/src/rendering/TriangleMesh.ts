@@ -9,25 +9,45 @@ import {
 } from '@babylonjs/core';
 import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
+import EquilateralTriangleProvider from './EquilateralTriangleProvider';
 
 class TriangleMesh {
   private triangle: Triangle;
 
   private triangleMesh: Nullable<AbstractMesh>;
 
+  private scalingRatio: number;
+
   public constructor({
     scene,
     triangle,
-    radiusEquilaterTriangle,
-    triangleMeshScalingRatio,
+    equilateralTriangleProvider,
   }: {
     scene: Scene;
     triangle: Triangle;
-    radiusEquilaterTriangle: number;
-    triangleMeshScalingRatio: number;
+    equilateralTriangleProvider: EquilateralTriangleProvider;
   }) {
     this.triangle = triangle;
     this.triangleMesh = null;
+
+    const TRIANGLE_RADIUS = 1;
+    const TRIANGLE_SIDE = TRIANGLE_RADIUS * (3 / Math.sqrt(3));
+    const TRIANGLE_SCALE = 0.85;
+
+    const equilateralTriangle =
+      equilateralTriangleProvider.findEquilateralTriangle();
+
+    const triangleEdgeLength = equilateralTriangle
+      .p1()
+      .subtract(equilateralTriangle.p2())
+      .length();
+    this.scalingRatio =
+      (1 / TRIANGLE_SIDE) * triangleEdgeLength * TRIANGLE_SCALE;
+
+    const radiusEquilaterTriangle = equilateralTriangle
+      .p1()
+      .subtract(equilateralTriangle?.getCenterPoint())
+      .length();
     const mesh = scene.getMeshByName(k_triangleAssetName);
 
     if (mesh) {
@@ -38,15 +58,15 @@ class TriangleMesh {
 
         this.createNodesStructure(scene);
 
-        this.setTriangleMeshPosition(scene, triangleMeshScalingRatio);
+        this.setupPosition(scene, this.scalingRatio);
 
-        this.setTriangleMeshDeformation({
+        this.setupDeformation({
           scene,
           originalMesh: mesh,
           radiusEquilaterTriangle,
         });
 
-        this.setTriangleMeshMaterial(scene);
+        this.setupMaterial(scene);
       }
     }
   }
@@ -55,7 +75,11 @@ class TriangleMesh {
     return this.triangle;
   }
 
-  public createNodesStructure(scene: Scene): void {
+  public getScalingRatio(): number {
+    return this.scalingRatio;
+  }
+
+  private createNodesStructure(scene: Scene): void {
     if (this.triangleMesh) {
       const rootNode = scene.getNodeByName('root');
       const positionNode = new TransformNode(
@@ -76,10 +100,7 @@ class TriangleMesh {
     }
   }
 
-  public setTriangleMeshPosition(
-    scene: Scene,
-    triangleMeshScalingRatio: number,
-  ): void {
+  private setupPosition(scene: Scene, triangleMeshScalingRatio: number): void {
     const positionNode = scene.getNodeByName(
       `positionNode${this.triangle.getId()}`,
     );
@@ -125,7 +146,7 @@ class TriangleMesh {
     }
   }
 
-  public setTriangleMeshDeformation({
+  private setupDeformation({
     scene,
     originalMesh,
     radiusEquilaterTriangle,
@@ -181,7 +202,7 @@ class TriangleMesh {
     }
   }
 
-  public setTriangleMeshMaterial(scene: Scene): void {
+  private setupMaterial(scene: Scene): void {
     if (this.triangleMesh) {
       const material = new StandardMaterial('cloneMaterial', scene);
       material.diffuseColor = this.triangle.getColor();

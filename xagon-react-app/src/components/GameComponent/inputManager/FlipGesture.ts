@@ -287,44 +287,8 @@ class FlipGesture extends Gesture {
   }
 
   public onRelease(pointerInfo: PointerInfo): void {
-    // DEBUG TRIANGLE TYPE CHANGE ONRELEASE
-    // if (this.firstTriangleMesh && this.secondTriangleMesh) {
-    //   const firstTriangle = this.firstTriangleMesh.metadata.triangle;
-    //   const secondTriangle = this.secondTriangleMesh.metadata.triangle;
-    //   const materialFirstTriangle = new StandardMaterial(
-    //     `material${firstTriangle.getId()}`,
-    //     this.context.scene,
-    //   );
-    //   const materialSecondTriangle = new StandardMaterial(
-    //     `material${secondTriangle.getId()}`,
-    //     this.context.scene,
-    //   );
-    //   const firstType = firstTriangle.getType();
-    //   const secondType = secondTriangle.getType();
-    //   console.log(firstType, secondType);
-    //   materialFirstTriangle.diffuseColor = secondTriangle.getColor();
-    //   materialSecondTriangle.diffuseColor = firstTriangle.getColor();
-    //   firstTriangle.setType(secondType);
-    //   secondTriangle.setType(firstType);
-    //   this.firstTriangleMesh.material = materialFirstTriangle;
-    //   this.secondTriangleMesh.material = materialSecondTriangle;
-    //   // eslint-disable-next-line no-console
-    //   console.log(pointerInfo);
-    // }
-    // {
-    //   edge[0]: {
-    //     meshPoints(0,1),
-    //     trianglePoints(1,2)
-    //   },
-    //   edge[1]: {
-    //     meshPoints(1,2),
-    //     trianglePoints(0,1)
-    //   },
-    //   edge[2]: {
-    //     meshPoints(0,2),
-    //     trianglePoints(0,2)
-    //   }
-    // }
+    // eslint-disable-next-line no-console
+    console.log(pointerInfo);
   }
 }
 
