@@ -6,7 +6,7 @@ import {
   Vector3,
   TransformNode,
 } from '@babylonjs/core';
-import { k_epsilon, k_triangleScale } from 'constants/index';
+import { k_epsilon } from 'constants/index';
 import Triangle from 'models/Triangle';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
@@ -245,14 +245,13 @@ class FlipGesture extends Gesture {
                 firstVertices[firstTriangleMeshVerticeIndices[1]],
               );
 
-              const inverseScaling = 1 / k_triangleScale;
-
               flipNodeFirstTriangle.position = flipNodeFirstTriangleCenter.add(
                 flipFirstTriangleEdgeCenter,
               );
-              scalingNodeFirstTriangle.position = flipNodeFirstTriangleCenter
-                .subtract(flipFirstTriangleEdgeCenter)
-                .scale(inverseScaling);
+              scalingNodeFirstTriangle.position =
+                flipNodeFirstTriangleCenter.subtract(
+                  flipFirstTriangleEdgeCenter,
+                );
 
               const flipNodeSecondTriangleCenter = Vector3.Zero(); // node position in object space
               const flipSecondTriangleEdgeCenter = Vector3.Center(
