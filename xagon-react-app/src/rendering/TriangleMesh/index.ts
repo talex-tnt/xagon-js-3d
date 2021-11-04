@@ -10,8 +10,8 @@ import {
 import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
-import ITriangleMeshState from './ITriangleMeshState';
-import MeshStateIdle from './MeshStateIdle';
+import IMeshState from './State/IMeshState';
+import MeshStateIdle from './State/MeshStateIdle';
 
 class TriangleMesh {
   private triangle: Triangle;
@@ -20,7 +20,7 @@ class TriangleMesh {
 
   private scalingRatio: number;
 
-  private currentState: ITriangleMeshState;
+  private currentState: IMeshState;
 
   public constructor({
     scene,

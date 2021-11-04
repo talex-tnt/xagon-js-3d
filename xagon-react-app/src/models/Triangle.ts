@@ -110,6 +110,16 @@ class Triangle {
       this.adjacents.push(triangle);
     }
   }
+
+  public isAdjacent(triangle: Triangle): boolean {
+    const isAdjacent = this.adjacents.find(
+      (adj) => adj?.getId() === triangle.getId(),
+    );
+    if (isAdjacent) {
+      return true;
+    }
+    return false;
+  }
 }
 
 export default Triangle;

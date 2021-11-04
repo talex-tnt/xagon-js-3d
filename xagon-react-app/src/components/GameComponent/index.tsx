@@ -10,7 +10,7 @@ import {
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 import SceneComponent from 'components/SceneComponent';
 import Icosahedron from 'models/Icosahedron';
-import TriangleMesh from 'rendering/TriangleMesh';
+import TriangleMesh from 'rendering/TriangleMesh/index';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
 import InputManager from './InputManager';
