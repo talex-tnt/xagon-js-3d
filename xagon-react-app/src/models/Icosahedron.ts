@@ -1,4 +1,5 @@
 import { Vector3 } from '@babylonjs/core';
+import { k_epsilon } from 'constants/index';
 import Triangle from './Triangle';
 
 class Icosahedron {
@@ -133,9 +134,8 @@ class Icosahedron {
 
 function computeAdjacentTriangles(triangles: Triangle[]) {
   const hasPoint = (triangle: Triangle, point: Vector3): boolean => {
-    const epsilon = 0.00000001;
     const found = triangle.getVertices().find((trPoint: Vector3) => {
-      if (Math.abs(point.subtract(trPoint).length()) < epsilon) {
+      if (Math.abs(point.subtract(trPoint).length()) < k_epsilon) {
         return true;
       }
       return false;

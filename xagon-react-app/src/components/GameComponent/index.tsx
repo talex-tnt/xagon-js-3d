@@ -7,6 +7,11 @@ import {
   StandardMaterial,
   // MeshBuilder,
 } from '@babylonjs/core';
+import {
+  k_triangleAssetName,
+  k_triangleAssetFileName,
+  k_triangleAssetDebugFileName,
+} from 'constants/identifiers';
 
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 import SceneComponent from 'components/SceneComponent';
@@ -14,12 +19,13 @@ import Icosahedron from 'models/Icosahedron';
 import { math /* , addAxisToScene  */ } from 'utils';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
-import InputManager from './inputManager/InputManager';
+import InputManager from './InputManager';
 
 const onSceneReady = (sceneArg: Scene) => {
   const scene: Scene = sceneArg;
   const target = new Vector3(0, 0, 0);
   const camera = setupCamera(scene, target);
+  camera.inputs.attached.pointers.buttons = [1];
 
   const icosahedron = new Icosahedron();
   icosahedron.subdivide();
@@ -34,9 +40,9 @@ const onSceneReady = (sceneArg: Scene) => {
   setupLight(scene, target);
 
   SceneLoader.ImportMeshAsync(
-    'TriangleMesh',
+    k_triangleAssetName,
     './assets/models/',
-    'triangle.babylon',
+    k_triangleAssetDebugFileName,
   ).then(({ meshes, skeletons }) => {
     if (meshes && meshes.length > 0) {
       const triangleMesh = meshes[0];
@@ -61,15 +67,17 @@ const onSceneReady = (sceneArg: Scene) => {
 
       const rootNode = new TransformNode('root');
 
-      triangles.slice(0, 16).forEach((tr, i) => {
+      triangles.forEach((tr, i) => {
         const meshClone = triangleMesh?.clone(tr.getName(), triangleMesh);
         if (meshClone) {
           const positionNode = new TransformNode(`positionNode${i}`);
           positionNode.parent = rootNode;
           const rotationNode = new TransformNode(`rotationNode${i}`);
           rotationNode.parent = positionNode;
+          const flipNode = new TransformNode(`scalingNode${i}`);
+          flipNode.parent = rotationNode;
           const scalingNode = new TransformNode(`scalingNode${i}`);
-          scalingNode.parent = rotationNode;
+          scalingNode.parent = flipNode;
 
           meshClone.metadata = { triangle: tr };
 
