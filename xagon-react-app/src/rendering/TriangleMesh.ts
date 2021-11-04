@@ -10,6 +10,8 @@ import {
 import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
+import ITriangleMeshState from './ITriangleMeshState';
+import MeshStateIdle from './MeshStateIdle';
 
 class TriangleMesh {
   private triangle: Triangle;
@@ -17,6 +19,8 @@ class TriangleMesh {
   private triangleMesh: Nullable<AbstractMesh>;
 
   private scalingRatio: number;
+
+  private currentState: ITriangleMeshState;
 
   public constructor({
     scene,
@@ -27,6 +31,7 @@ class TriangleMesh {
     triangle: Triangle;
     equilateralTriangleProvider: EquilateralTriangleProvider;
   }) {
+    this.currentState = new MeshStateIdle();
     this.triangle = triangle;
     this.triangleMesh = null;
 
@@ -68,6 +73,13 @@ class TriangleMesh {
 
         this.setupMaterial(scene);
       }
+    }
+  }
+
+  public update(): void {
+    const nextState = this.currentState.update();
+    if (nextState) {
+      this.currentState = nextState;
     }
   }
 

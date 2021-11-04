@@ -50,6 +50,9 @@ const onSceneReady = (sceneArg: Scene) => {
           }),
       );
       assetMesh.visibility = 0;
+      scene.registerBeforeRender(() => {
+        triangleMeshes.forEach((t) => t.update());
+      });
 
       inputManager.onMeshLoaded(assetMesh, triangleMeshes[0].getScalingRatio());
     }

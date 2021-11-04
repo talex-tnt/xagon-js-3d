@@ -24,14 +24,11 @@ class FlipGesture extends Gesture {
 
   private secondTriangleMesh: Nullable<AbstractMesh>;
 
-  private adjacentsVerticesMap: Nullable<Record<number, number>>;
-
   public constructor(context: GestureContext) {
     super();
     this.context = context;
     this.firstTriangleMesh = null;
     this.secondTriangleMesh = null;
-    this.adjacentsVerticesMap = null;
   }
 
   public getAdjacentsVerticesMap({
@@ -40,7 +37,7 @@ class FlipGesture extends Gesture {
   }: {
     firstTriangle: Triangle;
     secondTriangle: Triangle;
-  }): void {
+  }): Record<number, number> {
     const firstTriangleVertices = firstTriangle.getVertices();
     const secondTriangleVertices = secondTriangle.getVertices();
     const adjacentsVertices: Record<number, number> = {};
@@ -62,7 +59,7 @@ class FlipGesture extends Gesture {
         );
       },
     );
-    this.adjacentsVerticesMap = adjacentsVertices;
+    return adjacentsVertices;
   }
 
   public getTriangleMeshVerticeIndices(
@@ -195,10 +192,10 @@ class FlipGesture extends Gesture {
           if (this.secondTriangleMesh) {
             const secondTriangle =
               this.secondTriangleMesh.metadata.triangleMesh.getTriangle();
-
-            if (!this.adjacentsVerticesMap) {
-              this.getAdjacentsVerticesMap({ firstTriangle, secondTriangle });
-            }
+            const adjacentsVerticesMap = this.getAdjacentsVerticesMap({
+              firstTriangle,
+              secondTriangle,
+            });
 
             const scalingNodeFirstTriangle = this.firstTriangleMesh
               .parent as TransformNode;
@@ -214,12 +211,10 @@ class FlipGesture extends Gesture {
             const firstVertices = this.firstTriangleMesh.metadata.vertices;
             const secondVertices = this.secondTriangleMesh.metadata.vertices;
 
-            const firstTriangleVerticeIndices = Object.keys(
-              this.adjacentsVerticesMap,
-            );
-            const secondTriangleVerticeIndices = Object.values(
-              this.adjacentsVerticesMap,
-            );
+            const firstTriangleVerticeIndices =
+              Object.keys(adjacentsVerticesMap);
+            const secondTriangleVerticeIndices =
+              Object.values(adjacentsVerticesMap);
 
             const firstTriangleMeshVerticeIndices: number[] =
               this.getTriangleMeshVerticeIndices(firstTriangleVerticeIndices);
