@@ -8,6 +8,7 @@ import {
 } from '@babylonjs/core';
 import { k_epsilon, k_triangleScale } from 'constants/index';
 import Triangle from 'models/Triangle';
+import { addAxisToScene } from 'utils';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
 
@@ -146,6 +147,7 @@ class FlipGesture extends Gesture {
         scene: this.context.scene,
         triangleMesh: mesh,
       });
+
       if (assetMesh) {
         const data = this.computeObjSpaceData(assetMesh);
         if (data) {
@@ -160,7 +162,8 @@ class FlipGesture extends Gesture {
 
   public onMove(): void {
     if (this.firstTriangleMesh) {
-      const firstTriangle = this.firstTriangleMesh.metadata.triangle;
+      const firstTriangle =
+        this.firstTriangleMesh.metadata.triangleMesh.getTriangle();
 
       const pickinfo = this.context.scene.pick(
         this.context.scene.pointerX,
@@ -170,10 +173,11 @@ class FlipGesture extends Gesture {
       if (
         pickinfo &&
         pickinfo.pickedMesh &&
-        pickinfo.pickedMesh.metadata.triangle.triangleId !==
+        pickinfo.pickedMesh.metadata.triangle.getId() !==
           firstTriangle.triangleId
       ) {
         const mesh = pickinfo.pickedMesh;
+
         if (mesh) {
           const assetMesh = getAssetMesh({
             scene: this.context.scene,
@@ -190,7 +194,8 @@ class FlipGesture extends Gesture {
           }
 
           if (this.secondTriangleMesh) {
-            const secondTriangle = this.secondTriangleMesh.metadata.triangle;
+            const secondTriangle =
+              this.secondTriangleMesh.metadata.triangleMesh.getTriangle();
 
             if (!this.adjacentsVerticesMap) {
               this.getAdjacentsVerticesMap({ firstTriangle, secondTriangle });
@@ -241,27 +246,39 @@ class FlipGesture extends Gesture {
                 firstVertices[firstTriangleMeshVerticeIndices[1]],
               );
 
+              const inverseScaling = 1 / k_triangleScale;
+
               flipNodeFirstTriangle.position = flipNodeFirstTriangleCenter.add(
                 flipFirstTriangleEdgeCenter,
               );
-              scalingNodeFirstTriangle.position =
-                flipNodeFirstTriangleCenter.subtract(
-                  flipFirstTriangleEdgeCenter,
-                );
+              scalingNodeFirstTriangle.position = flipNodeFirstTriangleCenter
+                .subtract(flipFirstTriangleEdgeCenter)
+                .scale(inverseScaling);
+
+              addAxisToScene({
+                scene: this.context.scene,
+                size: 0.5,
+                parent: flipNodeFirstTriangle,
+              });
+              addAxisToScene({
+                scene: this.context.scene,
+                size: 0.5,
+                parent: scalingNodeFirstTriangle,
+              });
 
               const flipNodeSecondTriangleCenter = Vector3.Zero(); // node position in object space
               const flipSecondTriangleEdgeCenter = Vector3.Center(
                 secondVertices[secondTriangleMeshVerticeIndices[0]],
                 secondVertices[secondTriangleMeshVerticeIndices[1]],
               );
-              const inverseScaling = 1 / k_triangleScale;
 
-              flipNodeSecondTriangle.position = flipNodeSecondTriangleCenter
-                .add(flipSecondTriangleEdgeCenter)
-                .scale(inverseScaling);
-              scalingNodeSecondTriangle.position = flipNodeSecondTriangleCenter
-                .subtract(flipSecondTriangleEdgeCenter)
-                .scale(inverseScaling);
+              flipNodeSecondTriangle.position =
+                flipNodeSecondTriangleCenter.add(flipSecondTriangleEdgeCenter);
+
+              scalingNodeSecondTriangle.position =
+                flipNodeSecondTriangleCenter.subtract(
+                  flipSecondTriangleEdgeCenter,
+                );
 
               const rotationSpeed = this.setRotationSpeed(1);
 
