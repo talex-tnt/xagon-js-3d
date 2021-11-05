@@ -1,6 +1,7 @@
 import { Nullable, Scene, TransformNode, Vector3 } from '@babylonjs/core';
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
+// import MeshStateIdle from './MeshStateIdle';
 
 class MeshStateRotating extends IMeshState {
   private nextState: Nullable<IMeshState> = null;
@@ -12,6 +13,8 @@ class MeshStateRotating extends IMeshState {
   private scene: Scene;
 
   private direction: number | undefined;
+
+  private angle = 0;
 
   public constructor({
     thisTriangleMesh,
@@ -65,10 +68,6 @@ class MeshStateRotating extends IMeshState {
               this.triangleMesh.getTriangleMeshFlipEdgeIndex(
                 firstTriangleMeshIndicesSum,
               );
-            // const secondTriangleMeshFlipEdgeIndex =
-            //   this.getTriangleMeshFlipEdgeIndex(
-            //     secondTriangleMeshIndicesSum,
-            //   );
 
             if (flipNodeFirstTriangle /* && flipNodeSecondTriangle */) {
               const flipNodeFirstTriangleCenter = Vector3.Zero(); // node position in object space
@@ -85,36 +84,33 @@ class MeshStateRotating extends IMeshState {
                   flipFirstTriangleEdgeCenter,
                 );
 
-              // const flipNodeSecondTriangleCenter = Vector3.Zero(); // node position in object space
-              // const flipSecondTriangleEdgeCenter = Vector3.Center(
-              //   secondVertices[secondTriangleMeshVerticeIndices[0]],
-              //   secondVertices[secondTriangleMeshVerticeIndices[1]],
-              // );
-
-              // flipNodeSecondTriangle.position =
-              //   flipNodeSecondTriangleCenter.add(
-              //     flipSecondTriangleEdgeCenter,
-              //   );
-
-              // scalingNodeSecondTriangle.position =
-              //   flipNodeSecondTriangleCenter.subtract(
-              //     flipSecondTriangleEdgeCenter,
-              //   );
-
               const rotationSpeed = this.getRotationSpeed();
               const { direction } = this;
 
+              this.angle += rotationSpeed;
+
               if (direction) {
-                this.scene.registerBeforeRender(() => {
-                  flipNodeFirstTriangle.rotate(
-                    firstEdges[firstTriangleMeshFlipEdgeIndex],
-                    rotationSpeed * direction,
-                  );
-                  // flipNodeSecondTriangle.rotate(
-                  //   secondEdges[secondTriangleMeshFlipEdgeIndex],
-                  //   -rotationSpeed,
-                  // );
-                });
+                switch (direction) {
+                  case 1: {
+                    if (this.angle < Math.PI) {
+                      flipNodeFirstTriangle.rotate(
+                        firstEdges[firstTriangleMeshFlipEdgeIndex],
+                        rotationSpeed * direction,
+                      );
+                    }
+                    break;
+                  }
+                  case -1: {
+                    if (this.angle < Math.PI) {
+                      flipNodeFirstTriangle.rotate(
+                        firstEdges[firstTriangleMeshFlipEdgeIndex],
+                        rotationSpeed * direction,
+                      );
+                    }
+                    break;
+                  }
+                  default:
+                }
               }
             }
           }
@@ -126,7 +122,7 @@ class MeshStateRotating extends IMeshState {
 
   public getRotationSpeed(): number {
     const deltaTimeInMillis = this.scene.getEngine().getDeltaTime();
-    const rotationSpeed = (1 / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
+    const rotationSpeed = (60 / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
     return rotationSpeed;
   }
 }

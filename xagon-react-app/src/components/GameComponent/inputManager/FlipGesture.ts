@@ -22,6 +22,8 @@ class FlipGesture extends Gesture {
 
   private secondTriangleMesh: Nullable<TriangleMesh>;
 
+  private onFlip = false;
+
   public constructor(context: GestureContext) {
     super();
     this.context = context;
@@ -83,7 +85,7 @@ class FlipGesture extends Gesture {
   }
 
   public onMove(): void {
-    if (this.firstTriangleMesh) {
+    if (this.firstTriangleMesh && !this.onFlip) {
       const firstTriangle = this.firstTriangleMesh.getTriangle();
 
       const pickinfo = this.context.scene.pick(
@@ -96,6 +98,7 @@ class FlipGesture extends Gesture {
         pickinfo.pickedMesh &&
         pickinfo.pickedMesh.metadata.triangle.getId() !== firstTriangle.getId()
       ) {
+        this.onFlip = true;
         const mesh = pickinfo.pickedMesh;
 
         if (mesh) {
@@ -134,7 +137,8 @@ class FlipGesture extends Gesture {
 
   public onRelease(pointerInfo: PointerInfo): void {
     // eslint-disable-next-line no-console
-    console.log(pointerInfo);
+    this.firstTriangleMesh = null;
+    this.secondTriangleMesh = null;
   }
 }
 
