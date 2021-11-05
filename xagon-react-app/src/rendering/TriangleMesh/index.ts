@@ -36,7 +36,7 @@ class TriangleMesh {
     triangle: Triangle;
     equilateralTriangleProvider: EquilateralTriangleProvider;
   }) {
-    this.currentState = new MeshStateIdle(this);
+    this.currentState = new MeshStateIdle({ triangleMesh: this, scene });
     this.triangle = triangle;
     this.triangleMesh = null;
 
@@ -108,8 +108,14 @@ class TriangleMesh {
     }
   }
 
-  public onFlip(triangleMesh: TriangleMesh): void {
-    this.currentState.update(triangleMesh);
+  public onFlip({
+    triangleMesh,
+    direction,
+  }: {
+    triangleMesh: TriangleMesh;
+    direction: number;
+  }): void {
+    this.currentState.update({ adjacentTriangleMesh: triangleMesh, direction });
   }
 
   public getTriangle(): Triangle {
