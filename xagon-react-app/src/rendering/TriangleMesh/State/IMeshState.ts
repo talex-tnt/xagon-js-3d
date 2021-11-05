@@ -1,9 +1,9 @@
 import { Nullable } from '@babylonjs/core';
-import Triangle from 'models/Triangle';
+import TriangleMesh from '..';
 
 abstract class IMeshState {
   abstract update(): Nullable<IMeshState>;
 
-  abstract onFlip(triangle: Triangle): void;
+  abstract onFlip(triangleMesh: TriangleMesh): void;
 }
 export default IMeshState;

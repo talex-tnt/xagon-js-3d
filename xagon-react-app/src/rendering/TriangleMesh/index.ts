@@ -18,6 +18,10 @@ class TriangleMesh {
 
   private triangleMesh: Nullable<AbstractMesh>;
 
+  private triangleEdges: Nullable<Vector3[]> = null;
+
+  private triangleVertices: Nullable<Vector3[]> = null;
+
   private scalingRatio: number;
 
   private currentState: IMeshState;
@@ -76,11 +80,35 @@ class TriangleMesh {
     }
   }
 
+  public getVertices(): Nullable<Vector3[]> {
+    return this.triangleVertices;
+  }
+
+  public getEdges(): Nullable<Vector3[]> {
+    return this.triangleEdges;
+  }
+
+  public setVertices(vertices: Vector3[]): void {
+    this.triangleVertices = vertices;
+  }
+
+  public setEdges(edges: Vector3[]): void {
+    this.triangleEdges = edges;
+  }
+
+  public getTriangleMesh(): Nullable<AbstractMesh> {
+    return this.triangleMesh;
+  }
+
   public update(): void {
     const nextState = this.currentState.update();
     if (nextState) {
       this.currentState = nextState;
     }
+  }
+
+  public onFlip(triangleMesh: TriangleMesh): void {
+    this.currentState.onFlip(triangleMesh);
   }
 
   public getTriangle(): Triangle {

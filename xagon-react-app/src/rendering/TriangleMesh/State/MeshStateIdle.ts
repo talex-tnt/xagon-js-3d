@@ -1,15 +1,17 @@
 import { Nullable } from '@babylonjs/core';
-import Triangle from 'models/Triangle';
+import TriangleMesh from '..';
 import IMeshState from './IMeshState';
 
 class MeshStateIdle extends IMeshState {
+  private nextState: Nullable<IMeshState> = null;
+
   public update(): Nullable<IMeshState> {
-    return null;
+    return this.nextState;
   }
 
-  public onFlip(triangle: Triangle): void {
+  public onFlip(triangleMesh: TriangleMesh): void {
     // eslint-disable-next-line no-console
-    console.log(triangle);
+    console.log(triangleMesh);
   }
 }
 export default MeshStateIdle;
