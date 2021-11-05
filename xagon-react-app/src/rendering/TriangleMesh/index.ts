@@ -9,6 +9,7 @@ import {
 } from '@babylonjs/core';
 import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
+import { k_epsilon } from 'constants/index';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
 import IMeshState from './State/IMeshState';
 import MeshStateIdle from './State/MeshStateIdle';
@@ -35,7 +36,7 @@ class TriangleMesh {
     triangle: Triangle;
     equilateralTriangleProvider: EquilateralTriangleProvider;
   }) {
-    this.currentState = new MeshStateIdle();
+    this.currentState = new MeshStateIdle(this);
     this.triangle = triangle;
     this.triangleMesh = null;
 
@@ -108,7 +109,7 @@ class TriangleMesh {
   }
 
   public onFlip(triangleMesh: TriangleMesh): void {
-    this.currentState.onFlip(triangleMesh);
+    this.currentState.update(triangleMesh);
   }
 
   public getTriangle(): Triangle {
@@ -250,6 +251,79 @@ class TriangleMesh {
       material.alpha = 1;
       this.triangleMesh.material = material;
     }
+  }
+
+  public getAdjacentsVerticesMap(
+    adjacentTriangle: Triangle,
+  ): Record<number, number> {
+    const firstTriangleVertices = this.triangle.getVertices();
+    const secondTriangleVertices = adjacentTriangle.getVertices();
+    const adjacentsVertices: Record<number, number> = {};
+    if (firstTriangleVertices && secondTriangleVertices) {
+      firstTriangleVertices.forEach(
+        (firstTriangleVertice: Vector3, indexFirstTriangleVertice: number) => {
+          secondTriangleVertices.forEach(
+            (
+              secondTriangleVertice: Vector3,
+              indexSecondTriangleVertice: number,
+            ) => {
+              if (
+                secondTriangleVertice.subtract(firstTriangleVertice).length() <
+                k_epsilon
+              ) {
+                adjacentsVertices[indexFirstTriangleVertice] =
+                  indexSecondTriangleVertice;
+              }
+            },
+          );
+        },
+      );
+    }
+    return adjacentsVertices;
+  }
+
+  public getTriangleMeshVerticeIndices(
+    triangleVerticeIndices: string[] | number[],
+  ): number[] {
+    const triangleMeshVerticeIndices: number[] = [];
+    triangleVerticeIndices.forEach((k, i) => {
+      switch (String(k)) {
+        case '0':
+          triangleMeshVerticeIndices[i] = 2;
+          break;
+        case '1':
+          triangleMeshVerticeIndices[i] = 1;
+          break;
+        case '2':
+          triangleMeshVerticeIndices[i] = 0;
+          break;
+        default:
+      }
+    });
+    return triangleMeshVerticeIndices;
+  }
+
+  public getTriangleMeshIndicesSum(
+    triangleMeshVerticeIndices: number[],
+  ): number {
+    return triangleMeshVerticeIndices.reduce((curr, prev) => curr + prev);
+  }
+
+  public getTriangleMeshFlipEdgeIndex(triangleMeshIndicesSum: number): number {
+    let triangleMeshFlipEdgeIndex = 0;
+    switch (triangleMeshIndicesSum) {
+      case 1:
+        triangleMeshFlipEdgeIndex = 0;
+        break;
+      case 2:
+        triangleMeshFlipEdgeIndex = 2;
+        break;
+      case 3:
+        triangleMeshFlipEdgeIndex = 1;
+        break;
+      default:
+    }
+    return triangleMeshFlipEdgeIndex;
   }
 }
 

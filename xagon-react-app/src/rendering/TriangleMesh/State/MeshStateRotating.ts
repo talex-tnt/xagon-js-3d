@@ -3,6 +3,22 @@ import TriangleMesh from '..';
 import IMeshState from './IMeshState';
 
 class MeshStateRotating extends IMeshState {
+  private triangleMesh: TriangleMesh;
+
+  private adjacentTriangleMesh: TriangleMesh;
+
+  public constructor({
+    thisTriangleMesh,
+    adjacentTriangleMesh,
+  }: {
+    thisTriangleMesh: TriangleMesh;
+    adjacentTriangleMesh: TriangleMesh;
+  }) {
+    super();
+    this.triangleMesh = thisTriangleMesh;
+    this.adjacentTriangleMesh = adjacentTriangleMesh;
+  }
+
   public update(): Nullable<IMeshState> {
     return null;
   }
