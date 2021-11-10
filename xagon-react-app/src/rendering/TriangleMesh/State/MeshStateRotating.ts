@@ -6,6 +6,7 @@ import {
   TransformNode,
   Vector3,
 } from '@babylonjs/core';
+import { addAxisToScene } from 'utils';
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
 import MeshStateIdle from './MeshStateIdle';
@@ -124,18 +125,23 @@ class MeshStateRotating extends IMeshState {
               const { direction } = this;
 
               // #DEBUG_ADJACENT_EDGE
-              // MeshBuilder.CreateLines('line1', {
-              //   points: [
-              //     adjacentTriangleEdgeCenterPoint,
-              //     this.triangleMesh.getTriangle().getCenterPoint(),
-              //   ],
-              // });
-              // MeshBuilder.CreateLines('line2', {
-              //   points: [
-              //     adjacentTriangleEdgeCenterPoint,
-              //     this.adjacentTriangleMesh.getTriangle().getCenterPoint(),
-              //   ],
-              // });
+              addAxisToScene({
+                scene: this.scene,
+                size: 0.5,
+                parent: scalingNodeFirstTriangle,
+              });
+              MeshBuilder.CreateLines('line1', {
+                points: [
+                  adjacentEdgeWorldSpaceCenterPoint,
+                  this.triangleMesh.getTriangle().getCenterPoint(),
+                ],
+              });
+              MeshBuilder.CreateLines('line2', {
+                points: [
+                  adjacentEdgeWorldSpaceCenterPoint,
+                  this.adjacentTriangleMesh.getTriangle().getCenterPoint(),
+                ],
+              });
               MeshBuilder.CreateLines('line3', {
                 points: [
                   firstTriangleWorldSpaceVertices[
@@ -183,16 +189,13 @@ class MeshStateRotating extends IMeshState {
                 // });
 
                 // #SHIFT_ROTATION_NODE
-                // const deltaShift =
-                //   firstTriangle_AdjacentEdgeCenter_TriangleCenter.length() /
-                //   secondTriangle_AdjacentEdgeCenter_TriangleCenter.length();
-                // if (deltaShift < 1) {
-                //   scalingNodeFirstTriangle.position =
-                //     scalingNodeFirstTriangle.position.scale(1 / deltaShift);
-                // } else {
-                //   scalingNodeFirstTriangle.position =
-                //     scalingNodeFirstTriangle.position.scale(deltaShift);
-                // }
+                const deltaShift =
+                  firstTriangle_AdjacentEdgeCenter_TriangleCenter.length() /
+                  secondTriangle_AdjacentEdgeCenter_TriangleCenter.length();
+                console.log(deltaShift);
+
+                scalingNodeFirstTriangle.position =
+                  scalingNodeFirstTriangle.position.scale(1 / deltaShift);
 
                 switch (direction) {
                   case 1: {
