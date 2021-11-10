@@ -9,7 +9,7 @@ import {
 } from '@babylonjs/core';
 import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
-import { k_epsilon } from 'constants/index';
+import { k_epsilon, k_triangleScale } from 'constants/index';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
 import IMeshState from './State/IMeshState';
 import MeshStateIdle from './State/MeshStateIdle';
@@ -22,6 +22,8 @@ class TriangleMesh {
   private triangleEdges: Nullable<Vector3[]> = null;
 
   private triangleVertices: Nullable<Vector3[]> = null;
+
+  private vertices_Center_Vectors: Nullable<Vector3[]>;
 
   private scalingRatio: number;
 
@@ -39,10 +41,10 @@ class TriangleMesh {
     this.currentState = new MeshStateIdle({ triangleMesh: this, scene });
     this.triangle = triangle;
     this.triangleMesh = null;
+    this.vertices_Center_Vectors = null;
 
     const TRIANGLE_RADIUS = 1;
     const TRIANGLE_SIDE = TRIANGLE_RADIUS * (3 / Math.sqrt(3));
-    const TRIANGLE_SCALE = 0.85;
 
     const equilateralTriangle =
       equilateralTriangleProvider.findEquilateralTriangle();
@@ -52,7 +54,7 @@ class TriangleMesh {
       .subtract(equilateralTriangle.p2())
       .length();
     this.scalingRatio =
-      (1 / TRIANGLE_SIDE) * triangleEdgeLength * TRIANGLE_SCALE;
+      (1 / TRIANGLE_SIDE) * triangleEdgeLength * k_triangleScale;
 
     const radiusEquilaterTriangle = equilateralTriangle
       .p1()
@@ -99,6 +101,10 @@ class TriangleMesh {
 
   public getTriangleMesh(): Nullable<AbstractMesh> {
     return this.triangleMesh;
+  }
+
+  public getVertices_Center_Vectors(): Nullable<Vector3[]> {
+    return this.vertices_Center_Vectors;
   }
 
   public update(): void {
@@ -206,6 +212,11 @@ class TriangleMesh {
     const p1CenterVector = this.triangle.p1().subtract(triangleCenter);
     const p2CenterVector = this.triangle.p2().subtract(triangleCenter);
     const p3CenterVector = this.triangle.p3().subtract(triangleCenter);
+    this.vertices_Center_Vectors = [
+      p1CenterVector,
+      p2CenterVector,
+      p3CenterVector,
+    ];
     const positionNode = scene.getNodeByName(
       `positionNode${this.triangle.getId()}`,
     );

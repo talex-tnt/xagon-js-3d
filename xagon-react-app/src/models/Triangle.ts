@@ -1,4 +1,4 @@
-import { Nullable, Vector3, Color3 } from '@babylonjs/core';
+import { Nullable, Vector3, Color3, MeshBuilder } from '@babylonjs/core';
 
 export type TriangleVertices = Array<Vector3>;
 export type TriangleId = bigint;
@@ -87,10 +87,20 @@ class Triangle {
   }
 
   public getCenterPoint(): Vector3 {
-    const middlePoint = Vector3.Center(this.vertices[0], this.vertices[1]);
-    const center = this.vertices[2].add(
-      middlePoint.subtract(this.vertices[2]).scale(2 / 3),
+    const middlePoint1 = Vector3.Center(this.vertices[0], this.vertices[1]);
+    const center1 = this.vertices[2].add(
+      middlePoint1.subtract(this.vertices[2]).scale(2 / 3),
     );
+    const middlePoint2 = Vector3.Center(this.vertices[1], this.vertices[2]);
+    const center2 = this.vertices[0].add(
+      middlePoint2.subtract(this.vertices[0]).scale(2 / 3),
+    );
+    const middlePoint3 = Vector3.Center(this.vertices[2], this.vertices[0]);
+    const center3 = this.vertices[1].add(
+      middlePoint3.subtract(this.vertices[1]).scale(2 / 3),
+    );
+    const middlePoint = Vector3.Center(center2, center3);
+    const center = center1.add(middlePoint.subtract(center1).scale(2 / 3));
 
     return center;
   }

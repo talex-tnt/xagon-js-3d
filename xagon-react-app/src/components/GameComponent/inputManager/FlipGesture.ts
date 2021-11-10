@@ -13,6 +13,7 @@ interface GestureContext {
   scene: Scene;
   triangleMesh: AbstractMesh;
   scalingRatio: number;
+  onFlip: () => void;
 }
 
 class FlipGesture extends Gesture {
@@ -21,8 +22,6 @@ class FlipGesture extends Gesture {
   private firstTriangleMesh: Nullable<TriangleMesh>;
 
   private secondTriangleMesh: Nullable<TriangleMesh>;
-
-  private onFlip = false;
 
   public constructor(context: GestureContext) {
     super();
@@ -85,7 +84,7 @@ class FlipGesture extends Gesture {
   }
 
   public onMove(): void {
-    if (this.firstTriangleMesh && !this.onFlip) {
+    if (this.firstTriangleMesh) {
       const firstTriangle = this.firstTriangleMesh.getTriangle();
 
       const pickinfo = this.context.scene.pick(
@@ -98,7 +97,6 @@ class FlipGesture extends Gesture {
         pickinfo.pickedMesh &&
         pickinfo.pickedMesh.metadata.triangle.getId() !== firstTriangle.getId()
       ) {
-        this.onFlip = true;
         const mesh = pickinfo.pickedMesh;
 
         if (mesh) {
@@ -128,6 +126,7 @@ class FlipGesture extends Gesture {
                 triangleMesh: this.firstTriangleMesh,
                 direction: -1,
               });
+              this.context.onFlip();
             }
           }
         }
