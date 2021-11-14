@@ -28,7 +28,7 @@ const onSceneReady = (sceneArg: Scene) => {
   camera.inputs.attached.pointers.buttons = [1];
 
   const icosahedron = new Icosahedron();
-  icosahedron.subdivide();
+  // icosahedron.subdivide();
   // icosahedron.subdivide();
   // icosahedron.subdivide();
 

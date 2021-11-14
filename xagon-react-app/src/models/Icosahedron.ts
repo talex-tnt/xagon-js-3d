@@ -81,10 +81,7 @@ class Icosahedron {
       new Triangle(this.genTriangleId(), p3, p2, triangle.p3()),
     ];
 
-    const randomType = () =>
-      Math.floor(Math.random() * Triangle.getTypesCount());
-
-    subTriangles.forEach((tr) => tr.setType(randomType()));
+    subTriangles.forEach((tr) => tr.setType(Triangle.getRandomType()));
 
     return subTriangles;
   }

@@ -19,6 +19,7 @@ enum Type {
   Fifth,
   Sixth,
 }
+export const getTypeCount = (): number => Object.keys(Type).length / 2;
 
 const colors: Record<Type, Color3> = {
   [Type.First]: Color3.Blue(),
@@ -41,13 +42,24 @@ class Triangle {
 
   private type: Type = Type.First;
 
-  public constructor(id: TriangleId, p1: Vector3, p2: Vector3, p3: Vector3) {
+  public constructor(
+    id: TriangleId,
+    p1: Vector3,
+    p2: Vector3,
+    p3: Vector3,
+    type: Type = Triangle.getRandomType(),
+  ) {
     this.triangleId = id;
     this.vertices = [p1, p2, p3];
+    this.type = type;
   }
 
   static getTypesCount(): number {
     return typesCount;
+  }
+
+  static getRandomType(): number {
+    return Math.floor(Math.random() * Triangle.getTypesCount());
   }
 
   public getType(): Type {
