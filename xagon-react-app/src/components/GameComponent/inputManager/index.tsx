@@ -39,6 +39,9 @@ class InputManager {
                 scene: this.scene,
                 triangleMesh,
                 scalingRatio,
+                onFlip: () => {
+                  delete this.gesturesMap[pointerId];
+                },
               };
               this.gesturesMap[pointerId] = new FlipGesture(gestureContext);
               this.gesturesMap[pointerId].onDown(pointerInfo);
