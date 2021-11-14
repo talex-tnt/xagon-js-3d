@@ -1,8 +1,9 @@
 import { Vector3 } from '@babylonjs/core';
 import { k_epsilon } from 'constants/index';
+import EquilateralTriangleProvider from 'rendering/TriangleMesh/EquilateralTriangleProvider';
 import Triangle from './Triangle';
 
-class Icosahedron {
+class Icosahedron extends EquilateralTriangleProvider {
   //
   private triangles: Array<Triangle>;
 
@@ -14,6 +15,7 @@ class Icosahedron {
   }
 
   public constructor() {
+    super();
     const phi = (1.0 + Math.sqrt(5.0)) * 0.5; // golden ratio
     const a = 1.0;
     const b = 1.0 / phi;
