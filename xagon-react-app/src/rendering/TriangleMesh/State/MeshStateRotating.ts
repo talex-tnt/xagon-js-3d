@@ -1,11 +1,10 @@
 import {
-  MeshBuilder, // #debug
+  // MeshBuilder, // #debug
   Nullable,
   Quaternion,
   Scene,
   TransformNode,
   Vector3,
-  DeepImmutableObject,
   Scalar,
 } from '@babylonjs/core';
 // import { addAxisToScene } from 'utils'; #debug
@@ -30,17 +29,9 @@ class MeshStateRotating extends IMeshState {
 
   private rotationAxis: Vector3;
 
-  private rotationDownAngle: number;
+  private rotationAngle: number;
 
-  private rotationUpAngle: number;
-
-  private flipNode: TransformNode;
-
-  private rotationQuaternion: Quaternion;
-
-  private rotationQuaternion2: Quaternion;
-
-  private flipQuaternion: DeepImmutableObject<Quaternion>;
+  private flipNode: Nullable<TransformNode>;
 
   private amount: number;
 
@@ -63,6 +54,8 @@ class MeshStateRotating extends IMeshState {
     this.amount = 0;
     this.firstEdges = this.triangleMesh.getEdges();
     this.firstVertices = this.triangleMesh.getVertices();
+    this.rotationAngle = 0;
+    this.rotationAxis = Vector3.Zero();
 
     const adjacentsVerticesMap = this.triangleMesh.getAdjacentsVerticesMap(
       this.adjacentTriangleMesh.getTriangle(),
@@ -177,7 +170,7 @@ class MeshStateRotating extends IMeshState {
               // });
               //
 
-              this.rotationDownAngle = Math.abs(
+              const rotationDownAngle = Math.abs(
                 Vector3.GetAngleBetweenVectors(
                   firstTriangleRotationVector,
                   secondTriangleRotationVector,
@@ -185,7 +178,11 @@ class MeshStateRotating extends IMeshState {
                 ),
               );
 
-              this.rotationUpAngle = Math.PI * 2 - this.rotationDownAngle;
+              if (this.direction === 1) {
+                this.rotationAngle = rotationDownAngle;
+              } else {
+                this.rotationAngle = Math.PI * 2 - rotationDownAngle;
+              }
 
               if (
                 // direction &&
@@ -231,18 +228,6 @@ class MeshStateRotating extends IMeshState {
                 //     this.rotationUpAngle,
                 //   );
                 // }
-                this.rotationQuaternion = Quaternion.RotationAxis(
-                  this.rotationAxis,
-                  this.rotationDownAngle,
-                );
-
-                this.rotationQuaternion2 = Quaternion.RotationAxis(
-                  this.rotationAxis,
-                  this.rotationUpAngle,
-                );
-
-                this.flipQuaternion = this.flipNode
-                  .rotationQuaternion as DeepImmutableObject<Quaternion>;
               }
             }
           }
@@ -252,61 +237,64 @@ class MeshStateRotating extends IMeshState {
   }
 
   public update(): Nullable<IMeshState> {
-    const angleRatio = this.rotationUpAngle / this.rotationDownAngle;
-
-    switch (this.direction) {
-      case 1: {
-        // const rotationAnglePerFrame = this.getRotationAnglePerFrame(
-        //   this.rotationDownAngle,
-        // );
-        // console.log('FIRST', (this.rotationDownAngle * 180) / Math.PI);
-        // console.log('ANGLE', this.angle);
-
-        // #ROTATION_TRIANGLE1
-        if (this.amount > 1) {
-          this.nextState = new MeshStateIdle({
-            triangleMesh: this.triangleMesh,
-            scene: this.scene,
-          });
-        } else {
-          this.flipNode.rotationQuaternion = Quaternion.Slerp(
-            // Quaternion.RotationAxis(this.rotationAxis, 0),
-            // Quaternion.Identity(),
-            this.flipQuaternion,
-            this.rotationQuaternion,
-            this.amount,
-          );
-          this.amount += 1 / 50;
-        }
-        break;
-      }
-      case -1: {
-        // console.log('SECOND', (this.rotationUpAngle * 180) / Math.PI);
-        // console.log('ANGLE', this.angle);
-
-        // #ROTATION_TRIANGLE2
-        if (this.amount > angleRatio) {
-          this.flipNode.rotationQuaternion = Quaternion.Slerp(
-            this.flipQuaternion,
-            this.rotationQuaternion2,
-            angleRatio,
-          );
-          this.nextState = new MeshStateIdle({
-            triangleMesh: this.triangleMesh,
-            scene: this.scene,
-          });
-        } else {
-          this.flipNode.rotationQuaternion = Quaternion.Slerp(
-            this.flipQuaternion,
-            this.rotationQuaternion,
-            -this.amount,
-          );
-          this.amount += (1 / 50) * angleRatio;
-        }
-        break;
-      }
-      default:
+    if (this.amount > 1) {
+      this.nextState = new MeshStateIdle({
+        triangleMesh: this.triangleMesh,
+        scene: this.scene,
+      });
+    } else {
+      this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
+        this.rotationAxis,
+        Scalar.LerpAngle(0, this.rotationAngle, this.amount) * this.direction,
+      );
+      this.amount += 1 / 10;
     }
+    // switch (this.direction) {
+    //   case 1: {
+    //     // const rotationAnglePerFrame = this.getRotationAnglePerFrame(
+    //     //   this.rotationDownAngle,
+    //     // );
+    //     // console.log('FIRST', (this.rotationDownAngle * 180) / Math.PI);
+    //     // console.log('ANGLE', this.angle);
+
+    //     // #ROTATION_TRIANGLE1
+    //     if (this.amount > 1) {
+    //       this.nextState = new MeshStateIdle({
+    //         triangleMesh: this.triangleMesh,
+    //         scene: this.scene,
+    //       });
+    //     } else {
+    //       this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
+    //         this.rotationAxis,
+    //         Scalar.LerpAngle(0, this.rotationAngle, this.amount) *
+    //           this.direction,
+    //       );
+    //       this.amount += 1 / 50;
+    //     }
+    //     break;
+    //   }
+    //   case -1: {
+    //     // console.log('SECOND', (this.rotationUpAngle * 180) / Math.PI);
+    //     // console.log('ANGLE', this.angle);
+
+    //     // #ROTATION_TRIANGLE2
+    //     if (this.amount > 1) {
+    //       this.nextState = new MeshStateIdle({
+    //         triangleMesh: this.triangleMesh,
+    //         scene: this.scene,
+    //       });
+    //     } else {
+    //       this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
+    //         this.rotationAxis,
+    //         Scalar.LerpAngle(0, this.rotationUpAngle, this.amount) *
+    //           this.direction,
+    //       );
+    //       this.amount += 1 / 50;
+    //     }
+    //     break;
+    //   }
+    //   default:
+    // }
 
     return this.nextState;
   }
