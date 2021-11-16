@@ -6,6 +6,7 @@ import {
   Vector3,
   StandardMaterial,
   Nullable,
+  Quaternion,
 } from '@babylonjs/core';
 import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
@@ -148,6 +149,8 @@ class TriangleMesh {
       const scalingNode = new TransformNode(
         `scalingNode${this.triangle.getId()}`,
       );
+      flipNode.rotationQuaternion = Quaternion.Identity();
+
       scalingNode.parent = flipNode;
       this.triangleMesh.parent = scalingNode;
     }
