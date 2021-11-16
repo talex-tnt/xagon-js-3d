@@ -251,52 +251,6 @@ class MeshStateRotating extends IMeshState {
       );
       this.amount += 1 / 10;
     }
-    // switch (this.direction) {
-    //   case 1: {
-    //     // const rotationAnglePerFrame = this.getRotationAnglePerFrame(
-    //     //   this.rotationDownAngle,
-    //     // );
-    //     // console.log('FIRST', (this.rotationDownAngle * 180) / Math.PI);
-    //     // console.log('ANGLE', this.angle);
-
-    //     // #ROTATION_TRIANGLE1
-    //     if (this.amount > 1) {
-    //       this.nextState = new MeshStateIdle({
-    //         triangleMesh: this.triangleMesh,
-    //         scene: this.scene,
-    //       });
-    //     } else {
-    //       this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
-    //         this.rotationAxis,
-    //         Scalar.LerpAngle(0, this.rotationAngle, this.amount) *
-    //           this.direction,
-    //       );
-    //       this.amount += 1 / 50;
-    //     }
-    //     break;
-    //   }
-    //   case -1: {
-    //     // console.log('SECOND', (this.rotationUpAngle * 180) / Math.PI);
-    //     // console.log('ANGLE', this.angle);
-
-    //     // #ROTATION_TRIANGLE2
-    //     if (this.amount > 1) {
-    //       this.nextState = new MeshStateIdle({
-    //         triangleMesh: this.triangleMesh,
-    //         scene: this.scene,
-    //       });
-    //     } else {
-    //       this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
-    //         this.rotationAxis,
-    //         Scalar.LerpAngle(0, this.rotationUpAngle, this.amount) *
-    //           this.direction,
-    //       );
-    //       this.amount += 1 / 50;
-    //     }
-    //     break;
-    //   }
-    //   default:
-    // }
 
     return this.nextState;
   }
