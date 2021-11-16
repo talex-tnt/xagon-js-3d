@@ -237,7 +237,9 @@ class MeshStateRotating extends IMeshState {
   }
 
   public update(): Nullable<IMeshState> {
-    if (this.amount > 1) {
+    const amount = Number(this.amount.toFixed(10));
+
+    if (amount > 1) {
       this.nextState = new MeshStateIdle({
         triangleMesh: this.triangleMesh,
         scene: this.scene,
@@ -245,7 +247,7 @@ class MeshStateRotating extends IMeshState {
     } else {
       this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
         this.rotationAxis,
-        Scalar.LerpAngle(0, this.rotationAngle, this.amount) * this.direction,
+        Scalar.LerpAngle(0, this.rotationAngle, amount) * this.direction,
       );
       this.amount += 1 / 10;
     }
