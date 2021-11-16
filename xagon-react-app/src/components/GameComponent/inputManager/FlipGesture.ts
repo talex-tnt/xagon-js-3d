@@ -30,12 +30,6 @@ class FlipGesture extends Gesture {
     this.secondTriangleMesh = null;
   }
 
-  public getRotationSpeed(): number {
-    const deltaTimeInMillis = this.context.scene.getEngine().getDeltaTime();
-    const rotationSpeed = (1 / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
-    return rotationSpeed;
-  }
-
   public computeObjSpaceData(assetMesh: AbstractMesh):
     | {
         vertices: Vector3[];

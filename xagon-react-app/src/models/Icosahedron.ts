@@ -77,10 +77,25 @@ class Icosahedron extends EquilateralTriangleProvider {
     const p3 = center3.scale(1 / center3.length());
 
     const subTriangles = [
-      new Triangle(this.genTriangleId(), triangle.p1(), p1, p3),
-      new Triangle(this.genTriangleId(), p1, triangle.p2(), p2),
+      new Triangle(
+        this.genTriangleId(),
+        triangle.p1().scale(1 / triangle.p1().length()),
+        p1,
+        p3,
+      ),
+      new Triangle(
+        this.genTriangleId(),
+        p1,
+        triangle.p2().scale(1 / triangle.p2().length()),
+        p2,
+      ),
       new Triangle(this.genTriangleId(), p1, p2, p3),
-      new Triangle(this.genTriangleId(), p3, p2, triangle.p3()),
+      new Triangle(
+        this.genTriangleId(),
+        p3,
+        p2,
+        triangle.p3().scale(1 / triangle.p3().length()),
+      ),
     ];
 
     subTriangles.forEach((tr) => tr.setType(Triangle.getRandomType()));

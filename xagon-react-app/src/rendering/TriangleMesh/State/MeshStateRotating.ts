@@ -1,12 +1,12 @@
 import {
-  MeshBuilder,
+  // MeshBuilder, #debug
   Nullable,
   Quaternion,
   Scene,
   TransformNode,
   Vector3,
 } from '@babylonjs/core';
-import { addAxisToScene } from 'utils';
+// import { addAxisToScene } from 'utils'; #debug
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
 import MeshStateIdle from './MeshStateIdle';
@@ -21,6 +21,10 @@ class MeshStateRotating extends IMeshState {
   private scene: Scene;
 
   private direction: number | undefined;
+
+  private firstEdges: Nullable<Vector3[]>;
+
+  private firstVertices: Nullable<Vector3[]>;
 
   private angle: number;
 
@@ -41,6 +45,8 @@ class MeshStateRotating extends IMeshState {
     this.scene = scene;
     this.direction = direction;
     this.angle = 0;
+    this.firstEdges = this.triangleMesh.getEdges();
+    this.firstVertices = this.triangleMesh.getVertices();
   }
 
   public update(): Nullable<IMeshState> {
@@ -52,14 +58,12 @@ class MeshStateRotating extends IMeshState {
       const triangleMesh = this.triangleMesh.getTriangleMesh();
       if (triangleMesh) {
         const scalingNodeFirstTriangle = triangleMesh.parent as TransformNode;
+
         if (scalingNodeFirstTriangle) {
           const flipNodeFirstTriangle =
             scalingNodeFirstTriangle.parent as TransformNode;
 
-          const firstEdges = this.triangleMesh.getEdges();
-          const firstVertices = this.triangleMesh.getVertices();
-
-          if (firstEdges && firstVertices) {
+          if (this.firstEdges && this.firstVertices) {
             const firstTriangleVerticeIndices =
               Object.keys(adjacentsVerticesMap);
 
@@ -93,13 +97,9 @@ class MeshStateRotating extends IMeshState {
                 .getTriangle()
                 .getVertices();
 
-              const adjecentTriangleWorldSpaceVertices =
-                this.adjacentTriangleMesh.getTriangle().getVertices();
+              // const adjecentTriangleWorldSpaceVertices =
+              //   this.adjacentTriangleMesh.getTriangle().getVertices();
 
-              console.log(
-                'firstTriangleWorldSpaceVertices',
-                firstTriangleWorldSpaceVertices,
-              );
               const adjacentEdgeWorldSpaceCenterPoint = Vector3.Center(
                 firstTriangleWorldSpaceVertices[
                   Number(firstTriangleVerticeIndices[0])
@@ -127,7 +127,6 @@ class MeshStateRotating extends IMeshState {
                 .getCenterPoint()
                 .subtract(adjacentEdgeWorldSpaceCenterPoint);
 
-              // const rotationSpeed = this.getRotationSpeed();
               // const { direction } = this;
 
               // // #DEBUG_ADJACENT_EDGE
@@ -144,8 +143,10 @@ class MeshStateRotating extends IMeshState {
               // });
               // MeshBuilder.CreateLines('line2', {
               //   points: [
-              //     adjacentEdgeWorldSpaceCenterPoint,
+              //     this.triangleMesh.getTriangle().getCenterPoint(),
               //     this.adjacentTriangleMesh.getTriangle().getCenterPoint(),
+              //     adjacentEdgeWorldSpaceCenterPoint,
+              //     this.triangleMesh.getTriangle().getCenterPoint(),
               //   ],
               // });
               // MeshBuilder.CreateLines('line3', {
@@ -165,19 +166,19 @@ class MeshStateRotating extends IMeshState {
                 secondTriangleRotationVector,
               );
 
-              const rotationAngle = Vector3.GetAngleBetweenVectors(
+              const rotationDownAngle = Vector3.GetAngleBetweenVectors(
                 firstTriangleRotationVector,
                 secondTriangleRotationVector,
                 rotationPlaneNormal,
               );
+
+              const rotationUpAngle = Math.PI * 2 - rotationDownAngle;
 
               if (
                 // direction &&
                 this.adjacentTriangleMesh &&
                 this.adjacentTriangleMesh.getTriangleMesh()
               ) {
-                // this.angle += rotationSpeed;
-
                 // #BONES
                 // const firstTriangleMeshSkeleton =
                 //   this.triangleMesh.getTriangleMesh()?.skeleton?.bones;
@@ -203,72 +204,82 @@ class MeshStateRotating extends IMeshState {
                 // scalingNodeFirstTriangle.position =
                 //   scalingNodeFirstTriangle.position.scale(1 / deltaShift);
 
-                const rotationAxis = firstEdges[firstTriangleMeshFlipEdgeIndex];
+                const rotationAxis =
+                  this.firstEdges[firstTriangleMeshFlipEdgeIndex];
 
-                flipNodeFirstTriangle.rotationQuaternion =
-                  Quaternion.RotationAxis(rotationAxis, rotationAngle);
+                switch (this.direction) {
+                  case 1: {
+                    const rotationAnglePerFrame =
+                      this.getRotationAnglePerFrame(rotationDownAngle);
+                    // flipNodeFirstTriangle.rotationQuaternion =
+                    //   Quaternion.RotationAxis(rotationAxis, rotationDownAngle);
 
-                this.nextState = new MeshStateIdle({
-                  triangleMesh: this.triangleMesh,
-                  scene: this.scene,
-                });
+                    // this.nextState = new MeshStateIdle({
+                    //   triangleMesh: this.triangleMesh,
+                    //   scene: this.scene,
+                    // });
+                    // console.log('FIRST', (rotationDownAngle * 180) / Math.PI);
+                    // console.log('ANGLE', this.angle);
 
-                // switch (direction) {
-                //   case 1: {
-                //     flipNodeFirstTriangle.rotationQuaternion =
-                //       Quaternion.RotationAxis(
-                //         firstEdges[firstTriangleMeshFlipEdgeIndex],
-                //         firstTriangleFlipAngle,
-                //       );
-                //     this.nextState = new MeshStateIdle({
-                //       triangleMesh: this.triangleMesh,
-                //       scene: this.scene,
-                //     });
+                    // #ROTATION_TRIANGLE1
+                    if (this.angle > rotationDownAngle) {
+                      flipNodeFirstTriangle.rotationQuaternion =
+                        Quaternion.RotationAxis(
+                          rotationAxis,
+                          rotationDownAngle * this.direction,
+                        );
+                      this.nextState = new MeshStateIdle({
+                        triangleMesh: this.triangleMesh,
+                        scene: this.scene,
+                      });
+                    } else {
+                      flipNodeFirstTriangle.rotationQuaternion =
+                        Quaternion.RotationAxis(
+                          rotationAxis,
+                          this.angle * this.direction,
+                        );
+                      this.angle += rotationAnglePerFrame;
+                    }
+                    break;
+                  }
+                  case -1: {
+                    const rotationAnglePerFrame =
+                      this.getRotationAnglePerFrame(rotationUpAngle);
+                    // flipNodeFirstTriangle.rotationQuaternion =
+                    //   Quaternion.RotationAxis(
+                    //     rotationAxis,
+                    //     rotationUpAngle * this.direction,
+                    //   );
+                    // this.nextState = new MeshStateIdle({
+                    //   triangleMesh: this.triangleMesh,
+                    //   scene: this.scene,
+                    // });
+                    // console.log('SECOND', (rotationUpAngle * 180) / Math.PI);
+                    // console.log('ANGLE', this.angle);
 
-                //     // #ROTATION_TRIANGLE1
-                //     // if (this.angle >= Math.abs(firstTriangleFlipAngle)) {
-                //     //   this.nextState = new MeshStateIdle({
-                //     //     triangleMesh: this.triangleMesh,
-                //     //     scene: this.scene,
-                //     //   });
-                //     // } else {
-                //     //   flipNodeFirstTriangle.rotationQuaternion =
-                //     //     Quaternion.RotationAxis(
-                //     //       firstEdges[firstTriangleMeshFlipEdgeIndex],
-                //     //       this.angle * direction,
-                //     //     );
-                //     // }
-                //     break;
-                //   }
-                //   case -1: {
-                //     flipNodeFirstTriangle.rotationQuaternion =
-                //       Quaternion.RotationAxis(
-                //         firstEdges[firstTriangleMeshFlipEdgeIndex],
-                //         secondTriangleFlipAngle * direction,
-                //       );
-                //     this.nextState = new MeshStateIdle({
-                //       triangleMesh: this.triangleMesh,
-                //       scene: this.scene,
-                //     });
-                //     // #ROTATION_TRIANGLE2
-                //     // if (this.angle >= Math.abs(firstTriangleFlipAngle)) {
-                //     //   this.nextState = new MeshStateIdle({
-                //     //     triangleMesh: this.triangleMesh,
-                //     //     scene: this.scene,
-                //     //   });
-                //     // } else {
-                //     //   flipNodeFirstTriangle.rotationQuaternion =
-                //     //     Quaternion.RotationAxis(
-                //     //       firstEdges[firstTriangleMeshFlipEdgeIndex],
-                //     //       this.angle *
-                //     //         direction *
-                //     //         (secondTriangleFlipAngle / firstTriangleFlipAngle),
-                //     //     );
-                //     // }
-                //     break;
-                //   }
-                //   default:
-                // }
+                    // #ROTATION_TRIANGLE2
+                    if (this.angle > rotationUpAngle) {
+                      flipNodeFirstTriangle.rotationQuaternion =
+                        Quaternion.RotationAxis(
+                          rotationAxis,
+                          rotationUpAngle * this.direction,
+                        );
+                      this.nextState = new MeshStateIdle({
+                        triangleMesh: this.triangleMesh,
+                        scene: this.scene,
+                      });
+                    } else {
+                      flipNodeFirstTriangle.rotationQuaternion =
+                        Quaternion.RotationAxis(
+                          rotationAxis,
+                          this.angle * this.direction,
+                        );
+                      this.angle += rotationAnglePerFrame;
+                    }
+                    break;
+                  }
+                  default:
+                }
               }
             }
           }
@@ -278,10 +289,11 @@ class MeshStateRotating extends IMeshState {
     return this.nextState;
   }
 
-  public getRotationSpeed(): number {
+  public getRotationAnglePerFrame(angle: number): number {
     const deltaTimeInMillis = this.scene.getEngine().getDeltaTime();
-    const rotationSpeed = (5 / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
-    return rotationSpeed;
+    const rotationAnglePerFrame =
+      (100 / 60) * angle * (deltaTimeInMillis / 1000);
+    return rotationAnglePerFrame;
   }
 }
 export default MeshStateRotating;
