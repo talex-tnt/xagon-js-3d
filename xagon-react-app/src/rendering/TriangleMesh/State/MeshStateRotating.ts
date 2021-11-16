@@ -237,7 +237,7 @@ class MeshStateRotating extends IMeshState {
   }
 
   public update(): Nullable<IMeshState> {
-    const amount = Number(this.amount.toFixed(10));
+    const amount = Number(this.amount.toFixed(10)); // fixing computing approximation error
 
     if (amount > 1) {
       this.nextState = new MeshStateIdle({
