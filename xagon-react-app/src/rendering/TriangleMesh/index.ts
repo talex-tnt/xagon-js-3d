@@ -265,7 +265,10 @@ class TriangleMesh {
 
   private setupMaterial(scene: Scene): void {
     if (this.triangleMesh) {
-      const material = new StandardMaterial('cloneMaterial', scene);
+      const material = new StandardMaterial(
+        `meshMaterial${this.triangle.getId()}`,
+        scene,
+      );
       material.diffuseColor = this.triangle.getColor();
       material.backFaceCulling = false;
       material.alpha = 1;

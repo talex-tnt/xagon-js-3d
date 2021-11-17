@@ -121,6 +121,13 @@ class FlipGesture extends Gesture {
                 direction: -1,
               });
               this.context.onFlip();
+              // const types = {
+              //   first: this.firstTriangleMesh.getTriangle().getType(),
+              //   second: this.secondTriangleMesh.getTriangle().getType(),
+              // };
+
+              // this.firstTriangleMesh.getTriangle().setType(types.second);
+              // this.secondTriangleMesh.getTriangle().setType(types.first);
             }
           }
         }
