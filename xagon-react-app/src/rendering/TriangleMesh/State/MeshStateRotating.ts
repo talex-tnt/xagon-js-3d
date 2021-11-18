@@ -76,25 +76,25 @@ class MeshStateRotating extends IMeshState {
             .parent as TransformNode;
 
           if (this.firstEdges && this.firstVertices) {
-            const firstTriangleVerticeIndices =
+            const firstTriangleVerticesIndices =
               Object.keys(adjacentsVerticesMap);
 
-            const firstTriangleMeshVerticeIndices: number[] =
+            const firstTriangleMeshVerticesIndices: number[] =
               this.triangleMesh.getTriangleMeshVerticeIndices(
-                firstTriangleVerticeIndices,
+                firstTriangleVerticesIndices,
               );
 
-            // const secondTriangleVerticeIndices =
-            //   Object.values(adjacentsVerticesMap);
+            const secondTriangleVerticesIndices =
+              Object.values(adjacentsVerticesMap);
 
-            // const secondTriangleMeshVerticeIndices: number[] =
-            //   this.triangleMesh.getTriangleMeshVerticeIndices(
-            //     secondTriangleVerticeIndices,
-            //   );
+            const secondTriangleMeshVerticesIndices: number[] =
+              this.triangleMesh.getTriangleMeshVerticeIndices(
+                secondTriangleVerticesIndices,
+              );
 
             const firstTriangleMeshIndicesSum =
               this.triangleMesh.getTriangleMeshIndicesSum(
-                firstTriangleMeshVerticeIndices,
+                firstTriangleMeshVerticesIndices,
               );
 
             const firstTriangleMeshFlipEdgeIndex =
@@ -114,10 +114,10 @@ class MeshStateRotating extends IMeshState {
 
               const adjacentEdgeWorldSpaceCenterPoint = Vector3.Center(
                 firstTriangleWorldSpaceVertices[
-                  Number(firstTriangleVerticeIndices[0])
+                  Number(firstTriangleVerticesIndices[0])
                 ],
                 firstTriangleWorldSpaceVertices[
-                  Number(firstTriangleVerticeIndices[1])
+                  Number(firstTriangleVerticesIndices[1])
                 ],
               );
 
@@ -161,10 +161,10 @@ class MeshStateRotating extends IMeshState {
               MeshBuilder.CreateLines('line3', {
                 points: [
                   firstTriangleWorldSpaceVertices[
-                    Number(firstTriangleVerticeIndices[0])
+                    Number(firstTriangleVerticesIndices[0])
                   ],
                   firstTriangleWorldSpaceVertices[
-                    Number(firstTriangleVerticeIndices[1])
+                    Number(firstTriangleVerticesIndices[1])
                   ],
                 ],
               });
@@ -184,26 +184,77 @@ class MeshStateRotating extends IMeshState {
                 this.rotationAngle = -Math.PI * 2 + rotationDownAngle;
               }
 
+              // const matrix = this.triangleMesh
+              //   .getTriangleMesh()
+              //   .computeWorldMatrix(true);
+
+              // let test = Vector3.TransformCoordinates(
+              //   this.firstEdges[firstTriangleMeshFlipEdgeIndex],
+              //   matrix,
+              // );
+
+              // // console.log(test, this.test);
+
+              // this.rotationAxis = Vector3.TransformCoordinates(
+              //   this.rotationAxis,
+              //   Matrix.Invert(matrix),
+              // );
+
+              // console.log(
+              //   test,
+              //   this.firstEdges[firstTriangleMeshFlipEdgeIndex],
+              // );
+
               if (
                 // direction &&
                 this.adjacentTriangleMesh &&
                 this.adjacentTriangleMesh.getTriangleMesh()
               ) {
                 // #BONES
-                // const firstTriangleMeshSkeleton =
-                //   this.triangleMesh.getTriangleMesh()?.skeleton?.bones;
-                // const secondTriangleMeshSkeleton =
-                //   this.adjacentTriangleMesh.getTriangleMesh()?.skeleton?.bones;
+                const firstTriangleMeshSkeleton =
+                  this.triangleMesh.getTriangleMesh()?.skeleton?.bones;
+                const secondTriangleMeshSkeleton =
+                  this.adjacentTriangleMesh.getTriangleMesh()?.skeleton?.bones;
 
-                // firstTriangleMeshSkeleton?.forEach((b, i) => {
-                //   let rotationBone = b.rotation;
-                //   let scalingBone = b.scaling;
+                // const bones = {
+                //   firstTriangle: {
+                //     first: { ...firstTriangleMeshSkeleton[0].rotation },
+                //     second: { ...firstTriangleMeshSkeleton[1].rotation },
+                //     third: { ...firstTriangleMeshSkeleton[2].rotation },
+                //   },
+                //   secondTriangle: {
+                //     first: { ...secondTriangleMeshSkeleton[0].rotation },
+                //     second: { ...secondTriangleMeshSkeleton[1].rotation },
+                //     third: { ...secondTriangleMeshSkeleton[2].rotation },
+                //   },
+                // };
 
-                //   rotationBone = secondTriangleMeshSkeleton[i].rotation;
-                //   scalingBone = secondTriangleMeshSkeleton[i].scaling;
-                //   b.setRotation(rotationBone);
-                //   b.setScale(scalingBone);
+                // firstTriangleMeshSkeleton.forEach((b, i) => {
+                //   // eslint-disable-next-line no-underscore-dangle
+                //   switch (i) {
+                //     case 0:
+                //       b.rotation.x = bones.secondTriangle.first._x;
+                //       b.rotation.y = bones.secondTriangle.first._y;
+                //       b.rotation.z = bones.secondTriangle.first._z;
+                //       break;
+                //     case 1:
+                //       b.rotation.x = bones.secondTriangle.second._x;
+                //       b.rotation.y = bones.secondTriangle.second._y;
+                //       b.rotation.z = bones.secondTriangle.second._z;
+                //       break;
+                //     case 2:
+                //       b.rotation.x = bones.secondTriangle.third._x;
+                //       b.rotation.y = bones.secondTriangle.third._y;
+                //       b.rotation.z = bones.secondTriangle.third._z;
+                //       break;
+                //     default:
+                //   }
                 // });
+
+                const firstTriangleBonesIndices =
+                  this.triangleMesh.getTriangleMeshVerticeIndices(
+                    firstTriangleVerticesIndices,
+                  );
 
                 // // #SHIFT_ROTATION_NODE
                 // const deltaShift =
@@ -213,7 +264,7 @@ class MeshStateRotating extends IMeshState {
 
                 // scalingNodeFirstTriangle.position =
                 //   scalingNodeFirstTriangle.position.scale(1 / deltaShift);
-                const ratio =
+                const anglesRatio =
                   adjacentEdgeWorldSpaceCenterPoint
                     .subtract(this.triangleMesh.getTriangle().getCenterPoint())
                     .length() /
@@ -225,18 +276,10 @@ class MeshStateRotating extends IMeshState {
 
                 this.rotationAxis =
                   this.firstEdges[firstTriangleMeshFlipEdgeIndex];
-                this.deltaShift = this.scalingNode.position.subtract(
-                  this.scalingNode.position.scale(1 / ratio),
-                );
-                console.log(this.rotationAxis);
 
-                // this.testAxis = firstTriangleWorldSpaceVertices[
-                //   Number(firstTriangleVerticeIndices[0])
-                // ].subtract(
-                //   firstTriangleWorldSpaceVertices[
-                //     Number(firstTriangleVerticeIndices[1])
-                //   ],
-                // );
+                this.deltaShift = this.scalingNode.position.subtract(
+                  this.scalingNode.position.scale(1 / anglesRatio),
+                );
               }
             }
           }
@@ -248,31 +291,30 @@ class MeshStateRotating extends IMeshState {
   public update(): Nullable<IMeshState> {
     const amount = Number(this.amount.toFixed(10)); // fixing computing approximation error
     const rotationSpeed = this.getRotationSpeed();
-    // this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
-    //   this.rotationAxis,
-    //   this.rotationAngle,
-    // );
-    // this.scalingNode.position = this.scalingNode.position.add(this.deltaShift);
-    // this.nextState = new MeshStateIdle({
-    //   triangleMesh: this.triangleMesh,
-    //   scene: this.scene,
-    // });
+
     if (amount < 1) {
       (this.flipNode as TransformNode).rotationQuaternion =
         Quaternion.RotationAxis(
+          // Vector3.TransformCoordinates(this.test, matrix),
           this.rotationAxis,
           Scalar.LerpAngle(0, this.rotationAngle, amount),
         );
 
-      this.scalingNode.position = this.scalingNode.position.subtract(
-        this.deltaShift.scale(rotationSpeed),
-      );
+      // this.flipNode = this.flipNode.rotate(
+      //   this.test,
+      //   Scalar.LerpAngle(0, Math.abs(this.rotationAngle), rotationSpeed),
+      //   Space.WORLD,
+      // );
+
+      (this.scalingNode as TransformNode).position = (
+        this.scalingNode as TransformNode
+      ).position.subtract(this.deltaShift.scale(rotationSpeed));
       this.amount += rotationSpeed;
       // #DEBUG rotation arc
       MeshBuilder.CreateLines('*', {
         points: [
-          this.scalingNode.getAbsolutePosition(),
-          this.scalingNode.getAbsolutePosition().scale(1.01),
+          (this.scalingNode as TransformNode).getAbsolutePosition(),
+          (this.scalingNode as TransformNode).getAbsolutePosition().scale(1.01),
         ],
       });
     } else if (amount >= 1) {
@@ -281,9 +323,9 @@ class MeshStateRotating extends IMeshState {
           this.rotationAxis,
           Scalar.LerpAngle(0, this.rotationAngle, 0),
         );
-      this.scalingNode.position = this.scalingNode.position.add(
-        this.deltaShift,
-      );
+      (this.scalingNode as TransformNode).position = (
+        this.scalingNode as TransformNode
+      ).position.add(this.deltaShift);
       const triangle = this.triangleMesh.getTriangle();
       const triangleMesh = this.triangleMesh.getTriangleMesh();
 

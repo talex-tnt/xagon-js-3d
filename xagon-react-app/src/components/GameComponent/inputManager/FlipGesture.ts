@@ -4,6 +4,7 @@ import {
   Scene,
   Nullable,
   Vector3,
+  MeshBuilder,
 } from '@babylonjs/core';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
@@ -37,11 +38,25 @@ class FlipGesture extends Gesture {
       }
     | undefined {
     if (assetMesh && assetMesh.skeleton) {
-      const objSpaceVertices = assetMesh.skeleton.bones.map((bone) =>
-        bone
+      const objSpaceVertices = assetMesh.skeleton.bones.map((bone) => {
+        const vertex = bone
           .getDirection(this.context.triangleMesh.up)
-          .scale(this.context.scalingRatio),
-      );
+          .scale(this.context.scalingRatio);
+
+        // console.log(vertex, assetMesh.metadata.triangleMesh.getTriangle().p2());
+
+        // console.log('PRE', vertex.length());
+        // console.log(bone.scaling);
+
+        vertex.x *= 1 / bone.scaling.x;
+        vertex.y *= 1 / bone.scaling.y;
+        vertex.z *= 1 / bone.scaling.z;
+        // vertex = vertex.scale(Math.abs(bone.scaling.y));
+
+        // console.log('POST', vertex.length());
+
+        return vertex;
+      });
 
       const edges = objSpaceVertices.map((v, i) =>
         v.subtract(objSpaceVertices[(i + 1) % objSpaceVertices.length]),
