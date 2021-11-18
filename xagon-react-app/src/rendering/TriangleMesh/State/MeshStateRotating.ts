@@ -9,7 +9,6 @@ import {
   StandardMaterial,
   AbstractMesh,
   MeshBuilder,
-  Space,
 } from '@babylonjs/core';
 // import { addAxisToScene } from 'utils'; #debug
 import TriangleMesh from '..';
@@ -37,7 +36,7 @@ class MeshStateRotating extends IMeshState {
 
   private scalingNode: Nullable<TransformNode> = null;
 
-  private deltaShift: Vector3;
+  private deltaShift: Vector3 = Vector3.Zero();
 
   private amount = 0;
 
@@ -157,15 +156,15 @@ class MeshStateRotating extends IMeshState {
                 this.adjacentTriangleMesh.getTriangleMesh()
               ) {
                 // #BONES
-                const firstTriangleMeshSkeleton =
-                  this.triangleMesh.getTriangleMesh()?.skeleton?.bones;
-                const secondTriangleMeshSkeleton =
-                  this.adjacentTriangleMesh.getTriangleMesh()?.skeleton?.bones;
+                // const firstTriangleMeshSkeleton =
+                //   this.triangleMesh.getTriangleMesh()?.skeleton?.bones;
+                // const secondTriangleMeshSkeleton =
+                //   this.adjacentTriangleMesh.getTriangleMesh()?.skeleton?.bones;
 
-                const firstTriangleBonesIndices =
-                  this.triangleMesh.getTriangleMeshVerticeIndices(
-                    firstTriangleVerticesIndices,
-                  );
+                // const firstTriangleBonesIndices =
+                //   this.triangleMesh.getTriangleMeshVerticeIndices(
+                //     firstTriangleVerticesIndices,
+                //   );
 
                 const shiftRatio =
                   firstTriangleRotationVector.length() /

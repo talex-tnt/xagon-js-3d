@@ -4,7 +4,6 @@ import {
   Scene,
   Nullable,
   Vector3,
-  MeshBuilder,
 } from '@babylonjs/core';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
@@ -39,22 +38,11 @@ class FlipGesture extends Gesture {
     | undefined {
     if (assetMesh && assetMesh.skeleton) {
       const objSpaceVertices = assetMesh.skeleton.bones.map((bone) => {
-        const vertex = bone
+        let vertex = bone
           .getDirection(this.context.triangleMesh.up)
           .scale(this.context.scalingRatio);
 
-        // console.log(vertex, assetMesh.metadata.triangleMesh.getTriangle().p2());
-
-        // console.log('PRE', vertex.length());
-        // console.log(bone.scaling);
-
-        vertex.x *= 1 / bone.scaling.x;
-        vertex.y *= 1 / bone.scaling.y;
-        vertex.z *= 1 / bone.scaling.z;
-        // vertex = vertex.scale(Math.abs(bone.scaling.y));
-
-        // console.log('POST', vertex.length());
-
+        vertex = vertex.scale(Math.abs(bone.scaling.y));
         return vertex;
       });
 
@@ -136,13 +124,6 @@ class FlipGesture extends Gesture {
                 direction: -1,
               });
               this.context.onFlip();
-              // const types = {
-              //   first: this.firstTriangleMesh.getTriangle().getType(),
-              //   second: this.secondTriangleMesh.getTriangle().getType(),
-              // };
-
-              // this.firstTriangleMesh.getTriangle().setType(types.second);
-              // this.secondTriangleMesh.getTriangle().setType(types.first);
             }
           }
         }
@@ -151,7 +132,6 @@ class FlipGesture extends Gesture {
   }
 
   public onRelease(pointerInfo: PointerInfo): void {
-    // eslint-disable-next-line no-console
     this.firstTriangleMesh = null;
     this.secondTriangleMesh = null;
   }
