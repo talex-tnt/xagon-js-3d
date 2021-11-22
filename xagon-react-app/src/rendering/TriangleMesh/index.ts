@@ -305,27 +305,6 @@ class TriangleMesh {
     return adjacentsVertices;
   }
 
-  public getTriangleMeshVerticeIndices(
-    triangleVerticeIndices: string[] | number[],
-  ): number[] {
-    const triangleMeshVerticeIndices: number[] = [];
-    triangleVerticeIndices.forEach((k, i) => {
-      switch (String(k)) {
-        case '0':
-          triangleMeshVerticeIndices[i] = 2;
-          break;
-        case '1':
-          triangleMeshVerticeIndices[i] = 1;
-          break;
-        case '2':
-          triangleMeshVerticeIndices[i] = 0;
-          break;
-        default:
-      }
-    });
-    return triangleMeshVerticeIndices;
-  }
-
   public getTriangleMeshIndicesSum(
     triangleMeshVerticeIndices: number[],
   ): number {

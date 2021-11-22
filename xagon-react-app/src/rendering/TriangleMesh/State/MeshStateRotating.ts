@@ -72,14 +72,12 @@ class MeshStateRotating extends IMeshState {
             .parent as TransformNode;
 
           if (this.firstEdges && this.firstVertices) {
-            const firstTriangleVerticesIndices =
+            const firstTriangleVerticesIndicesKeys =
               Object.keys(adjacentsVerticesMap);
-
-            const firstTriangleMeshVerticesIndices: number[] =
-              this.triangleMesh.getTriangleMeshVerticeIndices(
-                firstTriangleVerticesIndices,
-              );
-
+            const firstTriangleVerticesIndices = [
+              Number(firstTriangleVerticesIndicesKeys[0]),
+              Number(firstTriangleVerticesIndicesKeys[1]),
+            ];
             // const secondTriangleVerticesIndices =
             //   Object.values(adjacentsVerticesMap);
 
@@ -90,7 +88,7 @@ class MeshStateRotating extends IMeshState {
 
             const firstTriangleMeshIndicesSum =
               this.triangleMesh.getTriangleMeshIndicesSum(
-                firstTriangleMeshVerticesIndices,
+                firstTriangleVerticesIndices,
               );
 
             const firstTriangleMeshFlipEdgeIndex =
@@ -101,8 +99,8 @@ class MeshStateRotating extends IMeshState {
             if (flipNodeFirstTriangle) {
               const flipNodeFirstTriangleCenter = Vector3.Zero(); // node position in object space
               const adjacentEdgeObjSpaceCenterPoint = Vector3.Center(
-                this.firstVertices[Number(firstTriangleMeshVerticesIndices[0])],
-                this.firstVertices[Number(firstTriangleMeshVerticesIndices[1])],
+                this.firstVertices[Number(firstTriangleVerticesIndices[0])],
+                this.firstVertices[Number(firstTriangleVerticesIndices[1])],
               );
 
               flipNodeFirstTriangle.setPositionWithLocalVector(
@@ -116,6 +114,14 @@ class MeshStateRotating extends IMeshState {
               const firstTriangleWorldSpaceVertices = this.triangleMesh
                 .getTriangle()
                 .getVertices();
+
+              const adjacentEdgeWorldSpace = firstTriangleWorldSpaceVertices[
+                Number(firstTriangleVerticesIndices[0])
+              ].subtract(
+                firstTriangleWorldSpaceVertices[
+                  Number(firstTriangleVerticesIndices[1])
+                ],
+              );
 
               const adjacentEdgeWorldSpaceCenterPoint = Vector3.Center(
                 firstTriangleWorldSpaceVertices[
@@ -139,14 +145,14 @@ class MeshStateRotating extends IMeshState {
                 Vector3.GetAngleBetweenVectors(
                   firstTriangleRotationVector,
                   secondTriangleRotationVector,
-                  this.rotationAxis,
+                  adjacentEdgeWorldSpace,
                 ),
               );
 
               if (direction === 1) {
-                this.rotationAngle = rotationDownAngle;
+                this.rotationAngle = -rotationDownAngle;
               } else {
-                this.rotationAngle = -Math.PI * 2 + rotationDownAngle;
+                this.rotationAngle = Math.PI * 2 - rotationDownAngle;
               }
 
               if (

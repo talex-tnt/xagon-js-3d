@@ -42,13 +42,13 @@ class FlipGesture extends Gesture {
       const tr = assetMesh.metadata.triangleMesh.getTriangle();
       const matrix = assetMesh.getWorldMatrix();
       const vertices = [
-        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)).scale(
+        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)).scale(
           this.context.scalingRatio,
         ),
         Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)).scale(
           this.context.scalingRatio,
         ),
-        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)).scale(
+        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)).scale(
           this.context.scalingRatio,
         ),
       ];
