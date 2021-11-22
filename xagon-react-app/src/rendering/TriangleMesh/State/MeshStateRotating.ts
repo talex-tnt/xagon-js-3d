@@ -9,6 +9,7 @@ import {
   StandardMaterial,
   AbstractMesh,
   MeshBuilder,
+  Matrix,
 } from '@babylonjs/core';
 // import { addAxisToScene } from 'utils'; #debug
 import TriangleMesh from '..';
@@ -140,7 +141,7 @@ class MeshStateRotating extends IMeshState {
                 Vector3.GetAngleBetweenVectors(
                   firstTriangleRotationVector,
                   secondTriangleRotationVector,
-                  this.firstEdges[firstTriangleMeshFlipEdgeIndex],
+                  this.rotationAxis,
                 ),
               );
 
@@ -224,11 +225,7 @@ class MeshStateRotating extends IMeshState {
           this.rotationAxis,
           Scalar.LerpAngle(0, this.rotationAngle, this.amount),
         );
-      // this.flipNode = this.flipNode.rotate(
-      //   this.test,
-      //   Scalar.LerpAngle(0, Math.abs(this.rotationAngle), rotationSpeed),
-      //   Space.WORLD,
-      // );
+
       this.scalingNode.position = this.scalingNode.position.subtract(
         this.deltaShift.scale(rotationSpeed),
       );
