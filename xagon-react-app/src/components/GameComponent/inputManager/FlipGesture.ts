@@ -42,40 +42,16 @@ class FlipGesture extends Gesture {
       const tr = assetMesh.metadata.triangleMesh.getTriangle();
       const matrix = assetMesh.getWorldMatrix();
       const vertices = [
-        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)),
-        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)),
-        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)),
+        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)).scale(
+          this.context.scalingRatio,
+        ),
+        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)).scale(
+          this.context.scalingRatio,
+        ),
+        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)).scale(
+          this.context.scalingRatio,
+        ),
       ];
-
-      // const firstPointEdgeObjSpace = Vector3.TransformCoordinates(
-      //   firstTriangleWorldSpaceVertices[
-      //     Number(firstTriangleVerticesIndices[0])
-      //   ],
-      //   Matrix.Invert(matrix),
-      // );
-      // const secondPointEdgeObjSpace = Vector3.TransformCoordinates(
-      //   firstTriangleWorldSpaceVertices[
-      //     Number(firstTriangleVerticesIndices[1])
-      //   ],
-      //   Matrix.Invert(matrix),
-      // );
-      const objSpaceVertices = assetMesh.skeleton.bones.map((bone) => {
-        let vertex = bone
-          .getDirection(this.context.triangleMesh.up)
-          .scale(1 / 0.85);
-
-        vertex = vertex.scale(Math.abs(bone.scaling.y));
-        return vertex;
-      });
-      // const matrix = assetMesh.getWorldMatrix();
-      // MeshBuilder.CreateLines('matr', {
-      //   points: [
-      //     Vector3.TransformCoordinates(objSpaceVertices[0], matrix),
-      //     Vector3.TransformCoordinates(objSpaceVertices[1], matrix),
-      //     Vector3.TransformCoordinates(objSpaceVertices[2], matrix),
-      //     Vector3.TransformCoordinates(objSpaceVertices[0], matrix),
-      //   ],
-      // });
 
       const edges = vertices.map((v, i) =>
         v.subtract(vertices[(i + 1) % vertices.length]),

@@ -9,9 +9,8 @@ import {
   StandardMaterial,
   AbstractMesh,
   MeshBuilder,
-  Matrix,
 } from '@babylonjs/core';
-// import { addAxisToScene } from 'utils'; #debug
+import { addAxisToScene } from 'utils'; // #debug
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
 import MeshStateIdle from './MeshStateIdle';
@@ -101,13 +100,22 @@ class MeshStateRotating extends IMeshState {
 
             if (flipNodeFirstTriangle) {
               const flipNodeFirstTriangleCenter = Vector3.Zero(); // node position in object space
+              const adjacentEdgeObjSpaceCenterPoint = Vector3.Center(
+                this.firstVertices[Number(firstTriangleMeshVerticesIndices[0])],
+                this.firstVertices[Number(firstTriangleMeshVerticesIndices[1])],
+              );
+
+              flipNodeFirstTriangle.setPositionWithLocalVector(
+                adjacentEdgeObjSpaceCenterPoint,
+              );
+              this.scalingNode.position = flipNodeFirstTriangleCenter.subtract(
+                flipNodeFirstTriangle.position,
+              );
+              this.flipNode = flipNodeFirstTriangle;
 
               const firstTriangleWorldSpaceVertices = this.triangleMesh
                 .getTriangle()
                 .getVertices();
-
-              // const adjacentTriangleWorldSpaceVertices =
-              //   this.adjacentTriangleMesh.getTriangle().getVertices();
 
               const adjacentEdgeWorldSpaceCenterPoint = Vector3.Center(
                 firstTriangleWorldSpaceVertices[
@@ -118,20 +126,10 @@ class MeshStateRotating extends IMeshState {
                 ],
               );
 
-              flipNodeFirstTriangle.setAbsolutePosition(
-                adjacentEdgeWorldSpaceCenterPoint,
-              );
-              this.scalingNode.position = flipNodeFirstTriangleCenter.subtract(
-                flipNodeFirstTriangle.position,
-              );
-
-              this.flipNode = flipNodeFirstTriangle;
-
               const firstTriangleRotationVector = this.triangleMesh
                 .getTriangle()
                 .getCenterPoint()
                 .subtract(adjacentEdgeWorldSpaceCenterPoint);
-
               const secondTriangleRotationVector = this.adjacentTriangleMesh
                 .getTriangle()
                 .getCenterPoint()
@@ -171,42 +169,42 @@ class MeshStateRotating extends IMeshState {
                   firstTriangleRotationVector.length() /
                   secondTriangleRotationVector.length();
 
-                this.rotationAxis =
-                  this.firstEdges[firstTriangleMeshFlipEdgeIndex];
-
                 this.deltaShift = this.scalingNode.position.subtract(
                   this.scalingNode.position.scale(1 / shiftRatio),
                 );
+
+                this.rotationAxis =
+                  this.firstEdges[firstTriangleMeshFlipEdgeIndex];
 
                 // #DEBUG
                 //
                 // addAxisToScene({
                 //   scene: this.scene,
                 //   size: 0.5,
-                //   parent: scalingNodeFirstTriangle,
+                //   parent: flipNodeFirstTriangle,
                 // });
-                MeshBuilder.CreateLines('line1', {
-                  points: [
-                    adjacentEdgeWorldSpaceCenterPoint,
-                    this.triangleMesh.getTriangle().getCenterPoint(),
-                  ],
-                });
-                MeshBuilder.CreateLines('line2', {
-                  points: [
-                    this.adjacentTriangleMesh.getTriangle().getCenterPoint(),
-                    adjacentEdgeWorldSpaceCenterPoint,
-                  ],
-                });
-                MeshBuilder.CreateLines('line3', {
-                  points: [
-                    firstTriangleWorldSpaceVertices[
-                      Number(firstTriangleVerticesIndices[0])
-                    ],
-                    firstTriangleWorldSpaceVertices[
-                      Number(firstTriangleVerticesIndices[1])
-                    ],
-                  ],
-                });
+                // MeshBuilder.CreateLines('line1', {
+                //   points: [
+                //     adjacentEdgeWorldSpaceCenterPoint,
+                //     this.triangleMesh.getTriangle().getCenterPoint(),
+                //   ],
+                // });
+                // MeshBuilder.CreateLines('line2', {
+                //   points: [
+                //     this.adjacentTriangleMesh.getTriangle().getCenterPoint(),
+                //     adjacentEdgeWorldSpaceCenterPoint,
+                //   ],
+                // });
+                // MeshBuilder.CreateLines('line3', {
+                //   points: [
+                //     firstTriangleWorldSpaceVertices[
+                //       Number(firstTriangleVerticesIndices[0])
+                //     ],
+                //     firstTriangleWorldSpaceVertices[
+                //       Number(firstTriangleVerticesIndices[1])
+                //     ],
+                //   ],
+                // });
                 //
               }
             }
@@ -231,12 +229,12 @@ class MeshStateRotating extends IMeshState {
       );
       this.amount += rotationSpeed;
       // #DEBUG rotation arc
-      MeshBuilder.CreateLines('*', {
-        points: [
-          this.scalingNode.getAbsolutePosition(),
-          this.scalingNode.getAbsolutePosition().scale(1.01),
-        ],
-      });
+      // MeshBuilder.CreateLines('*', {
+      //   points: [
+      //     this.scalingNode.getAbsolutePosition(),
+      //     this.scalingNode.getAbsolutePosition().scale(1.01),
+      //   ],
+      // });
     } else if (this.amount >= 1) {
       (this.flipNode as TransformNode).rotationQuaternion =
         Quaternion.RotationAxis(
