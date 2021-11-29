@@ -89,11 +89,11 @@ class MeshStateRotating extends IMeshState {
           const flipNode = this.scalingNode.parent as TransformNode;
 
           if (this.edges && this.vertices) {
-            const verticesIndices = Object.keys(adjacentsVerticesMap).map((i) =>
-              Number(i),
-            );
+            const adjacentsVerticesIndices = Object.keys(
+              adjacentsVerticesMap,
+            ).map((i) => Number(i));
 
-            const adjacentTriangleMesh_VerticesIndices =
+            const adjacentTriangleMesh_AdjacentsVerticesIndices =
               Object.values(adjacentsVerticesMap);
 
             // const secondTriangleMeshVerticesIndices: number[] =
@@ -101,19 +101,21 @@ class MeshStateRotating extends IMeshState {
             //     secondTriangleVerticesIndices,
             //   );
 
-            const verticesIndicesSum =
-              this.triangleMesh.getTriangleMeshIndicesSum(verticesIndices);
+            const adjacentsVerticesIndicesSum =
+              this.triangleMesh.getTriangleMeshIndicesSum(
+                adjacentsVerticesIndices,
+              );
 
-            const flipEdgeIndex =
+            const adjacentEdgeIndex =
               this.triangleMesh.getTriangleMeshFlipEdgeIndex(
-                verticesIndicesSum,
+                adjacentsVerticesIndicesSum,
               );
 
             if (flipNode) {
               const flipNodeCenter = Vector3.Zero(); // node position in object space
               const adjacentEdgeCenterPoint = Vector3.Center(
-                this.vertices[verticesIndices[0]],
-                this.vertices[verticesIndices[1]],
+                this.vertices[adjacentsVerticesIndices[0]],
+                this.vertices[adjacentsVerticesIndices[1]],
               );
 
               flipNode.setPositionWithLocalVector(adjacentEdgeCenterPoint);
@@ -127,12 +129,12 @@ class MeshStateRotating extends IMeshState {
                 .getVertices();
 
               const worldSpace_AdjacentEdge = worldSpace_Vertices[
-                verticesIndices[0]
-              ].subtract(worldSpace_Vertices[verticesIndices[1]]);
+                adjacentsVerticesIndices[0]
+              ].subtract(worldSpace_Vertices[adjacentsVerticesIndices[1]]);
 
               const worldSpace_AdjacentEdgeCenterPoint = Vector3.Center(
-                worldSpace_Vertices[verticesIndices[0]],
-                worldSpace_Vertices[verticesIndices[1]],
+                worldSpace_Vertices[adjacentsVerticesIndices[0]],
+                worldSpace_Vertices[adjacentsVerticesIndices[1]],
               );
 
               const rotationVector = this.triangleMesh
@@ -173,17 +175,17 @@ class MeshStateRotating extends IMeshState {
                     1 / this.scalingNode_ShiftRatio,
                   );
 
-                this.rotationAxis = this.edges[flipEdgeIndex];
+                this.rotationAxis = this.edges[adjacentEdgeIndex];
 
                 const notAdjacentVertexIndex = this.vertices.findIndex(
                   (v) =>
-                    v !== this.vertices[verticesIndices[0]] &&
-                    v !== this.vertices[verticesIndices[1]],
+                    v !== this.vertices[adjacentsVerticesIndices[0]] &&
+                    v !== this.vertices[adjacentsVerticesIndices[1]],
                 );
 
                 const adjacentBonesIndices =
                   this.triangleMesh.getTriangleMeshBonesIndices(
-                    verticesIndices,
+                    adjacentsVerticesIndices,
                   );
 
                 const notAdjacentBoneIndex =
@@ -193,7 +195,7 @@ class MeshStateRotating extends IMeshState {
 
                 const adjacentTriangleMesh_adjacentBonesIndices =
                   this.adjacentTriangleMesh.getTriangleMeshBonesIndices(
-                    adjacentTriangleMesh_VerticesIndices,
+                    adjacentTriangleMesh_AdjacentsVerticesIndices,
                   );
 
                 const adjacentTriangleMesh_NotAdjacentBoneIndex = [
@@ -208,40 +210,6 @@ class MeshStateRotating extends IMeshState {
                   ...adjacentBonesIndices,
                   ...notAdjacentBoneIndex,
                 ];
-
-                // let bonesIndicesFirst = [];
-                // let bonesIndicesSecond = [];
-
-                // if (notAdjacentBoneIndex[0] === 0) {
-                //   bonesIndicesFirst = [1, 2];
-                //   if (secondNotAdjacentBoneIndex === 0) {
-                //     bonesIndicesSecond = [2, 1];
-                //   } else if (secondNotAdjacentBoneIndex === 1) {
-                //     bonesIndicesSecond = [0, 2];
-                //   } else {
-                //     bonesIndicesSecond = [1, 0];
-                //   }
-                // } else if (notAdjacentBoneIndex[0] === 1) {
-                //   bonesIndicesFirst = [2, 0];
-                //   if (secondNotAdjacentBoneIndex === 0) {
-                //     bonesIndicesSecond = [2, 1];
-                //   } else if (secondNotAdjacentBoneIndex === 1) {
-                //     bonesIndicesSecond = [0, 2];
-                //   } else {
-                //     bonesIndicesSecond = [1, 0];
-                //   }
-                // } else {
-                //   bonesIndicesFirst = [0, 1];
-                //   if (secondNotAdjacentBoneIndex === 0) {
-                //     bonesIndicesSecond = [2, 1];
-                //   } else if (secondNotAdjacentBoneIndex === 1) {
-                //     bonesIndicesSecond = [0, 2];
-                //   } else {
-                //     bonesIndicesSecond = [1, 0];
-                //   }
-                // }
-
-                // console.log(bonesIndicesFirst, bonesIndicesSecond);
 
                 this.skeleton =
                   this.triangleMesh.getTriangleMesh().skeleton.bones;
