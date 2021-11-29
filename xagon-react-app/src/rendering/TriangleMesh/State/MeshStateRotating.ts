@@ -58,16 +58,20 @@ class MeshStateRotating extends IMeshState {
 
   private amount = 0;
 
+  private onFlipEnd;
+
   public constructor({
     thisTriangleMesh,
     adjacentTriangleMesh,
     scene,
     direction,
+    onFlipEnd,
   }: {
     thisTriangleMesh: TriangleMesh;
     adjacentTriangleMesh: TriangleMesh;
     scene: Scene;
     direction?: number;
+    onFlipEnd?: () => void;
   }) {
     super();
     this.triangleMesh = thisTriangleMesh;
@@ -75,6 +79,7 @@ class MeshStateRotating extends IMeshState {
     this.scene = scene;
     this.edges = this.triangleMesh.getEdges();
     this.vertices = this.triangleMesh.getVertices();
+    this.onFlipEnd = onFlipEnd;
 
     const adjacentsVerticesMap = this.triangleMesh.getAdjacentsVerticesMap(
       this.adjacentTriangleMesh.getTriangle(),
@@ -405,13 +410,13 @@ class MeshStateRotating extends IMeshState {
       const triangle = this.triangleMesh.getTriangle();
       const triangleMesh = this.triangleMesh.getTriangleMesh() as AbstractMesh;
 
-      const material = this.scene.getMaterialByName(
-        `meshMaterial${triangle.getId()}`,
-      ) as StandardMaterial;
-      material.diffuseColor = this.adjacentTriangleMesh
-        .getTriangle()
-        .getColor();
-      triangleMesh.material = material;
+      // const material = this.scene.getMaterialByName(
+      //   `meshMaterial${triangle.getId()}`,
+      // ) as StandardMaterial;
+      // material.diffuseColor = this.adjacentTriangleMesh
+      //   .getTriangle()
+      //   .getColor();
+      // triangleMesh.material = material;
       // const adjacentBone1Rotation =
       //   this.firstTriangleSkeleton[this.bonesIndices[0]].rotation;
       // const adjacentBone2Rotation =
@@ -433,6 +438,10 @@ class MeshStateRotating extends IMeshState {
         triangleMesh: this.triangleMesh,
         scene: this.scene,
       });
+
+      if (this.onFlipEnd) {
+        this.onFlipEnd();
+      }
     }
 
     return this.nextState;

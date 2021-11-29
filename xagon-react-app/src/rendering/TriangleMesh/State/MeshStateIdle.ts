@@ -26,6 +26,7 @@ class MeshStateIdle extends IMeshState {
     args: Nullable<{
       direction?: number;
       adjacentTriangleMesh?: Nullable<TriangleMesh>;
+      onFlipEnd?: () => void;
     }> = null,
   ): Nullable<IMeshState> {
     if (args && args.adjacentTriangleMesh && args.direction) {
@@ -34,6 +35,7 @@ class MeshStateIdle extends IMeshState {
         adjacentTriangleMesh: args.adjacentTriangleMesh,
         scene: this.scene,
         direction: args.direction,
+        onFlipEnd: args.onFlipEnd,
       });
     }
     return this.nextState;

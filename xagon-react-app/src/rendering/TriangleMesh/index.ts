@@ -115,14 +115,22 @@ class TriangleMesh {
     }
   }
 
-  public onFlip({
+  public flip({
     triangleMesh,
     direction,
+    onFlipEnd,
   }: {
     triangleMesh: TriangleMesh;
     direction: number;
+    onFlipEnd?: () => void;
   }): void {
-    this.currentState.update({ adjacentTriangleMesh: triangleMesh, direction });
+    const context = {
+      adjacentTriangleMesh: triangleMesh,
+      direction,
+      onFlipEnd,
+    };
+
+    this.currentState.update(context);
   }
 
   public getTriangle(): Triangle {
@@ -263,7 +271,7 @@ class TriangleMesh {
     }
   }
 
-  private setupMaterial(scene: Scene): void {
+  public setupMaterial(scene: Scene): void {
     if (this.triangleMesh) {
       const material = new StandardMaterial(
         `meshMaterial${this.triangle.getId()}`,
@@ -347,6 +355,10 @@ class TriangleMesh {
       default:
     }
     return triangleMeshFlipEdgeIndex;
+  }
+
+  public reset(): void {
+    console.log('reset');
   }
 }
 
