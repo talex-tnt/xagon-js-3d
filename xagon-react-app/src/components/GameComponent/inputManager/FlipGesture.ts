@@ -4,7 +4,6 @@ import {
   Scene,
   Nullable,
   Vector3,
-  MeshBuilder,
   Matrix,
 } from '@babylonjs/core';
 import TriangleMesh from 'rendering/TriangleMesh';

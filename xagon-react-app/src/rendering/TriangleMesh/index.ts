@@ -306,7 +306,7 @@ class TriangleMesh {
   }
 
   public getTriangleMeshBonesIndices(
-    triangleVerticeIndices: string[] | number[],
+    triangleVerticeIndices: number[],
   ): number[] {
     const triangleMeshVerticeIndices: number[] = [];
     triangleVerticeIndices.forEach((k, i) => {
