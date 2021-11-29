@@ -42,9 +42,9 @@ class MeshStateRotating extends IMeshState {
 
   private secondTriangleSkeleton: Bone[] = [];
 
-  private adjacentFirstBoneScaleYaw = 1;
+  private adjacentSecondTriangleFirstBoneScaleYaw = 1;
 
-  private adjacentSecondBoneScaleYaw = 1;
+  private adjacentSecondTriangleSecondBoneScaleYaw = 1;
 
   private notAdjacentSecondTriangleBoneScaleYaw = 1;
 
@@ -355,11 +355,11 @@ class MeshStateRotating extends IMeshState {
                   notAdjacentBoneScaling.z,
                 );
 
-                this.adjacentFirstBoneScaleYaw =
+                this.adjacentSecondTriangleFirstBoneScaleYaw =
                   this.secondTriangleSkeleton[
                     adjacentBonesIndicesSecondTriangle[0]
                   ].scaling.y;
-                this.adjacentSecondBoneScaleYaw =
+                this.adjacentSecondTriangleSecondBoneScaleYaw =
                   this.secondTriangleSkeleton[
                     adjacentBonesIndicesSecondTriangle[1]
                   ].scaling.y;
@@ -385,17 +385,17 @@ class MeshStateRotating extends IMeshState {
           this.rotationAxis,
           Scalar.LerpAngle(0, this.rotationAngle, this.amount),
         );
-      const scale1 = Scalar.Lerp(
+      const firstBoneScaleYaw = Scalar.Lerp(
         this.firstTriangleSkeleton[this.bonesIndices[0]].scaling.y,
-        this.adjacentFirstBoneScaleYaw,
+        this.adjacentSecondTriangleFirstBoneScaleYaw,
         this.amount,
       );
-      const scale2 = Scalar.Lerp(
+      const secondBoneScaleYaw = Scalar.Lerp(
         this.firstTriangleSkeleton[this.bonesIndices[1]].scaling.y,
-        this.adjacentSecondBoneScaleYaw,
+        this.adjacentSecondTriangleSecondBoneScaleYaw,
         this.amount,
       );
-      const scale3 = Scalar.Lerp(
+      const notAdjacentBoneScaleYaw = Scalar.Lerp(
         this.firstTriangleSkeleton[this.bonesIndices[2]].scaling.y,
         this.notAdjacentSecondTriangleBoneScaleYaw,
         this.amount,
@@ -404,21 +404,21 @@ class MeshStateRotating extends IMeshState {
       this.firstTriangleSkeleton[this.bonesIndices[0]].setScale(
         new Vector3(
           this.firstTriangleSkeleton[this.bonesIndices[0]].scaling.x,
-          scale1,
+          firstBoneScaleYaw,
           this.firstTriangleSkeleton[this.bonesIndices[0]].scaling.z,
         ),
       );
       this.firstTriangleSkeleton[this.bonesIndices[1]].setScale(
         new Vector3(
           this.firstTriangleSkeleton[this.bonesIndices[1]].scaling.x,
-          scale2,
+          secondBoneScaleYaw,
           this.firstTriangleSkeleton[this.bonesIndices[1]].scaling.z,
         ),
       );
       this.firstTriangleSkeleton[this.bonesIndices[2]].setScale(
         new Vector3(
           this.firstTriangleSkeleton[this.bonesIndices[2]].scaling.x,
-          scale3,
+          notAdjacentBoneScaleYaw,
           this.firstTriangleSkeleton[this.bonesIndices[2]].scaling.z,
         ),
       );
