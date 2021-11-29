@@ -165,7 +165,7 @@ class MeshStateRotating extends IMeshState {
                 this.adjacentTriangleMesh &&
                 this.adjacentTriangleMesh.getTriangleMesh()
               ) {
-                // computing length ratio between vector (edge's center - mesh's center) of the first triangle and vector (edge's center - mesh's center) of the second triangle to shift the node during rotation
+                // computing length ratio between vector (edge's center - mesh's center) of the first triangle and vector (edge's center - mesh's center) of the second triangle to shift the scaling node during rotation
                 this.scalingNode_ShiftRatio =
                   rotationVector.length() /
                   adjacentTriangleMesh_RotationVector.length();
@@ -440,7 +440,7 @@ class MeshStateRotating extends IMeshState {
 
   public getRotationSpeed(): number {
     const deltaTimeInMillis = this.scene.getEngine().getDeltaTime();
-    const rotationSpeed = (4 * deltaTimeInMillis) / 10000;
+    const rotationSpeed = (4 * deltaTimeInMillis) / 1000;
     return rotationSpeed;
   }
 }
