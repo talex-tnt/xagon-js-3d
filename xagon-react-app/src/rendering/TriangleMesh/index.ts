@@ -28,6 +28,8 @@ class TriangleMesh {
 
   private scalingRatio: number;
 
+  private skeletonScaling?: Vector3[];
+
   private currentState: IMeshState;
 
   public constructor({
@@ -78,8 +80,14 @@ class TriangleMesh {
           originalMesh: mesh,
           radiusEquilaterTriangle,
         });
+        const thisMesh = this.getTriangleMesh();
+        if (thisMesh && thisMesh.skeleton) {
+          this.skeletonScaling = thisMesh.skeleton.bones.map(
+            (b) => new Vector3(b.scaling.x, b.scaling.y, b.scaling.z),
+          );
 
         this.setupMaterial(scene);
+        }
       }
     }
   }
@@ -129,7 +137,6 @@ class TriangleMesh {
       direction,
       onFlipEnd,
     };
-
     this.currentState.update(context);
   }
 
@@ -358,7 +365,10 @@ class TriangleMesh {
   }
 
   public reset(): void {
-    console.log('reset');
+    const mesh = this.getTriangleMesh();
+    if (mesh && mesh.skeleton) {
+      mesh.skeleton.bones.map((b, i) => b.setScale(this.skeletonScaling[i]));
+    }
   }
 }
 

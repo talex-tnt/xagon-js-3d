@@ -399,41 +399,6 @@ class MeshStateRotating extends IMeshState {
         this.scalingNode_ShiftRatio,
       );
 
-      this.skeleton[this.bonesIndices[0]].setScale(
-        this.firstAdjacentBoneScaling,
-      );
-      this.skeleton[this.bonesIndices[1]].setScale(
-        this.secondAdjacentBoneScaling,
-      );
-      this.skeleton[this.bonesIndices[2]].setScale(this.notAdjacentBoneScaling);
-
-      const triangle = this.triangleMesh.getTriangle();
-      const triangleMesh = this.triangleMesh.getTriangleMesh() as AbstractMesh;
-
-      // const material = this.scene.getMaterialByName(
-      //   `meshMaterial${triangle.getId()}`,
-      // ) as StandardMaterial;
-      // material.diffuseColor = this.adjacentTriangleMesh
-      //   .getTriangle()
-      //   .getColor();
-      // triangleMesh.material = material;
-      // const adjacentBone1Rotation =
-      //   this.firstTriangleSkeleton[this.bonesIndices[0]].rotation;
-      // const adjacentBone2Rotation =
-      //   this.firstTriangleSkeleton[this.bonesIndices[1]].rotation;
-      // const notAdjacentBoneRotation =
-      //   this.firstTriangleSkeleton[this.bonesIndices[2]].rotation;
-
-      // adjacentBone1Rotation.y += this.firstBoneRotationAngle;
-      // adjacentBone2Rotation.y += this.secondBoneRotationAngle;
-
-      // this.firstTriangleSkeleton[this.bonesIndices[0]].setRotation(
-      //   adjacentBone1Rotation,
-      // );
-      // this.firstTriangleSkeleton[this.bonesIndices[1]].setRotation(
-      //   adjacentBone2Rotation,
-      // );
-
       this.nextState = new MeshStateIdle({
         triangleMesh: this.triangleMesh,
         scene: this.scene,
@@ -449,7 +414,7 @@ class MeshStateRotating extends IMeshState {
 
   public getRotationSpeed(): number {
     const deltaTimeInMillis = this.scene.getEngine().getDeltaTime();
-    const rotationSpeed = (4 * deltaTimeInMillis) / 1000;
+    const rotationSpeed = (6 * deltaTimeInMillis) / 1000;
     return rotationSpeed;
   }
 }
