@@ -201,26 +201,16 @@ class MeshStateRotating extends IMeshState {
                   this.skeleton &&
                   this.skeleton[notAdjacentBoneIndex[0]].scaling;
 
-                this.bonesScaling = [
-                  firstAdjacentBoneScaling &&
-                    new Vector3(
-                      firstAdjacentBoneScaling.x,
-                      firstAdjacentBoneScaling.y,
-                      firstAdjacentBoneScaling.z,
-                    ),
-                  secondAdjacentBoneScaling &&
-                    new Vector3(
-                      secondAdjacentBoneScaling.x,
-                      secondAdjacentBoneScaling.y,
-                      secondAdjacentBoneScaling.z,
-                    ),
-                  notAdjacentBoneScaling &&
-                    new Vector3(
-                      notAdjacentBoneScaling.x,
-                      notAdjacentBoneScaling.y,
-                      notAdjacentBoneScaling.z,
-                    ),
+                const bonesScaling = [
+                  firstAdjacentBoneScaling,
+                  secondAdjacentBoneScaling,
+                  notAdjacentBoneScaling,
                 ];
+                this.bonesScaling = bonesScaling.map(
+                  (boneScaling) =>
+                    boneScaling &&
+                    new Vector3(boneScaling.x, boneScaling.y, boneScaling.z),
+                );
 
                 if (adjacentTriangleMesh_Skeleton) {
                   this.adjacentTriangleMesh_BonesScaleYaw = [
