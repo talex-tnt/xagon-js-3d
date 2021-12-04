@@ -104,7 +104,6 @@ class MeshStateRotating extends IMeshState {
                 flipNode.position,
               );
               this.flipNode = flipNode;
-              mesh.setResetPosition(this.scalingNode.position);
 
               const worldSpace_Vertices = mesh.getTriangle().getVertices();
 

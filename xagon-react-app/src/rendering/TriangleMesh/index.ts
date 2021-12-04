@@ -30,7 +30,9 @@ class TriangleMesh {
 
   private skeletonScaling?: Vector3[];
 
-  private resetPosition: Vector3;
+  private scalingNodeInitialPosition: Vector3 = Vector3.Zero();
+
+  private flipNodeInitialPosition: Vector3 = Vector3.Zero();
 
   private currentState: IMeshState;
 
@@ -171,6 +173,9 @@ class TriangleMesh {
 
       scalingNode.parent = flipNode;
       this.triangleMesh.parent = scalingNode;
+
+      this.scalingNodeInitialPosition = scalingNode.position;
+      this.flipNodeInitialPosition = flipNode.position;
     }
   }
 
@@ -367,18 +372,17 @@ class TriangleMesh {
     return triangleMeshFlipEdgeIndex;
   }
 
-  public setResetPosition(position: Vector3): void {
-    this.resetPosition = position;
-  }
-
   public reset(): void {
     const mesh = this.getTriangleMesh();
     if (mesh && mesh.skeleton) {
-      mesh.skeleton.bones.map((b, i) => b.setScale(this.skeletonScaling[i]));
+      mesh.skeleton.bones.map(
+        (b, i) => this.skeletonScaling && b.setScale(this.skeletonScaling[i]),
+      );
     }
     const scalingNode = mesh?.parent as TransformNode;
     const flipNode = scalingNode.parent as TransformNode;
-    scalingNode.position = this.resetPosition;
+    scalingNode.position = this.scalingNodeInitialPosition;
+    flipNode.position = this.scalingNodeInitialPosition;
     flipNode.rotationQuaternion = new Quaternion(0, 0, 0, 1);
   }
 }
