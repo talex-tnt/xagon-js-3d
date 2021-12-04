@@ -4,7 +4,9 @@ import {
   Scene,
   Nullable,
   Vector3,
+  Matrix,
 } from '@babylonjs/core';
+import Triangle from 'models/Triangle';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
@@ -13,7 +15,7 @@ interface GestureContext {
   scene: Scene;
   triangleMesh: AbstractMesh;
   scalingRatio: number;
-  onFlip: () => void;
+  onFlipBegin: () => void;
 }
 
 class FlipGesture extends Gesture {
@@ -30,12 +32,6 @@ class FlipGesture extends Gesture {
     this.secondTriangleMesh = null;
   }
 
-  public getRotationSpeed(): number {
-    const deltaTimeInMillis = this.context.scene.getEngine().getDeltaTime();
-    const rotationSpeed = (1 / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
-    return rotationSpeed;
-  }
-
   public computeObjSpaceData(assetMesh: AbstractMesh):
     | {
         vertices: Vector3[];
@@ -43,17 +39,25 @@ class FlipGesture extends Gesture {
       }
     | undefined {
     if (assetMesh && assetMesh.skeleton) {
-      const objSpaceVertices = assetMesh.skeleton.bones.map((bone) =>
-        bone
-          .getDirection(this.context.triangleMesh.up)
-          .scale(this.context.scalingRatio),
+      const tr = assetMesh.metadata.triangleMesh.getTriangle();
+      const matrix = assetMesh.getWorldMatrix();
+      const vertices = [
+        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)).scale(
+          this.context.scalingRatio,
+        ),
+        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)).scale(
+          this.context.scalingRatio,
+        ),
+        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)).scale(
+          this.context.scalingRatio,
+        ),
+      ];
+
+      const edges = vertices.map((v, i) =>
+        v.subtract(vertices[(i + 1) % vertices.length]),
       );
 
-      const edges = objSpaceVertices.map((v, i) =>
-        v.subtract(objSpaceVertices[(i + 1) % objSpaceVertices.length]),
-      );
-
-      return { vertices: objSpaceVertices, edges };
+      return { vertices, edges };
     }
     // eslint-disable-next-line no-console
     console.assert(typeof assetMesh === 'object', 'Asset not found');
@@ -118,15 +122,59 @@ class FlipGesture extends Gesture {
           if (this.secondTriangleMesh) {
             const secondTriangle = this.secondTriangleMesh.getTriangle();
             if (firstTriangle.isAdjacent(secondTriangle)) {
-              this.firstTriangleMesh.onFlip({
+              let flipEnded1 = false;
+              let flipEnded2 = false;
+              const swapType = (tr1?: Triangle, tr2?: Triangle) => {
+                if (tr1 && tr2) {
+                  const tr1Type = tr1.getType();
+                  tr1.setType(tr2.getType());
+                  tr2.setType(tr1Type);
+                }
+              };
+
+              this.firstTriangleMesh.flip({
                 triangleMesh: this.secondTriangleMesh,
                 direction: 1,
+                onFlipEnd: () => {
+                  flipEnded1 = true;
+                  if (
+                    flipEnded2 &&
+                    this.firstTriangleMesh &&
+                    this.secondTriangleMesh
+                  ) {
+                    swapType(
+                      this.firstTriangleMesh.getTriangle(),
+                      this.secondTriangleMesh.getTriangle(),
+                    );
+                    this.firstTriangleMesh.setupMaterial(this.context.scene);
+                    this.secondTriangleMesh.setupMaterial(this.context.scene);
+                    this.firstTriangleMesh.reset();
+                    this.secondTriangleMesh.reset();
+                  }
+                },
               });
-              this.secondTriangleMesh.onFlip({
+              this.secondTriangleMesh.flip({
                 triangleMesh: this.firstTriangleMesh,
                 direction: -1,
+                onFlipEnd: () => {
+                  flipEnded2 = true;
+                  if (
+                    flipEnded1 &&
+                    this.firstTriangleMesh &&
+                    this.secondTriangleMesh
+                  ) {
+                    swapType(
+                      this.firstTriangleMesh.getTriangle(),
+                      this.secondTriangleMesh.getTriangle(),
+                    );
+                    this.firstTriangleMesh.setupMaterial(this.context.scene);
+                    this.secondTriangleMesh.setupMaterial(this.context.scene);
+                    this.secondTriangleMesh.reset();
+                    this.firstTriangleMesh.reset();
+                  }
+                },
               });
-              this.context.onFlip();
+              this.context.onFlipBegin();
             }
           }
         }
@@ -135,7 +183,6 @@ class FlipGesture extends Gesture {
   }
 
   public onRelease(pointerInfo: PointerInfo): void {
-    // eslint-disable-next-line no-console
     this.firstTriangleMesh = null;
     this.secondTriangleMesh = null;
   }

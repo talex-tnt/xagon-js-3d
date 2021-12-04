@@ -6,6 +6,7 @@ import {
   Vector3,
   StandardMaterial,
   Nullable,
+  Quaternion,
 } from '@babylonjs/core';
 import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
@@ -26,6 +27,10 @@ class TriangleMesh {
   private vertices_Center_Vectors: Nullable<Vector3[]>;
 
   private scalingRatio: number;
+
+  private skeletonScaling?: Vector3[];
+
+  private resetPosition: Vector3;
 
   private currentState: IMeshState;
 
@@ -78,7 +83,14 @@ class TriangleMesh {
           radiusEquilaterTriangle,
         });
 
-        this.setupMaterial(scene);
+        const thisMesh = this.getTriangleMesh();
+        if (thisMesh && thisMesh.skeleton) {
+          this.skeletonScaling = thisMesh.skeleton.bones.map(
+            (b) => new Vector3(b.scaling.x, b.scaling.y, b.scaling.z),
+          );
+
+          this.setupMaterial(scene);
+        }
       }
     }
   }
@@ -114,14 +126,21 @@ class TriangleMesh {
     }
   }
 
-  public onFlip({
+  public flip({
     triangleMesh,
     direction,
+    onFlipEnd,
   }: {
     triangleMesh: TriangleMesh;
     direction: number;
+    onFlipEnd?: () => void;
   }): void {
-    this.currentState.update({ adjacentTriangleMesh: triangleMesh, direction });
+    const context = {
+      adjacentTriangleMesh: triangleMesh,
+      direction,
+      onFlipEnd,
+    };
+    this.currentState.update(context);
   }
 
   public getTriangle(): Triangle {
@@ -148,6 +167,8 @@ class TriangleMesh {
       const scalingNode = new TransformNode(
         `scalingNode${this.triangle.getId()}`,
       );
+      flipNode.rotationQuaternion = Quaternion.Identity();
+
       scalingNode.parent = flipNode;
       this.triangleMesh.parent = scalingNode;
     }
@@ -260,9 +281,12 @@ class TriangleMesh {
     }
   }
 
-  private setupMaterial(scene: Scene): void {
+  public setupMaterial(scene: Scene): void {
     if (this.triangleMesh) {
-      const material = new StandardMaterial('cloneMaterial', scene);
+      const material = new StandardMaterial(
+        `meshMaterial${this.triangle.getId()}`,
+        scene,
+      );
       material.diffuseColor = this.triangle.getColor();
       material.backFaceCulling = false;
       material.alpha = 1;
@@ -299,19 +323,19 @@ class TriangleMesh {
     return adjacentsVertices;
   }
 
-  public getTriangleMeshVerticeIndices(
-    triangleVerticeIndices: string[] | number[],
+  public getTriangleMeshBonesIndices(
+    triangleVerticeIndices: number[],
   ): number[] {
     const triangleMeshVerticeIndices: number[] = [];
     triangleVerticeIndices.forEach((k, i) => {
-      switch (String(k)) {
-        case '0':
+      switch (k) {
+        case 0:
           triangleMeshVerticeIndices[i] = 2;
           break;
-        case '1':
+        case 1:
           triangleMeshVerticeIndices[i] = 1;
           break;
-        case '2':
+        case 2:
           triangleMeshVerticeIndices[i] = 0;
           break;
         default:
@@ -341,6 +365,21 @@ class TriangleMesh {
       default:
     }
     return triangleMeshFlipEdgeIndex;
+  }
+
+  public setResetPosition(position: Vector3): void {
+    this.resetPosition = position;
+  }
+
+  public reset(): void {
+    const mesh = this.getTriangleMesh();
+    if (mesh && mesh.skeleton) {
+      mesh.skeleton.bones.map((b, i) => b.setScale(this.skeletonScaling[i]));
+    }
+    const scalingNode = mesh?.parent as TransformNode;
+    const flipNode = scalingNode.parent as TransformNode;
+    scalingNode.position = this.resetPosition;
+    flipNode.rotationQuaternion = new Quaternion(0, 0, 0, 1);
   }
 }
 

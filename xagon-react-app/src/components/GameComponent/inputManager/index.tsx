@@ -39,7 +39,7 @@ class InputManager {
                 scene: this.scene,
                 triangleMesh,
                 scalingRatio,
-                onFlip: () => {
+                onFlipBegin: () => {
                   delete this.gesturesMap[pointerId];
                 },
               };

@@ -20,7 +20,7 @@ class Icosahedron extends EquilateralTriangleProvider {
     const a = 1.0;
     const b = 1.0 / phi;
 
-    const points = [
+    let points = [
       new Vector3(0, b, -a),
       new Vector3(b, a, 0),
       new Vector3(-b, a, 0),
@@ -36,6 +36,8 @@ class Icosahedron extends EquilateralTriangleProvider {
     ];
 
     points.forEach((p: Vector3) => p.normalize());
+
+    points = points.map((p) => p.scale(1 / p.length())); // scaling points to correct computing approximation error
 
     this.triangles = [
       new Triangle(this.genTriangleId(), points[0], points[1], points[2]),
@@ -83,10 +85,7 @@ class Icosahedron extends EquilateralTriangleProvider {
       new Triangle(this.genTriangleId(), p3, p2, triangle.p3()),
     ];
 
-    const randomType = () =>
-      Math.floor(Math.random() * Triangle.getTypesCount());
-
-    subTriangles.forEach((tr) => tr.setType(randomType()));
+    subTriangles.forEach((tr) => tr.setType(Triangle.getRandomType()));
 
     return subTriangles;
   }
