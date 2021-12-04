@@ -9,6 +9,7 @@ import {
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 import SceneComponent from 'components/SceneComponent';
 import Icosahedron from 'models/Icosahedron';
+import NaiveSubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/NaiveSubdivisionStrategy';
 import TriangleMesh from 'rendering/TriangleMesh/index';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
@@ -20,7 +21,8 @@ const onSceneReady = (sceneArg: Scene) => {
   const camera = setupCamera(scene, target);
   camera.inputs.attached.pointers.buttons = [1];
 
-  const icosahedron = new Icosahedron();
+  const subdivisionStrategy = new NaiveSubdivisionStrategy();
+  const icosahedron = new Icosahedron(subdivisionStrategy);
   icosahedron.subdivide();
   // icosahedron.subdivide();
   // icosahedron.subdivide();

@@ -1,7 +1,8 @@
 import { Vector3 } from '@babylonjs/core';
 import { k_epsilon } from 'constants/index';
 import EquilateralTriangleProvider from 'rendering/TriangleMesh/EquilateralTriangleProvider';
-import Triangle from './Triangle';
+import Triangle from '../Triangle';
+import ISubdivisionStrategy from './SubdivisionStrategy/ISubdivisionStrategy';
 
 class Icosahedron extends EquilateralTriangleProvider {
   //
@@ -9,13 +10,20 @@ class Icosahedron extends EquilateralTriangleProvider {
 
   private triangleCount = 0n;
 
+  private subdivisionStrategy: ISubdivisionStrategy;
+
   private genTriangleId(): bigint {
     this.triangleCount += 1n;
     return this.triangleCount;
   }
 
-  public constructor() {
+  public makeTriangle(p1: Vector3, p2: Vector3, p3: Vector3): Triangle {
+    return new Triangle(this.genTriangleId(), p1, p2, p3);
+  }
+
+  public constructor(subdivisionStrategy: ISubdivisionStrategy) {
     super();
+    this.subdivisionStrategy = subdivisionStrategy;
     const phi = (1.0 + Math.sqrt(5.0)) * 0.5; // golden ratio
     const a = 1.0;
     const b = 1.0 / phi;
@@ -73,36 +81,8 @@ class Icosahedron extends EquilateralTriangleProvider {
     return this.triangles;
   }
 
-  private subdivideTriangle(triangle: Triangle): Array<Triangle> {
-    const center1 = Vector3.Center(triangle.p2(), triangle.p1());
-    const center2 = Vector3.Center(triangle.p3(), triangle.p2());
-    const center3 = Vector3.Center(triangle.p1(), triangle.p3());
-
-    const p1 = center1.scale(1 / center1.length());
-    const p2 = center2.scale(1 / center2.length());
-    const p3 = center3.scale(1 / center3.length());
-
-    const subTriangles = [
-      new Triangle(this.genTriangleId(), triangle.p1(), p1, p3),
-      new Triangle(this.genTriangleId(), p1, triangle.p2(), p2),
-      new Triangle(this.genTriangleId(), p1, p2, p3),
-      new Triangle(this.genTriangleId(), p3, p2, triangle.p3()),
-    ];
-
-    subTriangles.forEach((tr) => tr.setType(Triangle.getRandomType()));
-
-    return subTriangles;
-  }
-
   public subdivide(): void {
-    this.triangles = this.triangles.reduce(
-      (prev: Array<Triangle>, curr: Triangle) => [
-        ...prev,
-        ...this.subdivideTriangle(curr),
-      ],
-      [],
-    );
-
+    this.triangles = this.subdivisionStrategy.subdivide(this);
     computeAdjacentTriangles(this.triangles);
   }
 
