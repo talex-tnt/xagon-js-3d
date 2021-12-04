@@ -23,9 +23,7 @@ const onSceneReady = (sceneArg: Scene) => {
 
   const subdivisionStrategy = new NaiveSubdivisionStrategy();
   const icosahedron = new Icosahedron(subdivisionStrategy);
-  icosahedron.subdivide();
-  // icosahedron.subdivide();
-  // icosahedron.subdivide();
+  icosahedron.subdivide(2);
 
   const triangles = icosahedron.getTriangles();
 
