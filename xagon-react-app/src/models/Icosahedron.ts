@@ -20,7 +20,7 @@ class Icosahedron extends EquilateralTriangleProvider {
     const a = 1.0;
     const b = 1.0 / phi;
 
-    let points = [
+    const points = [
       new Vector3(0, b, -a),
       new Vector3(b, a, 0),
       new Vector3(-b, a, 0),
@@ -33,34 +33,38 @@ class Icosahedron extends EquilateralTriangleProvider {
       new Vector3(-a, 0, -b),
       new Vector3(b, -a, 0),
       new Vector3(-b, -a, 0),
-    ];
+    ].map(Vector3.Normalize);
 
-    points.forEach((p: Vector3) => p.normalize());
-
-    points = points.map((p) => p.scale(1 / p.length())); // scaling points to correct computing approximation error
+    const makeTriangle = (indices: Array<number>) =>
+      new Triangle(
+        this.genTriangleId(),
+        points[indices[0]],
+        points[indices[1]],
+        points[indices[2]],
+      );
 
     this.triangles = [
-      new Triangle(this.genTriangleId(), points[0], points[1], points[2]),
-      new Triangle(this.genTriangleId(), points[3], points[2], points[1]),
-      new Triangle(this.genTriangleId(), points[3], points[4], points[5]),
-      new Triangle(this.genTriangleId(), points[3], points[8], points[4]),
-      new Triangle(this.genTriangleId(), points[0], points[6], points[7]),
-      new Triangle(this.genTriangleId(), points[0], points[9], points[6]),
-      new Triangle(this.genTriangleId(), points[4], points[10], points[11]),
-      new Triangle(this.genTriangleId(), points[6], points[11], points[10]),
-      new Triangle(this.genTriangleId(), points[2], points[5], points[9]),
-      new Triangle(this.genTriangleId(), points[11], points[9], points[5]),
-      new Triangle(this.genTriangleId(), points[1], points[7], points[8]),
-      new Triangle(this.genTriangleId(), points[10], points[8], points[7]),
-      new Triangle(this.genTriangleId(), points[3], points[5], points[2]),
-      new Triangle(this.genTriangleId(), points[3], points[1], points[8]),
-      new Triangle(this.genTriangleId(), points[0], points[2], points[9]),
-      new Triangle(this.genTriangleId(), points[0], points[7], points[1]),
-      new Triangle(this.genTriangleId(), points[6], points[9], points[11]),
-      new Triangle(this.genTriangleId(), points[6], points[10], points[7]),
-      new Triangle(this.genTriangleId(), points[4], points[11], points[5]),
-      new Triangle(this.genTriangleId(), points[4], points[8], points[10]),
-    ];
+      [0, 1, 2],
+      [3, 2, 1],
+      [3, 4, 5],
+      [3, 8, 4],
+      [0, 6, 7],
+      [0, 9, 6],
+      [4, 10, 11],
+      [6, 11, 10],
+      [2, 5, 9],
+      [11, 9, 5],
+      [10, 7, 8],
+      [1, 8, 7],
+      [3, 5, 2],
+      [3, 1, 8],
+      [0, 2, 9],
+      [0, 7, 1],
+      [6, 9, 11],
+      [6, 10, 7],
+      [4, 11, 5],
+      [4, 8, 10],
+    ].map(makeTriangle);
 
     computeAdjacentTriangles(this.triangles);
   }
