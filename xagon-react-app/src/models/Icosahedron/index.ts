@@ -62,8 +62,8 @@ class Icosahedron extends EquilateralTriangleProvider {
       [6, 11, 10],
       [2, 5, 9],
       [11, 9, 5],
-      [10, 7, 8],
-      [1, 8, 7],
+      [1, 7, 8],
+      [10, 8, 7],
       [3, 5, 2],
       [3, 1, 8],
       [0, 2, 9],
@@ -81,8 +81,10 @@ class Icosahedron extends EquilateralTriangleProvider {
     return this.triangles;
   }
 
-  public subdivide(): void {
-    this.triangles = this.subdivisionStrategy.subdivide(this);
+  public subdivide(count = 1): void {
+    for (let i = 0; i < count; i += 1) {
+      this.triangles = this.subdivisionStrategy.subdivide(this);
+    }
     computeAdjacentTriangles(this.triangles);
   }
 
