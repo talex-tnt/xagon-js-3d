@@ -3,10 +3,14 @@ import { k_epsilon } from 'constants/index';
 import EquilateralTriangleProvider from 'rendering/TriangleMesh/EquilateralTriangleProvider';
 import Triangle from '../Triangle';
 import ISubdivisionStrategy from './SubdivisionStrategy/ISubdivisionStrategy';
-
+export type Triangles = Array<Triangle>;
+interface Context {
+  subdivisionStrategy: ISubdivisionStrategy;
+  triangles?: Triangles;
+}
 class Icosahedron extends EquilateralTriangleProvider {
   //
-  private triangles: Array<Triangle>;
+  private triangles: Triangles;
 
   private triangleCount = 0n;
 
@@ -21,9 +25,18 @@ class Icosahedron extends EquilateralTriangleProvider {
     return new Triangle(this.genTriangleId(), p1, p2, p3);
   }
 
-  public constructor(subdivisionStrategy: ISubdivisionStrategy) {
+  public constructor(context: Context) {
     super();
-    this.subdivisionStrategy = subdivisionStrategy;
+    this.subdivisionStrategy = context.subdivisionStrategy;
+    if (context.triangles) {
+      this.triangles = context.triangles;
+    } else {
+      this.triangles = this.computeRegularIcosahedronTriangles();
+      computeAdjacentTriangles(this.triangles);
+    }
+  }
+
+  private computeRegularIcosahedronTriangles() {
     const phi = (1.0 + Math.sqrt(5.0)) * 0.5; // golden ratio
     const a = 1.0;
     const b = 1.0 / phi;
@@ -51,7 +64,7 @@ class Icosahedron extends EquilateralTriangleProvider {
         points[indices[2]],
       );
 
-    this.triangles = [
+    const triangles = [
       [0, 1, 2],
       [3, 2, 1],
       [3, 4, 5],
@@ -73,8 +86,7 @@ class Icosahedron extends EquilateralTriangleProvider {
       [4, 11, 5],
       [4, 8, 10],
     ].map(makeTriangle);
-
-    computeAdjacentTriangles(this.triangles);
+    return triangles;
   }
 
   public getTriangles(): Array<Triangle> {
