@@ -5,7 +5,7 @@ import ISubdivisionStrategy, {
   Icosahedron,
 } from './ISubdivisionStrategy';
 
-class NaiveSubdivisionStrategy implements ISubdivisionStrategy {
+class _1to4SubdivisionStrategy implements ISubdivisionStrategy {
   public subdivide(icosahedron: Icosahedron): Triangles {
     return icosahedron
       .getTriangles()
@@ -18,7 +18,7 @@ class NaiveSubdivisionStrategy implements ISubdivisionStrategy {
       );
   }
 }
-export default NaiveSubdivisionStrategy;
+export default _1to4SubdivisionStrategy;
 
 const subdivideTriangle = (
   triangle: Triangle,
