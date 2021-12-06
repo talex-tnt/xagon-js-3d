@@ -1,26 +1,47 @@
 import { Vector3 } from '@babylonjs/core';
 import { k_epsilon } from 'constants/index';
 import EquilateralTriangleProvider from 'rendering/TriangleMesh/EquilateralTriangleProvider';
-import Triangle from './Triangle';
-
+import Triangle from '../Triangle';
+import ISubdivisionStrategy from './SubdivisionStrategy/ISubdivisionStrategy';
+export type Triangles = Array<Triangle>;
+interface Context {
+  subdivisionStrategy: ISubdivisionStrategy;
+  triangles?: Triangles;
+}
 class Icosahedron extends EquilateralTriangleProvider {
   //
-  private triangles: Array<Triangle>;
+  private triangles: Triangles;
 
   private triangleCount = 0n;
+
+  private subdivisionStrategy: ISubdivisionStrategy;
 
   private genTriangleId(): bigint {
     this.triangleCount += 1n;
     return this.triangleCount;
   }
 
-  public constructor() {
+  public makeTriangle(p1: Vector3, p2: Vector3, p3: Vector3): Triangle {
+    return new Triangle(this.genTriangleId(), p1, p2, p3);
+  }
+
+  public constructor(context: Context) {
     super();
+    this.subdivisionStrategy = context.subdivisionStrategy;
+    if (context.triangles) {
+      this.triangles = context.triangles;
+    } else {
+      this.triangles = this.computeRegularIcosahedronTriangles();
+      computeAdjacentTriangles(this.triangles);
+    }
+  }
+
+  private computeRegularIcosahedronTriangles() {
     const phi = (1.0 + Math.sqrt(5.0)) * 0.5; // golden ratio
     const a = 1.0;
     const b = 1.0 / phi;
 
-    let points = [
+    const points = [
       new Vector3(0, b, -a),
       new Vector3(b, a, 0),
       new Vector3(-b, a, 0),
@@ -33,72 +54,49 @@ class Icosahedron extends EquilateralTriangleProvider {
       new Vector3(-a, 0, -b),
       new Vector3(b, -a, 0),
       new Vector3(-b, -a, 0),
-    ];
+    ].map(Vector3.Normalize);
 
-    points.forEach((p: Vector3) => p.normalize());
+    const makeTriangle = (indices: Array<number>) =>
+      new Triangle(
+        this.genTriangleId(),
+        points[indices[0]],
+        points[indices[1]],
+        points[indices[2]],
+      );
 
-    points = points.map((p) => p.scale(1 / p.length())); // scaling points to correct computing approximation error
-
-    this.triangles = [
-      new Triangle(this.genTriangleId(), points[0], points[1], points[2]),
-      new Triangle(this.genTriangleId(), points[3], points[2], points[1]),
-      new Triangle(this.genTriangleId(), points[3], points[4], points[5]),
-      new Triangle(this.genTriangleId(), points[3], points[8], points[4]),
-      new Triangle(this.genTriangleId(), points[0], points[6], points[7]),
-      new Triangle(this.genTriangleId(), points[0], points[9], points[6]),
-      new Triangle(this.genTriangleId(), points[4], points[10], points[11]),
-      new Triangle(this.genTriangleId(), points[6], points[11], points[10]),
-      new Triangle(this.genTriangleId(), points[2], points[5], points[9]),
-      new Triangle(this.genTriangleId(), points[11], points[9], points[5]),
-      new Triangle(this.genTriangleId(), points[1], points[7], points[8]),
-      new Triangle(this.genTriangleId(), points[10], points[8], points[7]),
-      new Triangle(this.genTriangleId(), points[3], points[5], points[2]),
-      new Triangle(this.genTriangleId(), points[3], points[1], points[8]),
-      new Triangle(this.genTriangleId(), points[0], points[2], points[9]),
-      new Triangle(this.genTriangleId(), points[0], points[7], points[1]),
-      new Triangle(this.genTriangleId(), points[6], points[9], points[11]),
-      new Triangle(this.genTriangleId(), points[6], points[10], points[7]),
-      new Triangle(this.genTriangleId(), points[4], points[11], points[5]),
-      new Triangle(this.genTriangleId(), points[4], points[8], points[10]),
-    ];
-
-    computeAdjacentTriangles(this.triangles);
+    const triangles = [
+      [0, 1, 2],
+      [3, 2, 1],
+      [3, 4, 5],
+      [3, 8, 4],
+      [0, 6, 7],
+      [0, 9, 6],
+      [4, 10, 11],
+      [6, 11, 10],
+      [2, 5, 9],
+      [11, 9, 5],
+      [1, 7, 8],
+      [10, 8, 7],
+      [3, 5, 2],
+      [3, 1, 8],
+      [0, 2, 9],
+      [0, 7, 1],
+      [6, 9, 11],
+      [6, 10, 7],
+      [4, 11, 5],
+      [4, 8, 10],
+    ].map(makeTriangle);
+    return triangles;
   }
 
   public getTriangles(): Array<Triangle> {
     return this.triangles;
   }
 
-  private subdivideTriangle(triangle: Triangle): Array<Triangle> {
-    const center1 = Vector3.Center(triangle.p2(), triangle.p1());
-    const center2 = Vector3.Center(triangle.p3(), triangle.p2());
-    const center3 = Vector3.Center(triangle.p1(), triangle.p3());
-
-    const p1 = center1.scale(1 / center1.length());
-    const p2 = center2.scale(1 / center2.length());
-    const p3 = center3.scale(1 / center3.length());
-
-    const subTriangles = [
-      new Triangle(this.genTriangleId(), triangle.p1(), p1, p3),
-      new Triangle(this.genTriangleId(), p1, triangle.p2(), p2),
-      new Triangle(this.genTriangleId(), p1, p2, p3),
-      new Triangle(this.genTriangleId(), p3, p2, triangle.p3()),
-    ];
-
-    subTriangles.forEach((tr) => tr.setType(Triangle.getRandomType()));
-
-    return subTriangles;
-  }
-
-  public subdivide(): void {
-    this.triangles = this.triangles.reduce(
-      (prev: Array<Triangle>, curr: Triangle) => [
-        ...prev,
-        ...this.subdivideTriangle(curr),
-      ],
-      [],
-    );
-
+  public subdivide(count = 1): void {
+    for (let i = 0; i < count; i += 1) {
+      this.triangles = this.subdivisionStrategy.subdivide(this);
+    }
     computeAdjacentTriangles(this.triangles);
   }
 

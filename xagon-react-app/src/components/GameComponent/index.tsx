@@ -9,7 +9,10 @@ import {
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 import SceneComponent from 'components/SceneComponent';
 import Icosahedron from 'models/Icosahedron';
+import _1to4SubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/1to4SubdivisionStrategy';
 import TriangleMesh from 'rendering/TriangleMesh/index';
+import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer';
+import JsonIcosahedronDeserializer from 'deserializers/JsonIcosahedronDeserializer';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
 import InputManager from './InputManager';
@@ -20,10 +23,16 @@ const onSceneReady = (sceneArg: Scene) => {
   const camera = setupCamera(scene, target);
   camera.inputs.attached.pointers.buttons = [1];
 
-  const icosahedron = new Icosahedron();
-  icosahedron.subdivide();
-  // icosahedron.subdivide();
-  // icosahedron.subdivide();
+  const subdivisionStrategy = new _1to4SubdivisionStrategy();
+  const icosahedron = new Icosahedron({ subdivisionStrategy });
+  icosahedron.subdivide(2);
+  // const serializer = new JsonIcosahedronSerializer();
+  // // console.log('icosahedron', serializer.serialize(icosahedron));
+  // const deserializer = new JsonIcosahedronDeserializer();
+  // icosahedron = deserializer.deserialize(
+  //   serializer.serialize(icosahedron),
+  //   subdivisionStrategy,
+  // );
 
   const triangles = icosahedron.getTriangles();
 

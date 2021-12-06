@@ -1,4 +1,4 @@
-import { Nullable, Vector3, Color3, MeshBuilder } from '@babylonjs/core';
+import { Nullable, Vector3, Color3 } from '@babylonjs/core';
 
 export type TriangleVertices = Array<Vector3>;
 export type TriangleId = bigint;
