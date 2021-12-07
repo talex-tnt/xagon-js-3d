@@ -2,7 +2,7 @@ import React from 'react';
 import { Vector3, Scene, SceneLoader } from '@babylonjs/core';
 import {
   k_triangleAssetName,
-  k_triangleAssetFileName,
+  k_triangleAssetDebugFileName,
   k_triangleAssetPath,
 } from 'constants/identifiers';
 
@@ -44,7 +44,7 @@ const onSceneReady = (sceneArg: Scene) => {
   SceneLoader.ImportMeshAsync(
     k_triangleAssetName,
     k_triangleAssetPath,
-    k_triangleAssetFileName,
+    k_triangleAssetDebugFileName,
   ).then(({ meshes, skeletons }) => {
     if (meshes && meshes.length > 0 && skeletons) {
       const assetMesh = meshes[0];

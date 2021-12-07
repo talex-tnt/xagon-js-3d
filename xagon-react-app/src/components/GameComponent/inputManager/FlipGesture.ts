@@ -129,6 +129,77 @@ class FlipGesture extends Gesture {
                   const tr1Type = tr1.getType();
                   tr1.setType(tr2.getType());
                   tr2.setType(tr1Type);
+
+                  const point = tr2
+                    .getVertices()
+                    .find((v, i) => tr1.getVertices()[i] !== v);
+
+                  const hasPoint = (tr, point) =>
+                    tr
+                      .getVertices()
+                      .filter((p) => p.subtract(point).length() < 0.00001);
+
+                  let win = 0;
+                  const hexagon = [tr2];
+
+                  const adjs = tr2
+                    .getAdjacents()
+                    .filter(
+                      (adj) =>
+                        adj?.getId() !== tr1.getId() &&
+                        adj?.getType() === tr2.getType(),
+                    );
+
+                  if (adjs.length === 2) {
+                    hexagon.push(adjs[0] as Triangle);
+                    hexagon.push(adjs[1] as Triangle);
+                    adjs.forEach((a) => {
+                      if (hasPoint(a, point)) {
+                        const adjs2 = a
+                          ?.getAdjacents()
+                          .filter(
+                            (adj2) =>
+                              adj2?.getType() === tr2.getType() &&
+                              adj2.getId() !== tr2.getId(),
+                          );
+
+                        if (adjs2 && adjs2.length === 1) {
+                          const duplicate = hexagon.find(
+                            (tr) => tr.getId() === adjs2[0]?.getId(),
+                          );
+                          if (!duplicate) {
+                            hexagon.push(adjs2[0] as Triangle);
+                          }
+                          adjs2.forEach((a2) => {
+                            if (hasPoint(a2, point)) {
+                              const adjs3 = a2
+                                ?.getAdjacents()
+                                .filter(
+                                  (adj3) =>
+                                    adj3?.getType() === tr2.getType() &&
+                                    adj3.getId() !== a.getId(),
+                                );
+
+                              if (
+                                adjs3 &&
+                                adjs3[0] &&
+                                hasPoint(adjs3[0], point)
+                              ) {
+                                if (win === 0) {
+                                  hexagon.push(adjs3[0] as Triangle);
+                                }
+                                win += 1;
+                              }
+                            }
+                          });
+                        }
+                      }
+                    });
+                  }
+
+                  if (win === 2 && hexagon.length === 6) {
+                    console.log('WINNER');
+                  }
                 }
               };
 

@@ -6,6 +6,7 @@ import {
   Vector3,
   Scalar,
   Bone,
+  MeshBuilder,
 } from '@babylonjs/core';
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
@@ -25,6 +26,8 @@ class MeshStateRotating extends IMeshState {
   private flipNode: Nullable<TransformNode> = null;
 
   private scalingNode: Nullable<TransformNode> = null;
+
+  private scalingNode_OriginalPosition: Vector3 = Vector3.Zero();
 
   private scalingNode_FinalPosition: Vector3 = Vector3.Zero();
 
@@ -145,6 +148,11 @@ class MeshStateRotating extends IMeshState {
                   rotationVector.length() /
                   adjacentTriangleMesh_RotationVector.length();
 
+                this.scalingNode_OriginalPosition = new Vector3(
+                  this.scalingNode.position.x,
+                  this.scalingNode.position.y,
+                  this.scalingNode.position.z,
+                );
                 this.scalingNode_FinalPosition =
                   this.scalingNode.position.scale(1 / scalingNode_ShiftRatio);
 
@@ -268,10 +276,17 @@ class MeshStateRotating extends IMeshState {
       }
 
       scalingNode.position = Vector3.Lerp(
-        scalingNode.position,
+        this.scalingNode_OriginalPosition,
         this.scalingNode_FinalPosition,
         this.amount,
       );
+
+      // MeshBuilder.CreateLines(`line${this.mesh.getTriangle().getId()}`, {
+      //   points: [
+      //     scalingNode.getAbsolutePosition(),
+      //     scalingNode.getAbsolutePosition().scale(1.05),
+      //   ],
+      // });
 
       this.amount += rotationSpeed;
     } else if (this.amount >= 1) {
@@ -290,7 +305,8 @@ class MeshStateRotating extends IMeshState {
 
   public getRotationSpeed(): number {
     const deltaTimeInMillis = this.scene.getEngine().getDeltaTime();
-    const rotationSpeed = (6 * deltaTimeInMillis) / 1000;
+    const rpm = 120;
+    const rotationSpeed = (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
     return rotationSpeed;
   }
 }
