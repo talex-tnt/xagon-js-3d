@@ -35,10 +35,10 @@ const loadIcosahedron = async () => {
   }
   const icosahedron = new Icosahedron({ subdivisionStrategy });
   icosahedron.subdivide(2);
-  const serializer = new JsonIcosahedronSerializer();
-  const json = serializer.serialize(icosahedron);
+  // const serializer = new JsonIcosahedronSerializer();
+  // const json = serializer.serialize(icosahedron);
   // eslint-disable-next-line no-console
-  console.log('Icosahedron json', json);
+  // console.log('Icosahedron json', json);
   return icosahedron;
 };
 
