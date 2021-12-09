@@ -20,15 +20,14 @@ import InputManager from './InputManager';
 const loadIcosahedron = async () => {
   const subdivisionStrategy = new _1to4SubdivisionStrategy();
   try {
-    const json = await import('data/icosahedron.json');
-    // eslint-disable-next-line no-console
-    if (json && Object.keys(json).length) {
+    const json = await fetch('assets/data/icosahedron-0.json').then(
+      (response) => response.text(),
+    );
+    if (json && json.length) {
+      // eslint-disable-next-line no-console
       console.log('Icosahedron JSON file loaded.');
       const deserializer = new JsonIcosahedronDeserializer();
-      return deserializer.deserialize(
-        JSON.stringify(json),
-        subdivisionStrategy,
-      );
+      return deserializer.deserialize(json, subdivisionStrategy);
     }
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -38,7 +37,8 @@ const loadIcosahedron = async () => {
   icosahedron.subdivide(2);
   const serializer = new JsonIcosahedronSerializer();
   const json = serializer.serialize(icosahedron);
-  console.log(k_icosahedronJsonFilename, json);
+  // eslint-disable-next-line no-console
+  console.log('Icosahedron json', json);
   return icosahedron;
 };
 
@@ -48,6 +48,7 @@ const onSceneReady = async (sceneArg: Scene) => {
   const camera = setupCamera(scene, target);
   camera.inputs.attached.pointers.buttons = [1];
   const icosahedron = await loadIcosahedron();
+  console.log('Icosahedron loaded');
 
   const triangles = icosahedron.getTriangles();
 
