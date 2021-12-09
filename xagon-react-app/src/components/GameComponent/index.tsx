@@ -4,7 +4,6 @@ import {
   k_triangleAssetName,
   k_triangleAssetFileName,
   k_triangleAssetPath,
-  k_icosahedronJsonFilename,
 } from 'constants/identifiers';
 
 // import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
