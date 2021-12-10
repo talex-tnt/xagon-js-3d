@@ -6,7 +6,8 @@ import {
   Vector3,
   Matrix,
 } from '@babylonjs/core';
-import Triangle from 'models/Triangle';
+import { k_epsilon } from 'constants/index';
+import Triangle, { AdjacentTriangle } from 'models/Triangle';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
@@ -124,81 +125,169 @@ class FlipGesture extends Gesture {
             if (firstTriangle.isAdjacent(secondTriangle)) {
               let flipEnded1 = false;
               let flipEnded2 = false;
-              const swapType = (tr1?: Triangle, tr2?: Triangle) => {
-                if (tr1 && tr2) {
+
+              const swapType = (trM1?: TriangleMesh, trM2?: TriangleMesh) => {
+                if (trM1 && trM2) {
+                  const tr1 = trM1.getTriangle();
+                  const tr2 = trM2.getTriangle();
                   const tr1Type = tr1.getType();
                   tr1.setType(tr2.getType());
                   tr2.setType(tr1Type);
 
-                  const point = tr2
-                    .getVertices()
-                    .find((v, i) => tr1.getVertices()[i] !== v);
-
-                  const hasPoint = (tr, point) =>
+                  const hasPoint = (tr: AdjacentTriangle, point: Vector3) =>
+                    tr &&
                     tr
                       .getVertices()
-                      .filter((p) => p.subtract(point).length() < 0.00001);
+                      .find((p) => p.subtract(point).length() < k_epsilon);
 
-                  let win = 0;
-                  const hexagon = [tr2];
+                  const hasDuplicates = (
+                    array: Array<Triangle>,
+                    element: Triangle,
+                  ) => array.find((e) => e.getId() === element.getId());
 
-                  const adjs = tr2
-                    .getAdjacents()
-                    .filter(
-                      (adj) =>
-                        adj?.getId() !== tr1.getId() &&
-                        adj?.getType() === tr2.getType(),
+                  // hexagon tr1
+                  {
+                    const hexagon: Triangle[] = [];
+
+                    const map = Object.keys(trM1.getAdjacentsVerticesMap(tr2));
+
+                    const notAdjacentIndex = [0, 1, 2].filter(
+                      (index) =>
+                        index !== Number(map[0]) && index !== Number(map[1]),
                     );
 
-                  if (adjs.length === 2) {
-                    hexagon.push(adjs[0] as Triangle);
-                    hexagon.push(adjs[1] as Triangle);
-                    adjs.forEach((a) => {
-                      if (hasPoint(a, point)) {
+                    const notAdjacentPoint =
+                      notAdjacentIndex &&
+                      tr1.getVertices()[notAdjacentIndex[0]];
+
+                    let verifedDirections = 0;
+                    hexagon.push(tr1);
+
+                    const adjs = tr1
+                      .getAdjacents()
+                      .filter(
+                        (adj) =>
+                          adj?.getId() !== tr2.getId() &&
+                          adj?.getType() === tr1.getType(),
+                      );
+
+                    if (adjs[0] && adjs[1] && adjs.length === 2) {
+                      hexagon.push(adjs[0]);
+                      hexagon.push(adjs[1]);
+                      adjs.forEach((a) => {
                         const adjs2 = a
                           ?.getAdjacents()
-                          .filter(
+                          .find(
                             (adj2) =>
-                              adj2?.getType() === tr2.getType() &&
-                              adj2.getId() !== tr2.getId(),
+                              adj2?.getType() === tr1.getType() &&
+                              adj2.getId() !== tr1.getId() &&
+                              hasPoint(adj2, notAdjacentPoint),
                           );
 
-                        if (adjs2 && adjs2.length === 1) {
-                          const duplicate = hexagon.find(
-                            (tr) => tr.getId() === adjs2[0]?.getId(),
-                          );
-                          if (!duplicate) {
-                            hexagon.push(adjs2[0] as Triangle);
+                        if (adjs2) {
+                          if (!hasDuplicates(hexagon, adjs2)) {
+                            hexagon.push(adjs2);
                           }
-                          adjs2.forEach((a2) => {
-                            if (hasPoint(a2, point)) {
-                              const adjs3 = a2
-                                ?.getAdjacents()
-                                .filter(
-                                  (adj3) =>
-                                    adj3?.getType() === tr2.getType() &&
-                                    adj3.getId() !== a.getId(),
-                                );
 
+                          if (a && hasPoint(adjs2, notAdjacentPoint)) {
+                            const adjs3 = adjs2
+                              ?.getAdjacents()
+                              .find(
+                                (adj3) =>
+                                  adj3?.getType() === tr1.getType() &&
+                                  adj3.getId() !== a.getId() &&
+                                  hasPoint(adj3, notAdjacentPoint),
+                              );
+
+                            if (adjs3 && hasPoint(adjs3, notAdjacentPoint)) {
                               if (
-                                adjs3 &&
-                                adjs3[0] &&
-                                hasPoint(adjs3[0], point)
+                                verifedDirections === 0 &&
+                                !hasDuplicates(hexagon, adjs3)
                               ) {
-                                if (win === 0) {
-                                  hexagon.push(adjs3[0] as Triangle);
-                                }
-                                win += 1;
+                                hexagon.push(adjs3);
                               }
+                              verifedDirections += 1;
                             }
-                          });
+                          }
                         }
-                      }
-                    });
+                      });
+                    }
+
+                    if (verifedDirections === 2 && hexagon.length === 6) {
+                      console.log('WINNER');
+                    }
                   }
 
-                  if (win === 2 && hexagon.length === 6) {
-                    console.log('WINNER');
+                  // hexagon tr2
+                  {
+                    const hexagon: Triangle[] = [];
+                    const map = Object.keys(trM2.getAdjacentsVerticesMap(tr1));
+
+                    const notAdjacentIndex = [0, 1, 2].filter(
+                      (index) =>
+                        index !== Number(map[0]) && index !== Number(map[1]),
+                    );
+
+                    const notAdjacentPoint =
+                      notAdjacentIndex &&
+                      tr2.getVertices()[notAdjacentIndex[0]];
+
+                    let verifedDirections = 0;
+                    hexagon.push(tr2);
+
+                    const adjs = tr2
+                      .getAdjacents()
+                      .filter(
+                        (adj) =>
+                          adj?.getId() !== tr1.getId() &&
+                          adj?.getType() === tr2.getType(),
+                      );
+
+                    if (adjs[0] && adjs[1] && adjs.length === 2) {
+                      hexagon.push(adjs[0]);
+                      hexagon.push(adjs[1]);
+                      adjs.forEach((a) => {
+                        const adjs2 = a
+                          ?.getAdjacents()
+                          .find(
+                            (adj2) =>
+                              adj2?.getType() === tr2.getType() &&
+                              adj2.getId() !== tr2.getId() &&
+                              hasPoint(adj2, notAdjacentPoint),
+                          );
+
+                        if (adjs2) {
+                          if (!hasDuplicates(hexagon, adjs2)) {
+                            hexagon.push(adjs2);
+                          }
+
+                          if (a && hasPoint(adjs2, notAdjacentPoint)) {
+                            const adjs3 = adjs2
+                              ?.getAdjacents()
+                              .find(
+                                (adj3) =>
+                                  adj3?.getType() === tr2.getType() &&
+                                  adj3.getId() !== a.getId() &&
+                                  hasPoint(adj3, notAdjacentPoint),
+                              );
+
+                            if (adjs3 && hasPoint(adjs3, notAdjacentPoint)) {
+                              if (
+                                verifedDirections === 0 &&
+                                !hasDuplicates(hexagon, adjs3)
+                              ) {
+                                hexagon.push(adjs3);
+                              }
+                              verifedDirections += 1;
+                            }
+                          }
+                        }
+                      });
+                    }
+
+                    if (verifedDirections === 2 && hexagon.length === 6) {
+                      console.log('WINNER');
+                    }
                   }
                 }
               };
@@ -213,10 +302,7 @@ class FlipGesture extends Gesture {
                     this.firstTriangleMesh &&
                     this.secondTriangleMesh
                   ) {
-                    swapType(
-                      this.firstTriangleMesh.getTriangle(),
-                      this.secondTriangleMesh.getTriangle(),
-                    );
+                    swapType(this.firstTriangleMesh, this.secondTriangleMesh);
                     this.firstTriangleMesh.setupMaterial(this.context.scene);
                     this.secondTriangleMesh.setupMaterial(this.context.scene);
                     this.firstTriangleMesh.reset();
@@ -234,10 +320,7 @@ class FlipGesture extends Gesture {
                     this.firstTriangleMesh &&
                     this.secondTriangleMesh
                   ) {
-                    swapType(
-                      this.firstTriangleMesh.getTriangle(),
-                      this.secondTriangleMesh.getTriangle(),
-                    );
+                    swapType(this.firstTriangleMesh, this.secondTriangleMesh);
                     this.firstTriangleMesh.setupMaterial(this.context.scene);
                     this.secondTriangleMesh.setupMaterial(this.context.scene);
                     this.secondTriangleMesh.reset();
@@ -245,6 +328,7 @@ class FlipGesture extends Gesture {
                   }
                 },
               });
+
               this.context.onFlipBegin();
             }
           }
