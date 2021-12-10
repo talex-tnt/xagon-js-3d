@@ -2,12 +2,17 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 // import App from './App';
+import { Route, BrowserRouter, Routes } from 'react-router-dom';
 import GameComponent from './components/GameComponent/index';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
-    <GameComponent />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<GameComponent />} />
+      </Routes>
+    </BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root'),
 );
