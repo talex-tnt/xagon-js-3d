@@ -11,7 +11,7 @@ export enum TriangleEdge {
   Third,
 }
 
-enum Type {
+export enum Type {
   First = 0,
   Second,
   Third,

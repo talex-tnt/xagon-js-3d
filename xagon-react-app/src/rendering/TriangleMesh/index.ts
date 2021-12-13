@@ -1,4 +1,4 @@
-import Triangle from 'models/Triangle';
+import Triangle, { Type } from 'models/Triangle';
 import {
   AbstractMesh,
   Scene,
@@ -11,11 +11,14 @@ import {
 import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
 import { k_epsilon, k_triangleScale } from 'constants/index';
+import { hexagonVerify } from 'components/GameComponent/Score/hexagonVerify';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
 import IMeshState from './State/IMeshState';
 import MeshStateIdle from './State/MeshStateIdle';
 
 class TriangleMesh {
+  private scene: Scene;
+
   private triangle: Triangle;
 
   private triangleMesh: Nullable<AbstractMesh>;
@@ -49,6 +52,7 @@ class TriangleMesh {
     this.triangle = triangle;
     this.triangleMesh = null;
     this.vertices_Center_Vectors = null;
+    this.scene = scene;
 
     const TRIANGLE_RADIUS = 1;
     const TRIANGLE_SIDE = TRIANGLE_RADIUS * (3 / Math.sqrt(3));
@@ -91,7 +95,7 @@ class TriangleMesh {
             (b) => new Vector3(b.scaling.x, b.scaling.y, b.scaling.z),
           );
 
-          this.setupMaterial(scene);
+          this.setupMaterial();
         }
       }
     }
@@ -286,11 +290,11 @@ class TriangleMesh {
     }
   }
 
-  public setupMaterial(scene: Scene): void {
+  public setupMaterial(): void {
     if (this.triangleMesh) {
       const material = new StandardMaterial(
         `meshMaterial${this.triangle.getId()}`,
-        scene,
+        this.scene,
       );
       material.diffuseColor = this.triangle.getColor();
       material.backFaceCulling = false;
@@ -372,7 +376,7 @@ class TriangleMesh {
     return triangleMeshFlipEdgeIndex;
   }
 
-  public reset(): void {
+  public reset(triangle: TriangleMesh, type: Type): void {
     const mesh = this.getTriangleMesh();
     if (mesh && mesh.skeleton) {
       mesh.skeleton.bones.map(
@@ -384,6 +388,11 @@ class TriangleMesh {
     scalingNode.position = this.scalingNodeInitialPosition;
     flipNode.position = this.scalingNodeInitialPosition;
     flipNode.rotationQuaternion = new Quaternion(0, 0, 0, 1);
+
+    this.triangle.setType(type);
+    this.setupMaterial();
+
+    hexagonVerify(this, triangle, this.scene);
   }
 }
 

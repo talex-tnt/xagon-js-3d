@@ -7,7 +7,7 @@ import {
   Matrix,
 } from '@babylonjs/core';
 import { k_epsilon } from 'constants/index';
-import Triangle, { AdjacentTriangle } from 'models/Triangle';
+import Triangle, { AdjacentTriangle, Type } from 'models/Triangle';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
@@ -26,11 +26,17 @@ class FlipGesture extends Gesture {
 
   private secondTriangleMesh: Nullable<TriangleMesh>;
 
+  private firstType: Type;
+
+  private secondType: Type;
+
   public constructor(context: GestureContext) {
     super();
     this.context = context;
     this.firstTriangleMesh = null;
     this.secondTriangleMesh = null;
+    this.firstType = -1;
+    this.secondType = -1;
   }
 
   public computeObjSpaceData(assetMesh: AbstractMesh):
@@ -82,6 +88,7 @@ class FlipGesture extends Gesture {
             triangleMesh.setEdges(data.edges);
 
             this.firstTriangleMesh = triangleMesh;
+            this.firstType = triangleMesh.getTriangle().getType();
           }
         }
       }
@@ -117,6 +124,7 @@ class FlipGesture extends Gesture {
               assetMesh.setEdges(data.edges);
 
               this.secondTriangleMesh = assetMesh;
+              this.secondType = assetMesh.getTriangle().getType();
             }
           }
 
@@ -125,110 +133,6 @@ class FlipGesture extends Gesture {
             if (firstTriangle.isAdjacent(secondTriangle)) {
               let flipEnded1 = false;
               let flipEnded2 = false;
-
-              const swapType = (trM1?: TriangleMesh, trM2?: TriangleMesh) => {
-                if (trM1 && trM2) {
-                  const trFirst = trM1.getTriangle();
-                  const trSecond = trM2.getTriangle();
-                  const tr1Type = trFirst.getType();
-                  trFirst.setType(trSecond.getType());
-                  trSecond.setType(tr1Type);
-
-                  const hasPoint = (tr: AdjacentTriangle, point: Vector3) =>
-                    tr &&
-                    tr
-                      .getVertices()
-                      .find((p) => p.subtract(point).length() < k_epsilon);
-
-                  const isDuplicated = (
-                    array: Array<Triangle>,
-                    element: Triangle,
-                  ) => array.find((e) => e.getId() === element.getId());
-
-                  const isCompletedHexagon = (
-                    first: TriangleMesh,
-                    second: TriangleMesh,
-                  ) => {
-                    const tr1 = first.getTriangle();
-                    const tr2 = second.getTriangle();
-                    const hexagon: Triangle[] = [];
-
-                    const map = Object.keys(first.getAdjacentsVerticesMap(tr2));
-
-                    const notAdjacentIndex = [0, 1, 2].filter(
-                      (index) =>
-                        index !== Number(map[0]) && index !== Number(map[1]),
-                    );
-
-                    const notAdjacentPoint =
-                      notAdjacentIndex &&
-                      tr1.getVertices()[notAdjacentIndex[0]];
-
-                    hexagon.push(tr1);
-
-                    const adjs = tr1
-                      .getAdjacents()
-                      .filter(
-                        (adj) =>
-                          adj?.getId() !== tr2.getId() &&
-                          adj?.getType() === tr1.getType(),
-                      );
-
-                    if (adjs[0] && adjs[1] && adjs.length === 2) {
-                      hexagon.push(adjs[0]);
-                      hexagon.push(adjs[1]);
-                      adjs.forEach((a) => {
-                        const adjs2 = a
-                          ?.getAdjacents()
-                          .find(
-                            (adj2) =>
-                              adj2?.getType() === tr1.getType() &&
-                              adj2.getId() !== tr1.getId() &&
-                              hasPoint(adj2, notAdjacentPoint),
-                          );
-
-                        if (adjs2) {
-                          if (!isDuplicated(hexagon, adjs2)) {
-                            hexagon.push(adjs2);
-                          }
-
-                          if (a && hasPoint(adjs2, notAdjacentPoint)) {
-                            const adjs3 = adjs2
-                              ?.getAdjacents()
-                              .find(
-                                (adj3) =>
-                                  adj3?.getType() === tr1.getType() &&
-                                  adj3.getId() !== a.getId() &&
-                                  hasPoint(adj3, notAdjacentPoint),
-                              );
-
-                            if (adjs3 && hasPoint(adjs3, notAdjacentPoint)) {
-                              if (!isDuplicated(hexagon, adjs3)) {
-                                hexagon.push(adjs3);
-                              }
-                            }
-                          }
-                        }
-                      });
-                    }
-
-                    if (hexagon.length === 6) {
-                      return true;
-                    }
-                    return false;
-                  };
-
-                  const hexagonCompleted1 = isCompletedHexagon(trM1, trM2);
-                  const hexagonCompleted2 = isCompletedHexagon(trM2, trM1);
-
-                  if (hexagonCompleted1) {
-                    console.log('winner');
-                  }
-                  if (hexagonCompleted2) {
-                    console.log('winner');
-                  }
-                }
-              };
 
               this.firstTriangleMesh.flip({
                 triangleMesh: this.secondTriangleMesh,
@@ -240,11 +144,14 @@ class FlipGesture extends Gesture {
                     this.firstTriangleMesh &&
                     this.secondTriangleMesh
                   ) {
-                    swapType(this.firstTriangleMesh, this.secondTriangleMesh);
-                    this.firstTriangleMesh.setupMaterial(this.context.scene);
-                    this.secondTriangleMesh.setupMaterial(this.context.scene);
-                    this.firstTriangleMesh.reset();
-                    this.secondTriangleMesh.reset();
+                    this.firstTriangleMesh.reset(
+                      this.secondTriangleMesh,
+                      this.secondType,
+                    );
+                    this.secondTriangleMesh.reset(
+                      this.firstTriangleMesh,
+                      this.firstType,
+                    );
                   }
                 },
               });
@@ -258,11 +165,14 @@ class FlipGesture extends Gesture {
                     this.firstTriangleMesh &&
                     this.secondTriangleMesh
                   ) {
-                    swapType(this.firstTriangleMesh, this.secondTriangleMesh);
-                    this.firstTriangleMesh.setupMaterial(this.context.scene);
-                    this.secondTriangleMesh.setupMaterial(this.context.scene);
-                    this.secondTriangleMesh.reset();
-                    this.firstTriangleMesh.reset();
+                    this.secondTriangleMesh.reset(
+                      this.firstTriangleMesh,
+                      this.firstType,
+                    );
+                    this.firstTriangleMesh.reset(
+                      this.secondTriangleMesh,
+                      this.secondType,
+                    );
                   }
                 },
               });
