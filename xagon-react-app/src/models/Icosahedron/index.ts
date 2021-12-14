@@ -158,7 +158,7 @@ function computeAdjacentTriangles(triangles: Triangle[]) {
   triangles.forEach((tr1) => {
     triangles.forEach((tr2) => {
       if (tr1.getId() !== tr2.getId()) {
-        const trianglesFindPointsIndices = [
+        const adjacentIndices = [
           findPointIndex(tr1, tr2.p1()),
           findPointIndex(tr1, tr2.p2()),
           findPointIndex(tr1, tr2.p3()),
@@ -171,9 +171,9 @@ function computeAdjacentTriangles(triangles: Triangle[]) {
           })
           .filter((e) => e !== false);
 
-        if (trianglesFindPointsIndices.length === 2) {
-          const firstIndex = Math.abs(trianglesFindPointsIndices[0] as number);
-          const secondIndex = Math.abs(trianglesFindPointsIndices[1] as number);
+        if (adjacentIndices.length === 2) {
+          const firstIndex = adjacentIndices[0] as number;
+          const secondIndex = adjacentIndices[1] as number;
 
           const indicesSum = firstIndex + secondIndex;
           // sum = 1 if indices [0, 1] || [1, 0]
