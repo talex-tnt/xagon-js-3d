@@ -6,8 +6,7 @@ import {
   Vector3,
   Matrix,
 } from '@babylonjs/core';
-import { k_epsilon } from 'constants/index';
-import Triangle, { AdjacentTriangle, Type } from 'models/Triangle';
+import { Type } from 'models/Triangle';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
@@ -26,17 +25,11 @@ class FlipGesture extends Gesture {
 
   private secondTriangleMesh: Nullable<TriangleMesh>;
 
-  private firstType: Type;
-
-  private secondType: Type;
-
   public constructor(context: GestureContext) {
     super();
     this.context = context;
     this.firstTriangleMesh = null;
     this.secondTriangleMesh = null;
-    this.firstType = -1;
-    this.secondType = -1;
   }
 
   public computeObjSpaceData(assetMesh: AbstractMesh):
@@ -88,7 +81,6 @@ class FlipGesture extends Gesture {
             triangleMesh.setEdges(data.edges);
 
             this.firstTriangleMesh = triangleMesh;
-            this.firstType = triangleMesh.getTriangle().getType();
           }
         }
       }
@@ -124,7 +116,6 @@ class FlipGesture extends Gesture {
               assetMesh.setEdges(data.edges);
 
               this.secondTriangleMesh = assetMesh;
-              this.secondType = assetMesh.getTriangle().getType();
             }
           }
 
@@ -140,14 +131,8 @@ class FlipGesture extends Gesture {
                   const tr1Type = tr1.getType();
                   const tr2Type = tr2.getType();
 
-                  this.firstTriangleMesh.reset(
-                    this.secondTriangleMesh as TriangleMesh,
-                    tr2Type,
-                  );
-                  this.secondTriangleMesh.reset(
-                    this.firstTriangleMesh as TriangleMesh,
-                    tr1Type,
-                  );
+                  trM1.reset(trM2, tr2Type);
+                  trM2.reset(trM1, tr1Type);
                 }
               };
 
