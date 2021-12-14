@@ -133,6 +133,23 @@ class FlipGesture extends Gesture {
             if (firstTriangle.isAdjacent(secondTriangle)) {
               let flipEnded1 = false;
               let flipEnded2 = false;
+              const swapType = (trM1: TriangleMesh, trM2: TriangleMesh) => {
+                if (trM1 && trM2) {
+                  const tr1 = trM1.getTriangle();
+                  const tr2 = trM2.getTriangle();
+                  const tr1Type = tr1.getType();
+                  const tr2Type = tr2.getType();
+
+                  this.firstTriangleMesh.reset(
+                    this.secondTriangleMesh as TriangleMesh,
+                    tr2Type,
+                  );
+                  this.secondTriangleMesh.reset(
+                    this.firstTriangleMesh as TriangleMesh,
+                    tr1Type,
+                  );
+                }
+              };
 
               this.firstTriangleMesh.flip({
                 triangleMesh: this.secondTriangleMesh,
@@ -144,14 +161,7 @@ class FlipGesture extends Gesture {
                     this.firstTriangleMesh &&
                     this.secondTriangleMesh
                   ) {
-                    this.firstTriangleMesh.reset(
-                      this.secondTriangleMesh,
-                      this.secondType,
-                    );
-                    this.secondTriangleMesh.reset(
-                      this.firstTriangleMesh,
-                      this.firstType,
-                    );
+                    swapType(this.firstTriangleMesh, this.secondTriangleMesh);
                   }
                 },
               });
@@ -165,14 +175,7 @@ class FlipGesture extends Gesture {
                     this.firstTriangleMesh &&
                     this.secondTriangleMesh
                   ) {
-                    this.secondTriangleMesh.reset(
-                      this.firstTriangleMesh,
-                      this.firstType,
-                    );
-                    this.firstTriangleMesh.reset(
-                      this.secondTriangleMesh,
-                      this.secondType,
-                    );
+                    swapType(this.firstTriangleMesh, this.secondTriangleMesh);
                   }
                 },
               });
