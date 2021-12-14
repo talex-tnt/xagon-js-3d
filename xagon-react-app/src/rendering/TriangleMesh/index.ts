@@ -376,7 +376,7 @@ class TriangleMesh {
     return triangleMeshFlipEdgeIndex;
   }
 
-  public reset(triangle: TriangleMesh, type: Type): void {
+  public reset(type: Type): void {
     const mesh = this.getTriangleMesh();
     if (mesh && mesh.skeleton) {
       mesh.skeleton.bones.map(
@@ -391,8 +391,6 @@ class TriangleMesh {
 
     this.triangle.setType(type);
     this.setupMaterial();
-
-    hexagonVerify(this, triangle, this.scene);
   }
 }
 

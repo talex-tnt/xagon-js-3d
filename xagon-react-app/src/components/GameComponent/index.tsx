@@ -50,7 +50,7 @@ const onSceneReady = async (sceneArg: Scene) => {
   camera.inputs.attached.pointers.buttons = [1];
   const icosahedron = await loadIcosahedron();
   // console.log('Icosahedron loaded');
-  icosahedron.registerTrianglesChange((trianglesMesh) => {
+  icosahedron.registerOnTriangleChanged((trianglesMesh) => {
     // to refactor after the changes to hexagonVerify based on the new algorithm for calculating the adjacents triangles
     hexagonVerify(trianglesMesh[0], trianglesMesh[1], scene);
     hexagonVerify(trianglesMesh[1], trianglesMesh[0], scene);

@@ -17,7 +17,7 @@ class Icosahedron extends EquilateralTriangleProvider {
 
   private subdivisionStrategy: ISubdivisionStrategy;
 
-  private onTrianglesChange: (triangles: TriangleMesh[]) => void = () =>
+  private onTrianglesChanged: (triangles: TriangleMesh[]) => void = () =>
     undefined;
 
   private genTriangleId(): bigint {
@@ -104,14 +104,14 @@ class Icosahedron extends EquilateralTriangleProvider {
     computeAdjacentTriangles(this.triangles);
   }
 
-  public registerTrianglesChange(
-    onTriangleChange: (triangles: TriangleMesh[]) => void,
+  public registerOnTriangleChanged(
+    onTriangleChanged: (triangles: TriangleMesh[]) => void,
   ): void {
-    this.onTrianglesChange = onTriangleChange;
+    this.onTrianglesChanged = onTriangleChanged;
   }
 
   public notifyTrianglesChanged(changes: TriangleMesh[]): void {
-    this.onTrianglesChange(changes);
+    this.onTrianglesChanged(changes);
   }
 
   public findEquilateralTriangle(): Triangle {
