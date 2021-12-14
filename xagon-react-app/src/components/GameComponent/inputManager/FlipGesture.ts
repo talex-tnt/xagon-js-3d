@@ -6,7 +6,7 @@ import {
   Vector3,
   Matrix,
 } from '@babylonjs/core';
-import Triangle from 'models/Triangle';
+import { Type } from 'models/Triangle';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
@@ -124,11 +124,17 @@ class FlipGesture extends Gesture {
             if (firstTriangle.isAdjacent(secondTriangle)) {
               let flipEnded1 = false;
               let flipEnded2 = false;
-              const swapType = (tr1?: Triangle, tr2?: Triangle) => {
-                if (tr1 && tr2) {
+              const swapType = (trM1: TriangleMesh, trM2: TriangleMesh) => {
+                if (trM1 && trM2) {
+                  const tr1 = trM1.getTriangle();
+                  const tr2 = trM2.getTriangle();
                   const tr1Type = tr1.getType();
-                  tr1.setType(tr2.getType());
-                  tr2.setType(tr1Type);
+                  const tr2Type = tr2.getType();
+
+                  trM1.reset(tr2Type);
+                  trM2.reset(tr1Type);
+                  const { icosahedron } = this.context.scene.metadata;
+                  icosahedron.notifyTrianglesChanged([trM1, trM2]);
                 }
               };
 
@@ -142,14 +148,7 @@ class FlipGesture extends Gesture {
                     this.firstTriangleMesh &&
                     this.secondTriangleMesh
                   ) {
-                    swapType(
-                      this.firstTriangleMesh.getTriangle(),
-                      this.secondTriangleMesh.getTriangle(),
-                    );
-                    this.firstTriangleMesh.setupMaterial(this.context.scene);
-                    this.secondTriangleMesh.setupMaterial(this.context.scene);
-                    this.firstTriangleMesh.reset();
-                    this.secondTriangleMesh.reset();
+                    swapType(this.firstTriangleMesh, this.secondTriangleMesh);
                   }
                 },
               });
@@ -163,17 +162,11 @@ class FlipGesture extends Gesture {
                     this.firstTriangleMesh &&
                     this.secondTriangleMesh
                   ) {
-                    swapType(
-                      this.firstTriangleMesh.getTriangle(),
-                      this.secondTriangleMesh.getTriangle(),
-                    );
-                    this.firstTriangleMesh.setupMaterial(this.context.scene);
-                    this.secondTriangleMesh.setupMaterial(this.context.scene);
-                    this.secondTriangleMesh.reset();
-                    this.firstTriangleMesh.reset();
+                    swapType(this.firstTriangleMesh, this.secondTriangleMesh);
                   }
                 },
               });
+
               this.context.onFlipBegin();
             }
           }

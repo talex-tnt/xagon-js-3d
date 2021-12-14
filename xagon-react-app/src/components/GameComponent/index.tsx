@@ -2,7 +2,7 @@ import React from 'react';
 import { Vector3, Scene, SceneLoader } from '@babylonjs/core';
 import {
   k_triangleAssetName,
-  k_triangleAssetFileName,
+  k_triangleAssetDebugFileName,
   k_triangleAssetPath,
 } from 'constants/identifiers';
 
@@ -16,6 +16,7 @@ import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
 import InputManager from './InputManager';
+import { hexagonVerify } from './Score/hexagonVerify';
 
 const loadIcosahedron = async () => {
   const subdivisionStrategy = new _1to4SubdivisionStrategy();
@@ -48,7 +49,12 @@ const onSceneReady = async (sceneArg: Scene) => {
   const camera = setupCamera(scene, target);
   camera.inputs.attached.pointers.buttons = [1];
   const icosahedron = await loadIcosahedron();
-  console.log('Icosahedron loaded');
+  // console.log('Icosahedron loaded');
+  icosahedron.registerOnTriangleChanged((trianglesMesh) => {
+    // to refactor after the changes to hexagonVerify based on the new algorithm for calculating the adjacents triangles
+    hexagonVerify(trianglesMesh[0], trianglesMesh[1], scene);
+    hexagonVerify(trianglesMesh[1], trianglesMesh[0], scene);
+  });
 
   const triangles = icosahedron.getTriangles();
 
@@ -60,7 +66,7 @@ const onSceneReady = async (sceneArg: Scene) => {
   SceneLoader.ImportMeshAsync(
     k_triangleAssetName,
     k_triangleAssetPath,
-    k_triangleAssetFileName,
+    k_triangleAssetDebugFileName,
   ).then(({ meshes, skeletons }) => {
     if (meshes && meshes.length > 0 && skeletons) {
       const assetMesh = meshes[0];
