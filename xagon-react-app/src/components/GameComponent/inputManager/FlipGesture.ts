@@ -6,7 +6,6 @@ import {
   Vector3,
   Matrix,
 } from '@babylonjs/core';
-import { Type } from 'models/Triangle';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
