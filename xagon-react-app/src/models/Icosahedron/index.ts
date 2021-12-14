@@ -162,14 +162,7 @@ function computeAdjacentTriangles(triangles: Triangle[]) {
           findPointIndex(tr1, tr2.p1()),
           findPointIndex(tr1, tr2.p2()),
           findPointIndex(tr1, tr2.p3()),
-        ]
-          .map((i) => {
-            if (i !== -1) {
-              return i;
-            }
-            return false;
-          })
-          .filter((e) => e !== false);
+        ].filter((i) => i !== -1);
 
         if (adjacentIndices.length === 2) {
           const firstIndex = adjacentIndices[0] as number;
