@@ -133,6 +133,8 @@ class FlipGesture extends Gesture {
 
                   trM1.reset(trM2, tr2Type);
                   trM2.reset(trM1, tr1Type);
+                  const { icosahedron } = this.context.scene.metadata;
+                  icosahedron.notifyTrianglesChanged([trM1, trM2]);
                 }
               };
 

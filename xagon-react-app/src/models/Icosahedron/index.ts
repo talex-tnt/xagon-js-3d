@@ -1,4 +1,5 @@
 import { Vector3 } from '@babylonjs/core';
+import TriangleMesh from 'rendering/TriangleMesh';
 import { k_epsilon } from '../../constants/index';
 import EquilateralTriangleProvider from '../../rendering/TriangleMesh/EquilateralTriangleProvider';
 import Triangle from '../Triangle';
@@ -15,6 +16,9 @@ class Icosahedron extends EquilateralTriangleProvider {
   private triangleCount = 0n;
 
   private subdivisionStrategy: ISubdivisionStrategy;
+
+  private onTrianglesChange: (triangles: TriangleMesh[]) => void = () =>
+    undefined;
 
   private genTriangleId(): bigint {
     this.triangleCount += 1n;
@@ -98,6 +102,16 @@ class Icosahedron extends EquilateralTriangleProvider {
       this.triangles = this.subdivisionStrategy.subdivide(this);
     }
     computeAdjacentTriangles(this.triangles);
+  }
+
+  public registerTrianglesChange(
+    onTriangleChange: (triangles: TriangleMesh[]) => void,
+  ): void {
+    this.onTrianglesChange = onTriangleChange;
+  }
+
+  public notifyTrianglesChanged(changes: TriangleMesh[]): void {
+    this.onTrianglesChange(changes);
   }
 
   public findEquilateralTriangle(): Triangle {

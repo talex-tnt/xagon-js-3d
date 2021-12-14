@@ -16,6 +16,7 @@ import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
 import InputManager from './InputManager';
+import { hexagonVerify } from './Score/hexagonVerify';
 
 const loadIcosahedron = async () => {
   const subdivisionStrategy = new _1to4SubdivisionStrategy();
@@ -48,7 +49,12 @@ const onSceneReady = async (sceneArg: Scene) => {
   const camera = setupCamera(scene, target);
   camera.inputs.attached.pointers.buttons = [1];
   const icosahedron = await loadIcosahedron();
-  console.log('Icosahedron loaded');
+  // console.log('Icosahedron loaded');
+  icosahedron.registerTrianglesChange((trianglesMesh) => {
+    // to refactor after the changes to hexagonVerify based on the new algorithm for calculating the adjacents triangles
+    hexagonVerify(trianglesMesh[0], trianglesMesh[1], scene);
+    hexagonVerify(trianglesMesh[1], trianglesMesh[0], scene);
+  });
 
   const triangles = icosahedron.getTriangles();
 
