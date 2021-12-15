@@ -13,7 +13,7 @@ import _1to4SubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/1to
 import TriangleMesh from 'rendering/TriangleMesh/index';
 import JsonIcosahedronDeserializer from 'deserializers/JsonIcosahedronDeserializer';
 import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer';
-import { hexagonsVerify } from 'gameplay/Score/hexagonsVerify';
+import { hexagonsChangeType, hexagonsVerify } from 'gameplay/Score/hexagonsVerify';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
 import InputManager from './InputManager';
@@ -52,8 +52,12 @@ const onSceneReady = async (sceneArg: Scene) => {
   // console.log('Icosahedron loaded');
   icosahedron.registerOnTriangleChanged((triangles) => {
     // to refactor after the changes to hexagonVerify based on the new algorithm for calculating the adjacents triangles
-    hexagonsVerify(triangles[0], scene);
-    hexagonsVerify(triangles[1], scene);
+    const hexagons1 = hexagonsVerify(triangles[0]);
+    const hexagons2 = hexagonsVerify(triangles[1]);
+    if (hexagons1) {
+      hexagonsChangeType(hexagons1, scene);
+      hexagonsChangeType(hexagons2, scene);
+    }
   });
 
   const triangles = icosahedron.getTriangles();

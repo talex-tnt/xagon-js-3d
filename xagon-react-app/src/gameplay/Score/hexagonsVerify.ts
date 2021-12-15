@@ -3,23 +3,6 @@ import { Scene } from '@babylonjs/core/scene';
 import { k_epsilon } from 'constants/index';
 import Triangle, { AdjacentTriangle } from 'models/Triangle';
 
-export const hexagonsVerify = (tr1: Triangle, scene: Scene): void => {
-  const hexagons: Array<AdjacentTriangle[]> = hexagonsCompleted(tr1);
-
-  if (hexagons) {
-    hexagons.forEach((hex) => {
-      hex.forEach((tr) => {
-        if (tr) {
-          const mesh = scene.getMeshByName(tr.getName());
-          const trMesh = mesh && mesh.metadata.triangleMesh;
-          tr.setType(Triangle.getRandomType());
-          trMesh.setupMaterial();
-        }
-      });
-    });
-  }
-};
-
 const isDuplicated = (
   array: Triangle[] | AdjacentTriangle[],
   element: Triangle,
@@ -34,7 +17,7 @@ const isDuplicated = (
 const hasPoint = (tr: AdjacentTriangle, point: Vector3) =>
   tr && tr.getVertices().find((p) => p.subtract(point).length() < k_epsilon);
 
-const hexagonsCompleted = (tr: Triangle) => {
+export const hexagonsVerify = (tr: Triangle): Array<AdjacentTriangle[]> => {
   const hexagons: Array<AdjacentTriangle[]> = [];
   let hexagon1: AdjacentTriangle[] = [];
   let hexagon2: AdjacentTriangle[] = [];
@@ -121,4 +104,20 @@ const createHexagon = (
   }
 
   return hexagon;
+};
+
+export const hexagonsChangeType = (
+  hexagons: Array<AdjacentTriangle[]>,
+  scene: Scene,
+): void => {
+  hexagons.forEach((hex: AdjacentTriangle[]) => {
+    hex.forEach((tr) => {
+      if (tr) {
+        const mesh = scene.getMeshByName(tr.getName());
+        const trMesh = mesh && mesh.metadata.triangleMesh;
+        tr.setType(Triangle.getRandomType());
+        trMesh.setupMaterial();
+      }
+    });
+  });
 };
