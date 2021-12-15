@@ -1,12 +1,9 @@
 import { Vector3 } from '@babylonjs/core';
 import { Scene } from '@babylonjs/core/scene';
 import { k_epsilon } from 'constants/index';
-import Triangle, { AdjacentTriangle } from 'models/Triangle';
+import Triangle from 'models/Triangle';
 
-const isDuplicated = (
-  array: Triangle[] | AdjacentTriangle[],
-  element: Triangle,
-) =>
+const isDuplicated = (array: Triangle[], element: Triangle) =>
   array.find((e) => {
     if (e) {
       return e.getId() === element.getId();
@@ -14,22 +11,44 @@ const isDuplicated = (
     return false;
   });
 
-const hasPoint = (tr: AdjacentTriangle, point: Vector3) =>
+const hasPoint = (tr: Triangle, point: Vector3) =>
   tr && tr.getVertices().find((p) => p.subtract(point).length() < k_epsilon);
 
-export const hexagonsVerify = (tr: Triangle): Array<AdjacentTriangle[]> => {
-  const hexagons: Array<AdjacentTriangle[]> = [];
-  let hexagon1: AdjacentTriangle[] = [];
-  let hexagon2: AdjacentTriangle[] = [];
-  let hexagon3: AdjacentTriangle[] = [];
+export const hexagonsVerify = (tr: Triangle): Array<Triangle[]> => {
+  const hexagons: Array<Triangle[]> = [];
+  let hexagon1: Triangle[] = [];
+  let hexagon2: Triangle[] = [];
+  let hexagon3: Triangle[] = [];
 
   const p1 = tr.p1();
   const p2 = tr.p2();
   const p3 = tr.p3();
 
-  const adjsP1 = tr.getAdjacents().filter((a, i) => i !== 1);
-  const adjsP2 = tr.getAdjacents().filter((a, i) => i !== 2);
-  const adjsP3 = tr.getAdjacents().filter((a, i) => i !== 0);
+  const adjsP1: Triangle[] = [];
+  const adjsP2: Triangle[] = [];
+  const adjsP3: Triangle[] = [];
+
+  tr.getAdjacents()
+    .filter((a, i) => i !== 1)
+    .forEach((tr1) => {
+      if (tr1) {
+        adjsP1.push(tr1);
+      }
+    });
+  tr.getAdjacents()
+    .filter((a, i) => i !== 2)
+    .forEach((tr1) => {
+      if (tr1) {
+        adjsP2.push(tr1);
+      }
+    });
+  tr.getAdjacents()
+    .filter((a, i) => i !== 0)
+    .forEach((tr1) => {
+      if (tr1) {
+        adjsP3.push(tr1);
+      }
+    });
 
   hexagon1 = createHexagon(tr, p1, adjsP1);
   hexagon2 = createHexagon(tr, p2, adjsP2);
@@ -54,12 +73,8 @@ const haveSameType = (tr1: Triangle, tr2: Triangle) => {
   return false;
 };
 
-const createHexagon = (
-  tr: Triangle,
-  point: Vector3,
-  adjs: AdjacentTriangle[],
-) => {
-  const hexagon: AdjacentTriangle[] = [tr as AdjacentTriangle];
+const createHexagon = (tr: Triangle, point: Vector3, adjs: Triangle[]) => {
+  const hexagon: Triangle[] = [tr as Triangle];
   if (
     adjs[0] &&
     adjs[1] &&
@@ -107,10 +122,10 @@ const createHexagon = (
 };
 
 export const hexagonsChangeType = (
-  hexagons: Array<AdjacentTriangle[]>,
+  hexagons: Array<Triangle[]>,
   scene: Scene,
 ): void => {
-  hexagons.forEach((hex: AdjacentTriangle[]) => {
+  hexagons.forEach((hex: Triangle[]) => {
     hex.forEach((tr) => {
       if (tr) {
         const mesh = scene.getMeshByName(tr.getName());
