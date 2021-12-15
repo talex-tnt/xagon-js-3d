@@ -4,7 +4,7 @@ import { k_epsilon } from 'constants/index';
 import Triangle, { AdjacentTriangle } from 'models/Triangle';
 
 export const hexagonsVerify = (tr1: Triangle, scene: Scene): void => {
-  const hexagons = hexagonsCompleted(tr1);
+  const hexagons: Array<AdjacentTriangle[]> = hexagonsCompleted(tr1);
 
   if (hexagons) {
     hexagons.forEach((hex) => {
@@ -35,10 +35,10 @@ const hasPoint = (tr: AdjacentTriangle, point: Vector3) =>
   tr && tr.getVertices().find((p) => p.subtract(point).length() < k_epsilon);
 
 const hexagonsCompleted = (tr: Triangle) => {
-  const hexagons = [];
-  let hexagon1: Triangle[] | AdjacentTriangle[] = [];
-  let hexagon2: Triangle[] | AdjacentTriangle[] = [];
-  let hexagon3: Triangle[] | AdjacentTriangle[] = [];
+  const hexagons: Array<AdjacentTriangle[]> = [];
+  let hexagon1: AdjacentTriangle[] = [];
+  let hexagon2: AdjacentTriangle[] = [];
+  let hexagon3: AdjacentTriangle[] = [];
 
   const p1 = tr.p1();
   const p2 = tr.p2();
@@ -76,7 +76,7 @@ const createHexagon = (
   point: Vector3,
   adjs: AdjacentTriangle[],
 ) => {
-  const hexagon: Triangle[] | AdjacentTriangle[] = [tr];
+  const hexagon: AdjacentTriangle[] = [tr as AdjacentTriangle];
   if (
     adjs[0] &&
     adjs[1] &&
