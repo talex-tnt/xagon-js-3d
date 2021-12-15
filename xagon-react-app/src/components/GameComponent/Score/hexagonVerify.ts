@@ -1,7 +1,7 @@
 import { Vector3 } from '@babylonjs/core';
 import { Scene } from '@babylonjs/core/scene';
 import { k_epsilon } from 'constants/index';
-import Triangle, { AdjacentTriangle, Type } from 'models/Triangle';
+import Triangle, { AdjacentTriangle } from 'models/Triangle';
 import TriangleMesh from 'rendering/TriangleMesh';
 
 export const hexagonVerify = (

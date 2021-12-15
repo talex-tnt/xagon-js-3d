@@ -146,32 +146,41 @@ class Icosahedron extends EquilateralTriangleProvider {
 }
 
 function computeAdjacentTriangles(triangles: Triangle[]) {
-  const hasPoint = (triangle: Triangle, point: Vector3): boolean => {
-    const found = triangle.getVertices().find((trPoint: Vector3) => {
-      if (Math.abs(point.subtract(trPoint).length()) < k_epsilon) {
-        return true;
-      }
-      return false;
-    });
-    return !!found;
-  };
+  const findPointIndex = (triangle: Triangle, point: Vector3): number =>
+    triangle
+
+      .getVertices()
+
+      .findIndex(
+        (trPoint: Vector3) =>
+          Math.abs(point.subtract(trPoint).length()) < k_epsilon,
+      );
   triangles.forEach((tr1) => {
     triangles.forEach((tr2) => {
       if (tr1.getId() !== tr2.getId()) {
-        const tr1HasPoint1 = hasPoint(tr1, tr2.p1());
-        const tr1HasPoint2 = hasPoint(tr1, tr2.p2());
-        const tr1HasPoint3 = hasPoint(tr1, tr2.p3());
-        if (tr1HasPoint1 && tr1HasPoint2) {
-          tr1.pushAdjacent(tr2);
-          tr2.pushAdjacent(tr1);
-        }
-        if (tr1HasPoint2 && tr1HasPoint3) {
-          tr1.pushAdjacent(tr2);
-          tr2.pushAdjacent(tr1);
-        }
-        if (tr1HasPoint3 && tr1HasPoint1) {
-          tr1.pushAdjacent(tr2);
-          tr2.pushAdjacent(tr1);
+        const adjacentIndices = [
+          findPointIndex(tr1, tr2.p1()),
+          findPointIndex(tr1, tr2.p2()),
+          findPointIndex(tr1, tr2.p3()),
+        ].filter((i) => i !== -1);
+
+        if (adjacentIndices.length === 2) {
+          const firstIndex = adjacentIndices[0] as number;
+          const secondIndex = adjacentIndices[1] as number;
+
+          const indicesSum = firstIndex + secondIndex;
+          // sum = 1 if indices [0, 1] || [1, 0]
+          // sum = 2 if indices [0, 2] || [2, 0]
+          // sum = 3 if indices [1, 2] || [2, 1]
+          if (indicesSum === 1) {
+            tr1.setAdjacent(tr2, 0);
+          }
+          if (indicesSum === 3) {
+            tr1.setAdjacent(tr2, 1);
+          }
+          if (indicesSum === 2) {
+            tr1.setAdjacent(tr2, 2);
+          }
         }
       }
     });
