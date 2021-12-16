@@ -307,63 +307,59 @@ class TriangleMesh {
   ): Record<number, number> {
     const trVertices = this.triangle.getVertices();
     const adjTrVertices = adjTriangle.getVertices();
-    const adjacentsVertices: Record<number, number> = {};
+    const adjacentsMap: Record<number, number> = {};
     if (trVertices && adjTrVertices) {
       trVertices.forEach((trVertice: Vector3, indexTrVertice: number) => {
         adjTrVertices.forEach(
           (adjTrVertice: Vector3, indexAdjTrVertice: number) => {
             if (adjTrVertice.subtract(trVertice).length() < k_epsilon) {
-              adjacentsVertices[indexTrVertice] = indexAdjTrVertice;
+              adjacentsMap[indexTrVertice] = indexAdjTrVertice;
             }
           },
         );
       });
     }
-    return adjacentsVertices;
+    return adjacentsMap;
   }
 
-  public getTriangleMeshBonesIndices(
-    triangleVerticeIndices: number[],
-  ): number[] {
-    const triangleMeshVerticeIndices: number[] = [];
-    triangleVerticeIndices.forEach((k, i) => {
+  public getTriangleMeshBonesIndices(verticeIndices: number[]): number[] {
+    const bonesIndices: number[] = [];
+    verticeIndices.forEach((k, i) => {
       switch (k) {
         case 0:
-          triangleMeshVerticeIndices[i] = 2;
+          bonesIndices[i] = 2;
           break;
         case 1:
-          triangleMeshVerticeIndices[i] = 1;
+          bonesIndices[i] = 1;
           break;
         case 2:
-          triangleMeshVerticeIndices[i] = 0;
+          bonesIndices[i] = 0;
           break;
         default:
       }
     });
-    return triangleMeshVerticeIndices;
+    return bonesIndices;
   }
 
-  public getTriangleMeshIndicesSum(
-    triangleMeshVerticeIndices: number[],
-  ): number {
-    return triangleMeshVerticeIndices.reduce((curr, prev) => curr + prev);
+  public getTriangleMeshIndicesSum(verticeIndices: number[]): number {
+    return verticeIndices.reduce((curr, prev) => curr + prev);
   }
 
-  public getTriangleMeshFlipEdgeIndex(triangleMeshIndicesSum: number): number {
-    let triangleMeshFlipEdgeIndex = 0;
-    switch (triangleMeshIndicesSum) {
+  public getTriangleMeshFlipEdgeIndex(indicesSum: number): number {
+    let flipEdgeIndex = 0;
+    switch (indicesSum) {
       case 1:
-        triangleMeshFlipEdgeIndex = 0;
+        flipEdgeIndex = 0;
         break;
       case 2:
-        triangleMeshFlipEdgeIndex = 2;
+        flipEdgeIndex = 2;
         break;
       case 3:
-        triangleMeshFlipEdgeIndex = 1;
+        flipEdgeIndex = 1;
         break;
       default:
     }
-    return triangleMeshFlipEdgeIndex;
+    return flipEdgeIndex;
   }
 
   public reset(type: Type): void {
