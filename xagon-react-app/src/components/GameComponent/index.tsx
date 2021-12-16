@@ -58,11 +58,9 @@ const onSceneReady = async (sceneArg: Scene) => {
       hexagonsList.forEach((hexagon: Array<Triangle[]>) => {
         hexagon.forEach((hex: Triangle[]) => {
           hex.forEach((tr) => {
-            if (tr) {
-              const mesh = scene.getMeshByName(tr.getName());
-              const trMesh = mesh && mesh.metadata.triangleMesh;
-              trMesh.reset(Triangle.getRandomType());
-            }
+            const mesh = scene.getMeshByName(tr.getName());
+            const trMesh = mesh && mesh.metadata.triangleMesh;
+            trMesh.reset(Triangle.getRandomType());
           });
         });
       });
