@@ -6,6 +6,7 @@ import {
   Vector3,
   Scalar,
   Bone,
+  MeshBuilder,
 } from '@babylonjs/core';
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
@@ -39,6 +40,14 @@ class MeshStateRotating extends IMeshState {
   private bonesIndices: number[] = [];
 
   private amount = 0;
+
+  private shift: Vector3 = Vector3.Zero();
+
+  private shift2: Vector3 = Vector3.Zero();
+
+  private scalingNodeOrigPosAbs: Vector3;
+
+  private adjScalingNodeOrigPosAbs: Nullable<Vector3>;
 
   private onFlipEnd?: () => void;
 
@@ -142,12 +151,42 @@ class MeshStateRotating extends IMeshState {
               if (adjacentMesh && adjacentMesh.getTriangleMesh()) {
                 // computing length ratio between vector (edge's center - mesh's center) of the first triangle and vector (edge's center - mesh's center) of the second triangle to shift the scaling node during rotation
                 const scalingNodeShiftRatio =
-                  rotationVector.length() /
-                  adjTriangleMeshRotationVector.length();
+                  adjTriangleMeshRotationVector.length() /
+                  rotationVector.length();
+
+                const adjTriangleMeshVectorCenterVertex =
+                  Vector3.Zero().subtract(
+                    adjacentMesh.getVertices()[
+                      adjTriangleMeshAdjVertIndices[0]
+                    ],
+                  );
+                const meshVectorCenterVertex = Vector3.Zero().subtract(
+                  this.mesh.getVertices()[adjVertIndices[0]],
+                );
+
+                const ratio =
+                  adjTriangleMeshVectorCenterVertex.length() /
+                  meshVectorCenterVertex.length();
+
+                this.shift = meshVectorCenterVertex
+                  .scale(ratio)
+                  .subtract(meshVectorCenterVertex);
 
                 this.scalingNodeOrigPos = this.scalingNode.position.clone();
+
+                this.scalingNodeOrigPosAbs = this.scalingNode
+                  .getAbsolutePosition()
+                  .clone();
+                const adjMesh = adjacentMesh.getTriangleMesh();
+                this.adjScalingNodeOrigPosAbs =
+                  adjMesh && adjMesh.getAbsolutePosition().clone();
+
                 this.scalingNodeFinPos = this.scalingNode.position.scale(
-                  1 / scalingNodeShiftRatio,
+                  scalingNodeShiftRatio,
+                );
+
+                this.shift2 = this.scalingNodeFinPos.subtract(
+                  this.scalingNodeOrigPos,
                 );
 
                 this.rotationAxis = edges[adjEdgeIndex];
@@ -262,15 +301,25 @@ class MeshStateRotating extends IMeshState {
         this.amount,
       );
 
-      // MeshBuilder.CreateLines(`line${this.mesh.getTriangle().getId()}`, {
-      //   points: [
-      //     scalingNode.getAbsolutePosition(),
-      //     scalingNode.getAbsolutePosition().scale(1.05),
-      //   ],
-      // });
+      MeshBuilder.CreateLines(`line${this.mesh.getTriangle().getId()}`, {
+        points: [
+          scalingNode.getAbsolutePosition(),
+          scalingNode.getAbsolutePosition().scale(1.01),
+        ],
+      });
 
       this.amount += rotationSpeed * (deltaTimeInMillis / 1000);
     } else if (this.amount >= 1) {
+      const pos = this.scalingNode?.getAbsolutePosition();
+      if (this.adjScalingNodeOrigPosAbs && pos) {
+        const angle = Vector3.GetAngleBetweenVectors(
+          this.scalingNodeOrigPosAbs.subtract(this.adjScalingNodeOrigPosAbs),
+          this.scalingNodeOrigPosAbs.subtract(pos),
+          this.mesh.getTriangle().getCenterPoint(),
+        );
+        console.log(angle);
+      }
+
       this.nextState = new MeshStateIdle({
         triangleMesh: this.mesh,
         scene: this.scene,
@@ -285,7 +334,7 @@ class MeshStateRotating extends IMeshState {
   }
 
   public getRotationSpeed(): number {
-    const rpm = 120;
+    const rpm = 5;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
   }
