@@ -4,6 +4,7 @@ import {
   Scene,
   Nullable,
   Vector3,
+  Vector2,
   Matrix,
 } from '@babylonjs/core';
 import TriangleMesh from 'rendering/TriangleMesh';
@@ -24,9 +25,9 @@ class FlipGesture extends Gesture {
 
   private secondTriangleMesh: Nullable<TriangleMesh>;
 
-  private startPoint: Nullable<Vector3> = Vector3.Zero();
+  private startPoint: Nullable<Vector2> = Vector2.Zero();
 
-  private onMoveCount = 0;
+  private time = 0;
 
   public constructor(context: GestureContext) {
     super();
@@ -70,8 +71,9 @@ class FlipGesture extends Gesture {
   public onDown(pointerInfo: PointerInfo): void {
     const mesh = pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
     if (mesh) {
-      this.startPoint =
-        pointerInfo.pickInfo && pointerInfo.pickInfo?.pickedPoint;
+      if (pointerInfo.event) {
+        this.startPoint = new Vector2(pointerInfo.event.x, pointerInfo.event.y);
+      }
 
       const originalMesh = getAssetMesh({
         scene: this.context.scene,
@@ -104,22 +106,28 @@ class FlipGesture extends Gesture {
 
       let isValidGesture = false;
       let gestureLength = 0;
-      this.onMoveCount += 1;
-      const finalPoint = pickinfo && pickinfo.pickedPoint;
+      if (this.time === 0) {
+        this.time = Date.now();
+      }
+      const now = Date.now();
+      const deltaTime = now - this.time;
+
+      if (deltaTime > 20) {
+        this.startPoint = new Vector2(
+          this.context.scene.pointerX,
+          this.context.scene.pointerY,
+        );
+      }
+
+      const finalPoint = new Vector2(
+        this.context.scene.pointerX,
+        this.context.scene.pointerY,
+      );
       if (finalPoint && this.startPoint) {
         gestureLength = this.startPoint.subtract(finalPoint).length();
       }
 
-      const vectorsCenterVertices =
-        this.firstTriangleMesh.getVertices_Center_Vectors();
-      const minGestureLength =
-        vectorsCenterVertices && vectorsCenterVertices[0].length() / 5;
-
-      if (
-        this.onMoveCount <= 20 &&
-        minGestureLength &&
-        gestureLength > minGestureLength
-      ) {
+      if (deltaTime <= 20 && gestureLength > 30) {
         isValidGesture = true;
       }
       if (
@@ -198,7 +206,7 @@ class FlipGesture extends Gesture {
             }
           }
         }
-      }
+      } else this.time = Date.now();
     }
   }
 

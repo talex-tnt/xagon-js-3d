@@ -12,8 +12,8 @@ import Icosahedron from 'models/Icosahedron';
 import _1to4SubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/1to4SubdivisionStrategy';
 import TriangleMesh from 'rendering/TriangleMesh/index';
 import JsonIcosahedronDeserializer from 'deserializers/JsonIcosahedronDeserializer';
-import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer';
-import { hexagonsVerify } from 'gameplay/Score/hexagonsVerify';
+// import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer'; // #Serialization
+import { shapesVerify } from 'gameplay/ScoreManager/shapesVerify';
 import Triangle from 'models/Triangle';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
@@ -37,6 +37,7 @@ const loadIcosahedron = async () => {
   }
   const icosahedron = new Icosahedron({ subdivisionStrategy });
   icosahedron.subdivide(2);
+  // #Serialization
   // const serializer = new JsonIcosahedronSerializer();
   // const json = serializer.serialize(icosahedron);
   // eslint-disable-next-line no-console
@@ -52,7 +53,7 @@ const onSceneReady = async (sceneArg: Scene) => {
   const icosahedron = await loadIcosahedron();
   // console.log('Icosahedron loaded');
   icosahedron.registerOnTriangleChanged((triangles) => {
-    const hexagonsList = triangles.map((tr) => hexagonsVerify(tr));
+    const hexagonsList = shapesVerify(triangles);
 
     if (hexagonsList) {
       hexagonsList.forEach((hexagon: Array<Triangle[]>) => {
