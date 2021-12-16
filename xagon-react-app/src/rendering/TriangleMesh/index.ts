@@ -303,30 +303,21 @@ class TriangleMesh {
   }
 
   public getAdjacentsVerticesMap(
-    adjacentTriangle: Triangle,
+    adjTriangle: Triangle,
   ): Record<number, number> {
-    const firstTriangleVertices = this.triangle.getVertices();
-    const secondTriangleVertices = adjacentTriangle.getVertices();
+    const trVertices = this.triangle.getVertices();
+    const adjTrVertices = adjTriangle.getVertices();
     const adjacentsVertices: Record<number, number> = {};
-    if (firstTriangleVertices && secondTriangleVertices) {
-      firstTriangleVertices.forEach(
-        (firstTriangleVertice: Vector3, indexFirstTriangleVertice: number) => {
-          secondTriangleVertices.forEach(
-            (
-              secondTriangleVertice: Vector3,
-              indexSecondTriangleVertice: number,
-            ) => {
-              if (
-                secondTriangleVertice.subtract(firstTriangleVertice).length() <
-                k_epsilon
-              ) {
-                adjacentsVertices[indexFirstTriangleVertice] =
-                  indexSecondTriangleVertice;
-              }
-            },
-          );
-        },
-      );
+    if (trVertices && adjTrVertices) {
+      trVertices.forEach((trVertice: Vector3, indexTrVertice: number) => {
+        adjTrVertices.forEach(
+          (adjTrVertice: Vector3, indexAdjTrVertice: number) => {
+            if (adjTrVertice.subtract(trVertice).length() < k_epsilon) {
+              adjacentsVertices[indexTrVertice] = indexAdjTrVertice;
+            }
+          },
+        );
+      });
     }
     return adjacentsVertices;
   }

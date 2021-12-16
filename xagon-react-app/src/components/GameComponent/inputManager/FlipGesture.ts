@@ -24,6 +24,10 @@ class FlipGesture extends Gesture {
 
   private secondTriangleMesh: Nullable<TriangleMesh>;
 
+  private startPoint: Nullable<Vector3> = Vector3.Zero();
+
+  private onMoveCount = 0;
+
   public constructor(context: GestureContext) {
     super();
     this.context = context;
@@ -66,6 +70,9 @@ class FlipGesture extends Gesture {
   public onDown(pointerInfo: PointerInfo): void {
     const mesh = pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
     if (mesh) {
+      this.startPoint =
+        pointerInfo.pickInfo && pointerInfo.pickInfo?.pickedPoint;
+
       const originalMesh = getAssetMesh({
         scene: this.context.scene,
         triangleMesh: mesh,
@@ -95,7 +102,28 @@ class FlipGesture extends Gesture {
         this.context.scene.pointerY,
       );
 
+      let isValidGesture = false;
+      let gestureLength = 0;
+      this.onMoveCount += 1;
+      const finalPoint = pickinfo && pickinfo.pickedPoint;
+      if (finalPoint && this.startPoint) {
+        gestureLength = this.startPoint.subtract(finalPoint).length();
+      }
+
+      const vectorsCenterVertices =
+        this.firstTriangleMesh.getVertices_Center_Vectors();
+      const minGestureLength =
+        vectorsCenterVertices && vectorsCenterVertices[0].length() / 5;
+
       if (
+        this.onMoveCount <= 20 &&
+        minGestureLength &&
+        gestureLength > minGestureLength
+      ) {
+        isValidGesture = true;
+      }
+      if (
+        isValidGesture &&
         pickinfo &&
         pickinfo.pickedMesh &&
         pickinfo.pickedMesh.metadata.triangle.getId() !== firstTriangle.getId()
