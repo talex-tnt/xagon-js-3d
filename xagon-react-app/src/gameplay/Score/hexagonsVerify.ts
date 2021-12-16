@@ -3,8 +3,8 @@ import { Nullable } from '@babylonjs/core/types';
 import { k_epsilon } from 'constants/index';
 import Triangle from 'models/Triangle';
 
-export const hexagonsVerify = (tr: Triangle): Array<Nullable<Triangle[]>> => {
-  const hexagons: Array<Nullable<Triangle[]>> = [];
+export const hexagonsVerify = (tr: Triangle): Array<Triangle[]> => {
+  const hexagons: Array<Triangle[]> = [];
 
   const adjs: Array<Triangle[]> = [[], [], []];
 
