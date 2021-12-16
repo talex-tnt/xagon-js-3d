@@ -13,10 +13,11 @@ import _1to4SubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/1to
 import TriangleMesh from 'rendering/TriangleMesh/index';
 import JsonIcosahedronDeserializer from 'deserializers/JsonIcosahedronDeserializer';
 import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer';
+import { hexagonsVerify } from 'gameplay/Score/hexagonsVerify';
+import Triangle from 'models/Triangle';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
 import InputManager from './InputManager';
-import { hexagonVerify } from './Score/hexagonVerify';
 
 const loadIcosahedron = async () => {
   const subdivisionStrategy = new _1to4SubdivisionStrategy();
@@ -50,10 +51,20 @@ const onSceneReady = async (sceneArg: Scene) => {
   camera.inputs.attached.pointers.buttons = [1];
   const icosahedron = await loadIcosahedron();
   // console.log('Icosahedron loaded');
-  icosahedron.registerOnTriangleChanged((trianglesMesh) => {
-    // to refactor after the changes to hexagonVerify based on the new algorithm for calculating the adjacents triangles
-    hexagonVerify(trianglesMesh[0], trianglesMesh[1], scene);
-    hexagonVerify(trianglesMesh[1], trianglesMesh[0], scene);
+  icosahedron.registerOnTriangleChanged((triangles) => {
+    const hexagonsList = triangles.map((tr) => hexagonsVerify(tr));
+
+    if (hexagonsList) {
+      hexagonsList.forEach((hexagon: Array<Triangle[]>) => {
+        hexagon.forEach((hex: Triangle[]) => {
+          hex.forEach((tr) => {
+            const mesh = scene.getMeshByName(tr.getName());
+            const trMesh = mesh && mesh.metadata.triangleMesh;
+            trMesh.reset(Triangle.getRandomType());
+          });
+        });
+      });
+    }
   });
 
   const triangles = icosahedron.getTriangles();
