@@ -6,7 +6,7 @@ import { isDuplicated, hasPoint, haveSameType } from 'gameplay/utils/utils';
 export const shapesVerify = (
   triangles: Triangle[],
 ): Array<Array<Triangle[]>> => {
-  const shapes = triangles.map((tr) => {
+  const shapesList = triangles.map((tr) => {
     const hexagons: Array<Triangle[]> = [];
 
     const adjs: Array<Triangle[]> = [[], [], []];
@@ -21,9 +21,17 @@ export const shapesVerify = (
         });
     });
 
-    const hexagon1 = findHexagon(tr, tr.p1(), adjs[1]);
-    const hexagon2 = findHexagon(tr, tr.p2(), adjs[2]);
-    const hexagon3 = findHexagon(tr, tr.p3(), adjs[0]);
+    const pivotPoint1 = tr.p1();
+    const pivotPoint2 = tr.p2();
+    const pivotPoint3 = tr.p3();
+
+    const adjsPivotPoint1 = adjs[1];
+    const adjsPivotPoint2 = adjs[2];
+    const adjsPivotPoint3 = adjs[0];
+
+    const hexagon1 = findHexagon(tr, pivotPoint1, adjsPivotPoint1);
+    const hexagon2 = findHexagon(tr, pivotPoint2, adjsPivotPoint2);
+    const hexagon3 = findHexagon(tr, pivotPoint3, adjsPivotPoint3);
 
     if (hexagon1) {
       hexagons.push(hexagon1);
@@ -36,7 +44,7 @@ export const shapesVerify = (
     }
     return hexagons;
   });
-  return shapes;
+  return shapesList;
 };
 
 const findHexagon = (

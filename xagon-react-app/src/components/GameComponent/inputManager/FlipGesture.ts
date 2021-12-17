@@ -27,7 +27,7 @@ class FlipGesture extends Gesture {
 
   private startPoint: Nullable<Vector2> = Vector2.Zero();
 
-  private lastEventTime = 0;
+  private lastEventTimestamp = 0;
 
   public constructor(context: GestureContext) {
     super();
@@ -73,7 +73,7 @@ class FlipGesture extends Gesture {
     if (mesh) {
       if (pointerInfo.event) {
         this.startPoint = new Vector2(pointerInfo.event.x, pointerInfo.event.y);
-        this.lastEventTime = Date.now();
+        this.lastEventTimestamp = Date.now();
       }
 
       const originalMesh = getAssetMesh({
@@ -109,7 +109,7 @@ class FlipGesture extends Gesture {
       let gestureLength = 0;
 
       const now = Date.now();
-      const deltaTime = now - this.lastEventTime;
+      const deltaTime = now - this.lastEventTimestamp;
 
       if (deltaTime > 20) {
         this.startPoint = new Vector2(
@@ -205,7 +205,7 @@ class FlipGesture extends Gesture {
             }
           }
         }
-      } else this.lastEventTime = Date.now();
+      } else this.lastEventTimestamp = Date.now();
     }
   }
 

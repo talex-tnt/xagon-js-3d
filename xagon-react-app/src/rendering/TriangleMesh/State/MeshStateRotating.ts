@@ -6,6 +6,7 @@ import {
   Vector3,
   Scalar,
   Bone,
+  MeshBuilder,
   // MeshBuilder, #DEBUG
 } from '@babylonjs/core';
 import TriangleMesh from '..';
@@ -38,6 +39,8 @@ class MeshStateRotating extends IMeshState {
   private bonesScaling: Nullable<Vector3>[] = [];
 
   private bonesIndices: number[] = [];
+
+  private shiftVector: Vector3 = Vector3.Zero();
 
   private amount = 0;
 
@@ -142,18 +145,66 @@ class MeshStateRotating extends IMeshState {
                 const scalingNodeShiftRatio =
                   adjRotationVector.length() / rotationVector.length();
 
-                // const adjMeshVectorCenterVertex = Vector3.Zero().subtract(
-                //   adjacentMesh.getVertices()[adjVertIndices[0]],
+                // MeshBuilder.CreateLines(
+                //   `lines${this.mesh.getTriangle().getName()}`,
+                //   {
+                //     points: [
+                //       Vector3.Zero(),
+                //       this.mesh.getVertices()[vertIndices[0]],
+                //       this.mesh.getVertices()[vertIndices[1]],
+                //     ],
+                //   },
                 // );
-                // const meshVectorCenterVertex = Vector3.Zero().subtract(
-                //   this.mesh.getVertices()[vertIndices[0]],
-                // );
+                const adjVertices = adjacentMesh.getVertices();
 
-                // const angle = Vector3.GetAngleBetweenVectors(
-                //   meshVectorCenterVertex,
-                //   edges[edgeIndex],
-                //   vertices[vertIndices[0]],
-                // );
+                const vectorCenterVertex = Vector3.Zero().subtract(
+                  vertices[vertIndices[0]],
+                );
+                const edgeVector = vertices[vertIndices[1]].subtract(
+                  vertices[vertIndices[0]],
+                );
+                const normal = Vector3.Cross(vectorCenterVertex, edgeVector);
+
+                const angle = Vector3.GetAngleBetweenVectors(
+                  vectorCenterVertex,
+                  edgeVector,
+                  normal,
+                );
+
+                const scalarProjection =
+                  vectorCenterVertex.length() * Math.cos(angle);
+
+                const vectorProjectionRatio = Math.abs(
+                  scalarProjection / edgeVector.length(),
+                );
+
+                const adjVectorCenterVertex = Vector3.Zero().subtract(
+                  adjVertices[adjVertIndices[0]],
+                );
+                const adjEdgeVector = adjVertices[adjVertIndices[1]].subtract(
+                  adjVertices[adjVertIndices[0]],
+                );
+                const adjNormal = Vector3.Cross(
+                  adjVectorCenterVertex,
+                  adjEdgeVector,
+                );
+
+                const adjAngle = Vector3.GetAngleBetweenVectors(
+                  adjVectorCenterVertex,
+                  adjEdgeVector,
+                  adjNormal,
+                );
+
+                const adjScalarProjection =
+                  adjVectorCenterVertex.length() * Math.cos(adjAngle);
+
+                const adjVectorProjectionRatio = Math.abs(
+                  adjScalarProjection / adjEdgeVector.length(),
+                );
+
+                const deltaShift =
+                  vectorProjectionRatio - adjVectorProjectionRatio;
+                this.shiftVector = edgeVector.scale(deltaShift);
 
                 // console.log(angle);
 
@@ -229,15 +280,15 @@ class MeshStateRotating extends IMeshState {
     const rotationSpeed = this.getRotationSpeed();
     const deltaTimeInMillis = this.scene.getEngine().getDeltaTime();
     const scalingNode = this.scalingNode as TransformNode;
+    const flipNode = this.flipNode as TransformNode;
     const skeleton = this.skeleton as Bone[];
     const bonesScaling = this.bonesScaling as Vector3[];
 
     if (this.amount < 1) {
-      (this.flipNode as TransformNode).rotationQuaternion =
-        Quaternion.RotationAxis(
-          this.rotationAxis,
-          Scalar.LerpAngle(0, this.rotationAngle, this.amount),
-        );
+      flipNode.rotationQuaternion = Quaternion.RotationAxis(
+        this.rotationAxis,
+        Scalar.LerpAngle(0, this.rotationAngle, this.amount),
+      );
 
       if (skeleton && bonesScaling && this.adjTriangleMeshBonesScaleY) {
         const bonesScaleYaw = bonesScaling.map(
@@ -263,9 +314,10 @@ class MeshStateRotating extends IMeshState {
 
       scalingNode.position = Vector3.Lerp(
         this.scalingNodeOrigPos,
-        this.scalingNodeFinPos,
+        this.scalingNodeFinPos.subtract(this.shiftVector),
         this.amount,
       );
+
       // #DEBUG
       // MeshBuilder.CreateLines(`line${this.mesh.getTriangle().getId()}`, {
       //   points: [
@@ -290,7 +342,7 @@ class MeshStateRotating extends IMeshState {
   }
 
   public getRotationSpeed(): number {
-    const rpm = 120;
+    const rpm = 1.2;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
   }

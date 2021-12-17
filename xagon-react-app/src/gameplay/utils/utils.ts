@@ -3,18 +3,29 @@ import { k_epsilon } from 'constants/index';
 import Triangle from 'models/Triangle';
 
 export const isDuplicated = (
-  array: Triangle[],
-  element: Triangle,
-): Triangle | undefined =>
-  array.find((e) => {
+  triangles: Triangle[],
+  triangle: Triangle,
+): boolean => {
+  const findTriangle = triangles.find((e) => {
     if (e) {
-      return e.getId() === element.getId();
+      return e.getId() === triangle.getId();
     }
     return undefined;
   });
+  if (findTriangle) {
+    return true;
+  }
+  return false;
+};
 
-export const hasPoint = (tr: Triangle, point: Vector3): Vector3 | undefined =>
-  tr && tr.getVertices().find((p) => p.subtract(point).length() < k_epsilon);
+export const hasPoint = (tr: Triangle, point: Vector3): boolean => {
+  const findPoint =
+    tr && tr.getVertices().find((p) => p.subtract(point).length() < k_epsilon);
+  if (findPoint) {
+    return true;
+  }
+  return false;
+};
 
 export const haveSameType = (tr1: Triangle, tr2: Triangle): boolean => {
   if (tr1.getType() === tr2.getType()) {
