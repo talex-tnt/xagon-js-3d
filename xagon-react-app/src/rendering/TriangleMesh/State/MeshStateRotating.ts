@@ -145,18 +145,6 @@ class MeshStateRotating extends IMeshState {
                 const scalingNodeShiftRatio =
                   adjRotationVector.length() / rotationVector.length();
 
-                // MeshBuilder.CreateLines(
-                //   `lines${this.mesh.getTriangle().getName()}`,
-                //   {
-                //     points: [
-                //       Vector3.Zero(),
-                //       this.mesh.getVertices()[vertIndices[0]],
-                //       this.mesh.getVertices()[vertIndices[1]],
-                //     ],
-                //   },
-                // );
-                const adjVertices = adjacentMesh.getVertices();
-
                 const vectorCenterVertex = Vector3.Zero().subtract(
                   vertices[vertIndices[0]],
                 );
@@ -178,95 +166,98 @@ class MeshStateRotating extends IMeshState {
                   scalarProjection / edgeVector.length(),
                 );
 
-                const adjVectorCenterVertex = Vector3.Zero().subtract(
-                  adjVertices[adjVertIndices[0]],
-                );
-                const adjEdgeVector = adjVertices[adjVertIndices[1]].subtract(
-                  adjVertices[adjVertIndices[0]],
-                );
-                const adjNormal = Vector3.Cross(
-                  adjVectorCenterVertex,
-                  adjEdgeVector,
-                );
+                const adjVertices = adjacentMesh.getVertices();
+                if (adjVertices) {
+                  const adjVectorCenterVertex = Vector3.Zero().subtract(
+                    adjVertices[adjVertIndices[0]],
+                  );
+                  const adjEdgeVector = adjVertices[adjVertIndices[1]].subtract(
+                    adjVertices[adjVertIndices[0]],
+                  );
+                  const adjNormal = Vector3.Cross(
+                    adjVectorCenterVertex,
+                    adjEdgeVector,
+                  );
 
-                const adjAngle = Vector3.GetAngleBetweenVectors(
-                  adjVectorCenterVertex,
-                  adjEdgeVector,
-                  adjNormal,
-                );
+                  const adjAngle = Vector3.GetAngleBetweenVectors(
+                    adjVectorCenterVertex,
+                    adjEdgeVector,
+                    adjNormal,
+                  );
 
-                const adjScalarProjection =
-                  adjVectorCenterVertex.length() * Math.cos(adjAngle);
+                  const adjScalarProjection =
+                    adjVectorCenterVertex.length() * Math.cos(adjAngle);
 
-                const adjVectorProjectionRatio = Math.abs(
-                  adjScalarProjection / adjEdgeVector.length(),
-                );
+                  const adjVectorProjectionRatio = Math.abs(
+                    adjScalarProjection / adjEdgeVector.length(),
+                  );
 
-                const deltaShift =
-                  vectorProjectionRatio - adjVectorProjectionRatio;
-                this.shiftVector = edgeVector.scale(deltaShift);
+                  const deltaShift =
+                    vectorProjectionRatio - adjVectorProjectionRatio;
+                  this.shiftVector = edgeVector.scale(deltaShift);
 
-                // console.log(angle);
+                  // console.log(angle);
 
-                this.scalingNodeOrigPos = this.scalingNode.position.clone();
-                this.scalingNodeFinPos = this.scalingNode.position.scale(
-                  scalingNodeShiftRatio,
-                );
+                  this.scalingNodeOrigPos = this.scalingNode.position.clone();
+                  this.scalingNodeFinPos = this.scalingNode.position.scale(
+                    scalingNodeShiftRatio,
+                  );
 
-                this.rotationAxis = edges[edgeIndex];
+                  this.rotationAxis = edges[edgeIndex];
 
-                const notAdjVertexIndex = vertices.findIndex(
-                  (v) =>
-                    v !== (vertices && vertices[vertIndices[0]]) &&
-                    v !== (vertices && vertices[vertIndices[1]]),
-                );
+                  const notAdjVertexIndex = vertices.findIndex(
+                    (v) =>
+                      v !== (vertices && vertices[vertIndices[0]]) &&
+                      v !== (vertices && vertices[vertIndices[1]]),
+                  );
 
-                const bonesIndices =
-                  mesh.getTriangleMeshBonesIndices(vertIndices);
-                const notAdjBoneIndex = mesh.getTriangleMeshBonesIndices([
-                  notAdjVertexIndex,
-                ]);
+                  const bonesIndices =
+                    mesh.getTriangleMeshBonesIndices(vertIndices);
+                  const notAdjBoneIndex = mesh.getTriangleMeshBonesIndices([
+                    notAdjVertexIndex,
+                  ]);
 
-                const adjBonesIndices =
-                  adjacentMesh.getTriangleMeshBonesIndices(adjVertIndices);
-                const adjNotAdjBoneIndex = [0, 1, 2].findIndex(
-                  (e) => e !== adjBonesIndices[0] && e !== adjBonesIndices[1],
-                );
+                  const adjBonesIndices =
+                    adjacentMesh.getTriangleMeshBonesIndices(adjVertIndices);
+                  const adjNotAdjBoneIndex = [0, 1, 2].findIndex(
+                    (e) => e !== adjBonesIndices[0] && e !== adjBonesIndices[1],
+                  );
 
-                this.bonesIndices = [...bonesIndices, ...notAdjBoneIndex];
+                  this.bonesIndices = [...bonesIndices, ...notAdjBoneIndex];
 
-                this.skeleton =
-                  triangleMesh &&
-                  triangleMesh.skeleton &&
-                  triangleMesh.skeleton.bones;
+                  this.skeleton =
+                    triangleMesh &&
+                    triangleMesh.skeleton &&
+                    triangleMesh.skeleton.bones;
 
-                const adjSkeleton =
-                  adjTriangleMesh &&
-                  adjTriangleMesh.skeleton &&
-                  adjTriangleMesh.skeleton.bones;
+                  const adjSkeleton =
+                    adjTriangleMesh &&
+                    adjTriangleMesh.skeleton &&
+                    adjTriangleMesh.skeleton.bones;
 
-                const firstBoneScaling =
-                  this.skeleton && this.skeleton[bonesIndices[0]].scaling;
-                const secondBoneScaling =
-                  this.skeleton && this.skeleton[bonesIndices[1]].scaling;
-                const notAdjBoneScaling =
-                  this.skeleton && this.skeleton[notAdjBoneIndex[0]].scaling;
+                  const firstBoneScaling =
+                    this.skeleton && this.skeleton[bonesIndices[0]].scaling;
+                  const secondBoneScaling =
+                    this.skeleton && this.skeleton[bonesIndices[1]].scaling;
+                  const notAdjBoneScaling =
+                    this.skeleton && this.skeleton[notAdjBoneIndex[0]].scaling;
 
-                const bonesScaling = [
-                  firstBoneScaling,
-                  secondBoneScaling,
-                  notAdjBoneScaling,
-                ];
-                this.bonesScaling = bonesScaling.map(
-                  (boneScaling) => boneScaling && boneScaling.clone(),
-                );
-
-                if (adjSkeleton) {
-                  this.adjTriangleMeshBonesScaleY = [
-                    adjSkeleton[adjBonesIndices[0]].scaling.y,
-                    adjSkeleton[adjBonesIndices[1]].scaling.y,
-                    adjSkeleton[adjNotAdjBoneIndex].scaling.y,
+                  const bonesScaling = [
+                    firstBoneScaling,
+                    secondBoneScaling,
+                    notAdjBoneScaling,
                   ];
+                  this.bonesScaling = bonesScaling.map(
+                    (boneScaling) => boneScaling && boneScaling.clone(),
+                  );
+
+                  if (adjSkeleton) {
+                    this.adjTriangleMeshBonesScaleY = [
+                      adjSkeleton[adjBonesIndices[0]].scaling.y,
+                      adjSkeleton[adjBonesIndices[1]].scaling.y,
+                      adjSkeleton[adjNotAdjBoneIndex].scaling.y,
+                    ];
+                  }
                 }
               }
             }
@@ -342,7 +333,7 @@ class MeshStateRotating extends IMeshState {
   }
 
   public getRotationSpeed(): number {
-    const rpm = 1.2;
+    const rpm = 120;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
   }
