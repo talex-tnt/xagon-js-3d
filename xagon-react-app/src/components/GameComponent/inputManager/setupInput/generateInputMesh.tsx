@@ -7,7 +7,7 @@ import {
   VertexData,
   Color3,
   MeshBuilder,
-  PointerEventTypes,
+  // PointerEventTypes, // #DEBUG
 } from '@babylonjs/core';
 
 import Triangle, { TriangleId } from 'models/Triangle';
@@ -34,39 +34,40 @@ const generateInputMesh = (
     mesh.metadata = { triangle };
   });
 
-  scene.onPointerObservable.add((pointerInfo) => {
-    switch (pointerInfo.type) {
-      case PointerEventTypes.POINTERDOWN:
-        {
-          const mesh =
-            pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
-          const metadata = mesh && mesh.metadata;
-          if (metadata) {
-            const { triangle } = metadata;
-            const adjacentIds: Array<TriangleId> = triangle
-              .getAdjacents()
-              .map((tr: Triangle) => tr?.getId() || -1);
-            // eslint-disable-next-line no-console
-            // console.log('picked triangle', triangle, adjacentIds);
-            adjacentIds.forEach((adjId) => {
-              const adjMesh = scene.getMeshByName(getMeshName(adjId));
-              // console.log('adj mesh', adjMesh);
+  // #DEBUG
+  // scene.onPointerObservable.add((pointerInfo) => {
+  //   switch (pointerInfo.type) {
+  //     case PointerEventTypes.POINTERDOWN:
+  //       {
+  //         const mesh =
+  //           pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
+  //         const metadata = mesh && mesh.metadata;
+  //         if (metadata) {
+  //           const { triangle } = metadata;
+  //           const adjacentIds: Array<TriangleId> = triangle
+  //             .getAdjacents()
+  //             .map((tr: Triangle) => tr?.getId() || -1);
+  //           // eslint-disable-next-line no-console
+  //           // console.log('picked triangle', triangle, adjacentIds);
+  //           adjacentIds.forEach((adjId) => {
+  //             const adjMesh = scene.getMeshByName(getMeshName(adjId));
+  //             // console.log('adj mesh', adjMesh);
 
-              if (adjMesh && adjMesh.material) {
-                // adjMesh.material.alpha = 0.5;
-                const mat: StandardMaterial =
-                  adjMesh.material as StandardMaterial;
-                mat.diffuseColor = new Color3(0, 0, 0);
-              }
-            });
-          }
-        }
+  //             if (adjMesh && adjMesh.material) {
+  //               // adjMesh.material.alpha = 0.5;
+  //               const mat: StandardMaterial =
+  //                 adjMesh.material as StandardMaterial;
+  //               mat.diffuseColor = new Color3(0, 0, 0);
+  //             }
+  //           });
+  //         }
+  //       }
 
-        break;
-      default:
-        break;
-    }
-  });
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // });
 };
 
 const createVertexData = (triangle: Triangle, renderNormals: boolean) => {
