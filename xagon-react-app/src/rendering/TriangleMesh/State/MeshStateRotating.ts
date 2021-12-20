@@ -40,7 +40,7 @@ class MeshStateRotating extends IMeshState {
 
   private bonesIndices: number[] = [];
 
-  private shiftVector: Vector3 = Vector3.Zero();
+  private centerShiftVector: Vector3 = Vector3.Zero();
 
   private amount = 0;
 
@@ -144,57 +144,26 @@ class MeshStateRotating extends IMeshState {
                 // computing length ratio between vector (edge's center - mesh's center) of the first triangle and vector (edge's center - mesh's center) of the second triangle to shift the scaling node during rotation
                 const scalingNodeShiftRatio =
                   adjRotationVector.length() / rotationVector.length();
-
-                const vectorCenterVertex = Vector3.Zero().subtract(
-                  vertices[vertIndices[0]],
-                );
                 const edgeVector = vertices[vertIndices[1]].subtract(
                   vertices[vertIndices[0]],
                 );
-                const normal = Vector3.Cross(vectorCenterVertex, edgeVector);
 
-                const angle = Vector3.GetAngleBetweenVectors(
-                  vectorCenterVertex,
-                  edgeVector,
-                  normal,
-                );
-
-                const scalarProjection =
-                  vectorCenterVertex.length() * Math.cos(angle);
-
-                const vectorProjectionRatio = Math.abs(
-                  scalarProjection / edgeVector.length(),
+                const vectorProjectionRatio = this.computeVectorProjectionRatio(
+                  vertices,
+                  vertIndices,
                 );
 
                 const adjVertices = adjacentMesh.getVertices();
                 if (adjVertices) {
-                  const adjVectorCenterVertex = Vector3.Zero().subtract(
-                    adjVertices[adjVertIndices[0]],
-                  );
-                  const adjEdgeVector = adjVertices[adjVertIndices[1]].subtract(
-                    adjVertices[adjVertIndices[0]],
-                  );
-                  const adjNormal = Vector3.Cross(
-                    adjVectorCenterVertex,
-                    adjEdgeVector,
-                  );
+                  const adjVectorProjectionRatio =
+                    this.computeVectorProjectionRatio(
+                      adjVertices,
+                      adjVertIndices,
+                    );
 
-                  const adjAngle = Vector3.GetAngleBetweenVectors(
-                    adjVectorCenterVertex,
-                    adjEdgeVector,
-                    adjNormal,
-                  );
-
-                  const adjScalarProjection =
-                    adjVectorCenterVertex.length() * Math.cos(adjAngle);
-
-                  const adjVectorProjectionRatio = Math.abs(
-                    adjScalarProjection / adjEdgeVector.length(),
-                  );
-
-                  const deltaShift =
+                  const deltaCenterShift =
                     vectorProjectionRatio - adjVectorProjectionRatio;
-                  this.shiftVector = edgeVector.scale(deltaShift);
+                  this.centerShiftVector = edgeVector.scale(deltaCenterShift);
 
                   // console.log(angle);
 
@@ -305,17 +274,17 @@ class MeshStateRotating extends IMeshState {
 
       scalingNode.position = Vector3.Lerp(
         this.scalingNodeOrigPos,
-        this.scalingNodeFinPos.subtract(this.shiftVector),
+        this.scalingNodeFinPos.subtract(this.centerShiftVector),
         this.amount,
       );
 
       // #DEBUG
-      // MeshBuilder.CreateLines(`line${this.mesh.getTriangle().getId()}`, {
-      //   points: [
-      //     scalingNode.getAbsolutePosition(),
-      //     scalingNode.getAbsolutePosition().scale(1.01),
-      //   ],
-      // });
+      MeshBuilder.CreateLines(`line${this.mesh.getTriangle().getId()}`, {
+        points: [
+          scalingNode.getAbsolutePosition(),
+          scalingNode.getAbsolutePosition().scale(1.01),
+        ],
+      });
 
       this.amount += rotationSpeed * (deltaTimeInMillis / 1000);
     } else if (this.amount >= 1) {
@@ -333,9 +302,33 @@ class MeshStateRotating extends IMeshState {
   }
 
   public getRotationSpeed(): number {
-    const rpm = 120;
+    const rpm = 1.2;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
+  }
+
+  public computeVectorProjectionRatio(
+    vertices: Vector3[],
+    indices: number[],
+  ): number {
+    const vectorCenterVertex = Vector3.Zero().subtract(vertices[indices[0]]);
+    const edgeVector = vertices[indices[1]].subtract(vertices[indices[0]]);
+    const normalToComputeAngle = Vector3.Cross(vectorCenterVertex, edgeVector);
+
+    const projectionAngle = Vector3.GetAngleBetweenVectors(
+      vectorCenterVertex,
+      edgeVector,
+      normalToComputeAngle,
+    );
+
+    const scalarProjection =
+      vectorCenterVertex.length() * Math.cos(projectionAngle);
+
+    const vectorProjectionRatio = Math.abs(
+      scalarProjection / edgeVector.length(),
+    );
+
+    return vectorProjectionRatio;
   }
 }
 export default MeshStateRotating;
