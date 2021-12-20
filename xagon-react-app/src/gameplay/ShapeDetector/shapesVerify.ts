@@ -1,14 +1,12 @@
 import { Vector3 } from '@babylonjs/core';
 import { Nullable } from '@babylonjs/core/types';
 import Triangle from 'models/Triangle';
-import { isDuplicated, hasPoint, haveSameType } from 'gameplay/utils/utils';
+import { isDuplicated, hasPoint, haveSameType } from 'gameplay/utils';
 
 export const shapesVerify = (
   triangles: Triangle[],
-): Array<Array<Triangle[]>> => {
+): Nullable<Triangle[]>[][] => {
   const shapesList = triangles.map((tr) => {
-    const hexagons: Array<Triangle[]> = [];
-
     const adjs: Array<Triangle[]> = [[], [], []];
 
     adjs.forEach((adj, index) => {
@@ -21,28 +19,15 @@ export const shapesVerify = (
         });
     });
 
-    const pivotPoint1 = tr.p1();
-    const pivotPoint2 = tr.p2();
-    const pivotPoint3 = tr.p3();
-
-    const adjsPivotPoint1 = adjs[1];
-    const adjsPivotPoint2 = adjs[2];
-    const adjsPivotPoint3 = adjs[0];
-
-    const hexagon1 = findHexagon(tr, pivotPoint1, adjsPivotPoint1);
-    const hexagon2 = findHexagon(tr, pivotPoint2, adjsPivotPoint2);
-    const hexagon3 = findHexagon(tr, pivotPoint3, adjsPivotPoint3);
-
-    if (hexagon1) {
-      hexagons.push(hexagon1);
-    }
-    if (hexagon2) {
-      hexagons.push(hexagon2);
-    }
-    if (hexagon3) {
-      hexagons.push(hexagon3);
-    }
-    return hexagons;
+    return [
+      { pivotPoint: tr.p1(), adjsPivotPoint: adjs[1] },
+      { pivotPoint: tr.p2(), adjsPivotPoint: adjs[2] },
+      { pivotPoint: tr.p3(), adjsPivotPoint: adjs[0] },
+    ]
+      .map(({ pivotPoint, adjsPivotPoint }) =>
+        findHexagon(tr, pivotPoint, adjsPivotPoint),
+      )
+      .filter((hex) => !!hex);
   });
   return shapesList;
 };

@@ -13,7 +13,7 @@ import _1to4SubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/1to
 import TriangleMesh from 'rendering/TriangleMesh/index';
 import JsonIcosahedronDeserializer from 'deserializers/JsonIcosahedronDeserializer';
 // import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer'; // #Serialization
-import { shapesVerify } from 'gameplay/ScoreManager/shapesVerify';
+import { shapesVerify } from 'gameplay/ShapeDetector/shapesVerify';
 import Triangle from 'models/Triangle';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
