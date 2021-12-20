@@ -150,20 +150,8 @@ class MeshStateRotating extends IMeshState {
 
                   this.rotationAxis = edges[edgeIndex];
 
-                  // const notAdjVertexIndex = vertices.findIndex(
-                  //   (v) =>
-                  //     v !== (vertices && vertices[vertIndices[0]]) &&
-                  //     v !== (vertices && vertices[vertIndices[1]]),
-                  // );
-                  // const notAdjVertexIndex = [0, 1, 2].findIndex(
-                  //   (e) => e !== vertIndices[0] && e !== vertIndices[1],
-                  // );
-
                   const bonesIndices =
                     mesh.getTriangleMeshBonesIndices(vertIndices);
-                  // const notAdjBoneIndex = mesh.getTriangleMeshBonesIndices([
-                  //   notAdjVertexIndex,
-                  // ]);
 
                   const notAdjBoneIndex = [0, 1, 2].findIndex(
                     (e) => e !== bonesIndices[0] && e !== bonesIndices[1],
