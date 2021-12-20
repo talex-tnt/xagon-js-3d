@@ -1,5 +1,5 @@
 import React from 'react';
-import { Vector3, Scene, SceneLoader } from '@babylonjs/core';
+import { Vector3, Scene, SceneLoader, Nullable } from '@babylonjs/core';
 import {
   k_triangleAssetName,
   k_triangleAssetDebugFileName,
@@ -36,7 +36,7 @@ const loadIcosahedron = async () => {
     console.log('Icosahedron JSON file was not found.');
   }
   const icosahedron = new Icosahedron({ subdivisionStrategy });
-  icosahedron.subdivide(2);
+  icosahedron.subdivide(1);
   // #Serialization
   // const serializer = new JsonIcosahedronSerializer();
   // const json = serializer.serialize(icosahedron);
@@ -56,13 +56,15 @@ const onSceneReady = async (sceneArg: Scene) => {
     const hexagonsList = shapesVerify(triangles);
 
     if (hexagonsList) {
-      hexagonsList.forEach((hexagon: Array<Triangle[]>) => {
-        hexagon.forEach((hex: Triangle[]) => {
-          hex.forEach((tr) => {
-            const mesh = scene.getMeshByName(tr.getName());
-            const trMesh = mesh && mesh.metadata.triangleMesh;
-            trMesh.reset(Triangle.getRandomType());
-          });
+      hexagonsList.forEach((hexagon: Nullable<Triangle[]>[]) => {
+        hexagon.forEach((hex: Nullable<Triangle[]>) => {
+          if (hex) {
+            hex.forEach((tr) => {
+              const mesh = scene.getMeshByName(tr.getName());
+              const trMesh = mesh && mesh.metadata.triangleMesh;
+              trMesh.reset(Triangle.getRandomType());
+            });
+          }
         });
       });
     }
