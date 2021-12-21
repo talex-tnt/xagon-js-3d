@@ -51,10 +51,20 @@ class InputManager {
 
         case PointerEventTypes.POINTERMOVE:
           {
-            const gesture = this.gesturesMap[pointerId];
-            if (gesture) {
-              gesture.onMove();
+            let gesture = this.gesturesMap[pointerId];
+            if (!gesture) {
+              const gestureContext = {
+                scene: this.scene,
+                triangleMesh,
+                scalingRatio,
+                onFlipBegin: () => {
+                  delete this.gesturesMap[pointerId];
+                },
+              };
+              this.gesturesMap[pointerId] = new FlipGesture(gestureContext);
+              gesture = this.gesturesMap[pointerId];
             }
+            gesture.onMove();
           }
           break;
         case PointerEventTypes.POINTERUP:
