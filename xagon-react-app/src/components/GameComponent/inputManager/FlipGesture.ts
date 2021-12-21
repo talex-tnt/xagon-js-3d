@@ -36,38 +36,6 @@ class FlipGesture extends Gesture {
     this.secondTriangleMesh = null;
   }
 
-  public computeObjSpaceData(assetMesh: AbstractMesh):
-    | {
-        vertices: Vector3[];
-        edges: Vector3[];
-      }
-    | undefined {
-    if (assetMesh && assetMesh.skeleton) {
-      const tr = assetMesh.metadata.triangleMesh.getTriangle();
-      const matrix = assetMesh.getWorldMatrix();
-      const vertices = [
-        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)).scale(
-          this.context.scalingRatio,
-        ),
-        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)).scale(
-          this.context.scalingRatio,
-        ),
-        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)).scale(
-          this.context.scalingRatio,
-        ),
-      ];
-
-      const edges = vertices.map((v, i) =>
-        v.subtract(vertices[(i + 1) % vertices.length]),
-      );
-
-      return { vertices, edges };
-    }
-    // eslint-disable-next-line no-console
-    console.assert(typeof assetMesh === 'object', 'Asset not found');
-    return undefined;
-  }
-
   public onDown(pointerInfo: PointerInfo): void {
     const mesh = pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
     if (pointerInfo.event) {
@@ -75,63 +43,43 @@ class FlipGesture extends Gesture {
       this.lastEventTimestamp = Date.now();
     }
     if (mesh) {
-      const originalMesh = getAssetMesh({
-        scene: this.context.scene,
-        triangleMesh: mesh,
-      });
-
-      if (originalMesh) {
-        const { triangleMesh } = originalMesh.metadata;
-        if (triangleMesh) {
-          const data = this.computeObjSpaceData(originalMesh);
-          if (data) {
-            triangleMesh.setVertices(data.vertices);
-            triangleMesh.setEdges(data.edges);
-
-            this.firstTriangleMesh = triangleMesh;
-          }
-        }
-      }
+      this.firstTriangleMesh = this.findMesh(mesh);
     }
   }
 
   public onMove(): void {
-    if (this.firstTriangleMesh) {
-      const firstTriangle = this.firstTriangleMesh.getTriangle();
+    const pickinfo = this.context.scene.pick(
+      this.context.scene.pointerX,
+      this.context.scene.pointerY,
+    );
+    if (pickinfo) {
+      const mesh = pickinfo.pickedMesh;
+      if (this.firstTriangleMesh) {
+        const firstTriangle = this.firstTriangleMesh.getTriangle();
 
-      const pickinfo = this.context.scene.pick(
-        this.context.scene.pointerX,
-        this.context.scene.pointerY,
-      );
+        const now = Date.now();
+        const deltaTime = now - this.lastEventTimestamp;
 
-      const now = Date.now();
-      const deltaTime = now - this.lastEventTimestamp;
+        if (deltaTime > 100) {
+          this.startPoint = new Vector2(
+            this.context.scene.pointerX,
+            this.context.scene.pointerY,
+          );
+        } else {
+          const finalPoint = new Vector2(
+            this.context.scene.pointerX,
+            this.context.scene.pointerY,
+          );
 
-      if (deltaTime > 100) {
-        this.startPoint = new Vector2(
-          this.context.scene.pointerX,
-          this.context.scene.pointerY,
-        );
-      } else {
-        const finalPoint = new Vector2(
-          this.context.scene.pointerX,
-          this.context.scene.pointerY,
-        );
+          const gestureLength = this.startPoint.subtract(finalPoint).length();
 
-        const gestureLength = this.startPoint.subtract(finalPoint).length();
+          const isValidGesture = deltaTime <= 100 && gestureLength > 1;
 
-        const isValidGesture = deltaTime <= 100 && gestureLength > 1;
-
-        if (isValidGesture) {
-          if (
-            pickinfo &&
-            pickinfo.pickedMesh &&
-            pickinfo.pickedMesh.metadata.triangle.getId() !==
-              firstTriangle.getId()
-          ) {
-            const mesh = pickinfo.pickedMesh;
-
-            if (mesh) {
+          if (isValidGesture) {
+            if (
+              mesh &&
+              mesh.metadata.triangle.getId() !== firstTriangle.getId()
+            ) {
               const originalMesh = getAssetMesh({
                 scene: this.context.scene,
                 triangleMesh: mesh,
@@ -214,6 +162,59 @@ class FlipGesture extends Gesture {
   public onRelease(pointerInfo: PointerInfo): void {
     this.firstTriangleMesh = null;
     this.secondTriangleMesh = null;
+  }
+
+  public computeObjSpaceData(assetMesh: AbstractMesh):
+    | {
+        vertices: Vector3[];
+        edges: Vector3[];
+      }
+    | undefined {
+    if (assetMesh && assetMesh.skeleton) {
+      const tr = assetMesh.metadata.triangleMesh.getTriangle();
+      const matrix = assetMesh.getWorldMatrix();
+      const vertices = [
+        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)).scale(
+          this.context.scalingRatio,
+        ),
+        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)).scale(
+          this.context.scalingRatio,
+        ),
+        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)).scale(
+          this.context.scalingRatio,
+        ),
+      ];
+
+      const edges = vertices.map((v, i) =>
+        v.subtract(vertices[(i + 1) % vertices.length]),
+      );
+
+      return { vertices, edges };
+    }
+    // eslint-disable-next-line no-console
+    console.assert(typeof assetMesh === 'object', 'Asset not found');
+    return undefined;
+  }
+
+  public findMesh(mesh: AbstractMesh): Nullable<TriangleMesh> {
+    const originalMesh = getAssetMesh({
+      scene: this.context.scene,
+      triangleMesh: mesh,
+    });
+
+    if (originalMesh) {
+      const { triangleMesh } = originalMesh.metadata;
+      if (triangleMesh) {
+        const data = this.computeObjSpaceData(originalMesh);
+        if (data) {
+          triangleMesh.setVertices(data.vertices);
+          triangleMesh.setEdges(data.edges);
+
+          return triangleMesh;
+        }
+      }
+    }
+    return null;
   }
 }
 
