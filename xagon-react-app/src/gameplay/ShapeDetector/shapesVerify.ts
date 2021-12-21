@@ -1,44 +1,46 @@
 import { Vector3 } from '@babylonjs/core';
 import { Nullable } from '@babylonjs/core/types';
-import { k_epsilon } from 'constants/index';
 import Triangle from 'models/Triangle';
+import { isDuplicated, hasPoint, haveSameType } from 'gameplay/utils';
 
-export const hexagonsVerify = (tr: Triangle): Array<Triangle[]> => {
-  const hexagons: Array<Triangle[]> = [];
+export type Hexagon = Triangle[];
+export type Hexagons = Hexagon[];
 
-  const adjs: Array<Triangle[]> = [[], [], []];
+export const shapesVerify = (triangles: Triangle[]): Hexagons => {
+  const shapes: Hexagons = [];
+  triangles.forEach((tr) => {
+    const adjs: Array<Triangle[]> = [[], [], []];
 
-  adjs.forEach((adj, index) => {
-    tr.getAdjacents()
-      .filter((a, i) => i !== index)
-      .forEach((tr1) => {
-        if (tr1) {
-          adj.push(tr1);
-        }
-      });
+    adjs.forEach((adj, index) => {
+      tr.getAdjacents()
+        .filter((a, i) => i !== index)
+        .forEach((tr1) => {
+          if (tr1) {
+            adj.push(tr1);
+          }
+        });
+    });
+
+    const shapesList = [
+      { pivotPoint: tr.p1(), adjsPivotPoint: adjs[1] },
+      { pivotPoint: tr.p2(), adjsPivotPoint: adjs[2] },
+      { pivotPoint: tr.p3(), adjsPivotPoint: adjs[0] },
+    ]
+      .map(({ pivotPoint, adjsPivotPoint }) =>
+        findHexagon(tr, pivotPoint, adjsPivotPoint),
+      )
+      .filter((hex) => !!hex) as Hexagons;
+    shapesList.forEach((hex: Hexagon) => shapes.push(hex));
   });
 
-  const hexagon1 = findHexagon(tr, tr.p1(), adjs[1]);
-  const hexagon2 = findHexagon(tr, tr.p2(), adjs[2]);
-  const hexagon3 = findHexagon(tr, tr.p3(), adjs[0]);
-
-  if (hexagon1) {
-    hexagons.push(hexagon1);
-  }
-  if (hexagon2) {
-    hexagons.push(hexagon2);
-  }
-  if (hexagon3) {
-    hexagons.push(hexagon3);
-  }
-  return hexagons;
+  return shapes;
 };
 
 const findHexagon = (
   tr: Triangle,
   point: Vector3,
   adjs: Triangle[],
-): Nullable<Triangle[]> => {
+): Nullable<Hexagon> => {
   const shape: Triangle[] = [tr];
   if (
     adjs[0] &&
@@ -83,27 +85,9 @@ const findHexagon = (
     });
   }
   if (shape.length === 6) {
-    const hexagon = shape;
+    const hexagon = shape as Hexagon;
     return hexagon;
   }
 
   return null;
-};
-
-const isDuplicated = (array: Triangle[], element: Triangle) =>
-  array.find((e) => {
-    if (e) {
-      return e.getId() === element.getId();
-    }
-    return false;
-  });
-
-const hasPoint = (tr: Triangle, point: Vector3) =>
-  tr && tr.getVertices().find((p) => p.subtract(point).length() < k_epsilon);
-
-const haveSameType = (tr1: Triangle, tr2: Triangle) => {
-  if (tr1.getType() === tr2.getType()) {
-    return true;
-  }
-  return false;
 };

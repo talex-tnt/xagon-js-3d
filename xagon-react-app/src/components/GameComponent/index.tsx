@@ -1,5 +1,5 @@
 import React from 'react';
-import { Vector3, Scene, SceneLoader } from '@babylonjs/core';
+import { Vector3, Scene, SceneLoader, Nullable } from '@babylonjs/core';
 import {
   k_triangleAssetName,
   k_triangleAssetDebugFileName,
@@ -12,8 +12,12 @@ import Icosahedron from 'models/Icosahedron';
 import _1to4SubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/1to4SubdivisionStrategy';
 import TriangleMesh from 'rendering/TriangleMesh/index';
 import JsonIcosahedronDeserializer from 'deserializers/JsonIcosahedronDeserializer';
-import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer';
-import { hexagonsVerify } from 'gameplay/Score/hexagonsVerify';
+// import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer'; // #Serialization
+import {
+  shapesVerify,
+  Hexagon,
+  Hexagons,
+} from 'gameplay/ShapeDetector/shapesVerify';
 import Triangle from 'models/Triangle';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
@@ -37,6 +41,7 @@ const loadIcosahedron = async () => {
   }
   const icosahedron = new Icosahedron({ subdivisionStrategy });
   icosahedron.subdivide(2);
+  // #Serialization
   // const serializer = new JsonIcosahedronSerializer();
   // const json = serializer.serialize(icosahedron);
   // eslint-disable-next-line no-console
@@ -52,17 +57,17 @@ const onSceneReady = async (sceneArg: Scene) => {
   const icosahedron = await loadIcosahedron();
   // console.log('Icosahedron loaded');
   icosahedron.registerOnTriangleChanged((triangles) => {
-    const hexagonsList = triangles.map((tr) => hexagonsVerify(tr));
+    const hexagons = shapesVerify(triangles);
 
-    if (hexagonsList) {
-      hexagonsList.forEach((hexagon: Array<Triangle[]>) => {
-        hexagon.forEach((hex: Triangle[]) => {
+    if (hexagons) {
+      hexagons.forEach((hex: Hexagon) => {
+        if (hex) {
           hex.forEach((tr) => {
             const mesh = scene.getMeshByName(tr.getName());
             const trMesh = mesh && mesh.metadata.triangleMesh;
             trMesh.reset(Triangle.getRandomType());
           });
-        });
+        }
       });
     }
   });
