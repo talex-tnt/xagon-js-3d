@@ -6,8 +6,6 @@ import {
   Vector3,
   Scalar,
   Bone,
-  MeshBuilder,
-  // MeshBuilder, #DEBUG
 } from '@babylonjs/core';
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
@@ -250,14 +248,6 @@ class MeshStateRotating extends IMeshState {
         this.scalingNodeFinPos,
         this.amount,
       );
-
-      // #DEBUG
-      // MeshBuilder.CreateLines(`line${this.mesh.getTriangle().getId()}`, {
-      //   points: [
-      //     scalingNode.getAbsolutePosition(),
-      //     scalingNode.getAbsolutePosition().scale(1.01),
-      //   ],
-      // });
 
       this.amount += rotationSpeed * (deltaTimeInMillis / 1000);
     } else if (this.amount >= 1) {

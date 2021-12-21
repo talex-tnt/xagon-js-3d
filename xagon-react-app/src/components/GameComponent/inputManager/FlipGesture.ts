@@ -43,7 +43,7 @@ class FlipGesture extends Gesture {
       this.lastEventTimestamp = Date.now();
     }
     if (mesh) {
-      this.firstTriangleMesh = this.findMesh(mesh);
+      this.firstTriangleMesh = this.getTriangleMesh(mesh);
     }
   }
 
@@ -196,7 +196,7 @@ class FlipGesture extends Gesture {
     return undefined;
   }
 
-  public findMesh(mesh: AbstractMesh): Nullable<TriangleMesh> {
+  public getTriangleMesh(mesh: AbstractMesh): Nullable<TriangleMesh> {
     const originalMesh = getAssetMesh({
       scene: this.context.scene,
       triangleMesh: mesh,

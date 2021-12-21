@@ -13,7 +13,11 @@ import _1to4SubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/1to
 import TriangleMesh from 'rendering/TriangleMesh/index';
 import JsonIcosahedronDeserializer from 'deserializers/JsonIcosahedronDeserializer';
 // import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer'; // #Serialization
-import { shapesVerify } from 'gameplay/ShapeDetector/shapesVerify';
+import {
+  shapesVerify,
+  Hexagon,
+  Hexagons,
+} from 'gameplay/ShapeDetector/shapesVerify';
 import Triangle from 'models/Triangle';
 import setupCamera from './setupCamera';
 import setupLight from './setupLight';
@@ -53,19 +57,17 @@ const onSceneReady = async (sceneArg: Scene) => {
   const icosahedron = await loadIcosahedron();
   // console.log('Icosahedron loaded');
   icosahedron.registerOnTriangleChanged((triangles) => {
-    const hexagonsList = shapesVerify(triangles);
+    const hexagons = shapesVerify(triangles);
 
-    if (hexagonsList) {
-      hexagonsList.forEach((hexagon: Nullable<Triangle[]>[]) => {
-        hexagon.forEach((hex: Nullable<Triangle[]>) => {
-          if (hex) {
-            hex.forEach((tr) => {
-              const mesh = scene.getMeshByName(tr.getName());
-              const trMesh = mesh && mesh.metadata.triangleMesh;
-              trMesh.reset(Triangle.getRandomType());
-            });
-          }
-        });
+    if (hexagons) {
+      hexagons.forEach((hex: Hexagon) => {
+        if (hex) {
+          hex.forEach((tr) => {
+            const mesh = scene.getMeshByName(tr.getName());
+            const trMesh = mesh && mesh.metadata.triangleMesh;
+            trMesh.reset(Triangle.getRandomType());
+          });
+        }
       });
     }
   });
