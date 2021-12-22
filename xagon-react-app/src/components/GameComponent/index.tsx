@@ -1,5 +1,5 @@
 import React from 'react';
-import useGameLogic from 'hooks/useGameLogic';
+import useGameLogic from 'gameplay/game/useGameLogic';
 import SceneComponent from 'components/SceneComponent';
 
 const GameComponent: React.FC = () => {
