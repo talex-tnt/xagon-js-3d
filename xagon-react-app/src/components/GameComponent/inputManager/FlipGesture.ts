@@ -38,6 +38,7 @@ class FlipGesture extends Gesture {
 
   public onDown(pointerInfo: PointerInfo): void {
     const mesh = pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
+
     if (pointerInfo.event) {
       this.startPoint = new Vector2(pointerInfo.event.x, pointerInfo.event.y);
       this.lastEventTimestamp = Date.now();
@@ -47,13 +48,22 @@ class FlipGesture extends Gesture {
     }
   }
 
-  public onMove(): void {
+  public onMove(pointerInfo: PointerInfo): void {
     const pickinfo = this.context.scene.pick(
       this.context.scene.pointerX,
       this.context.scene.pointerY,
     );
-    if (pickinfo) {
+    if (pickinfo && pointerInfo.event.pressure !== 0) {
       const mesh = pickinfo.pickedMesh;
+
+      if (!this.firstTriangleMesh && mesh) {
+        this.firstTriangleMesh = this.getTriangleMesh(mesh);
+        this.startPoint = new Vector2(
+          this.context.scene.pointerX,
+          this.context.scene.pointerY,
+        );
+        this.lastEventTimestamp = Date.now();
+      }
 
       if (this.firstTriangleMesh) {
         const firstTriangle = this.firstTriangleMesh.getTriangle();
@@ -61,7 +71,7 @@ class FlipGesture extends Gesture {
         const now = Date.now();
         const deltaTime = now - this.lastEventTimestamp;
 
-        if (deltaTime > 100) {
+        if (deltaTime > 500) {
           this.startPoint = new Vector2(
             this.context.scene.pointerX,
             this.context.scene.pointerY,
@@ -74,7 +84,7 @@ class FlipGesture extends Gesture {
 
           const gestureLength = this.startPoint.subtract(finalPoint).length();
 
-          const isValidGesture = deltaTime <= 100 && gestureLength > 1;
+          const isValidGesture = deltaTime <= 500 && gestureLength > 1;
 
           if (isValidGesture) {
             if (
@@ -110,7 +120,6 @@ class FlipGesture extends Gesture {
                       trM1.reset(tr2Type);
                       trM2.reset(tr1Type);
                       const { icosahedron } = this.context.scene.metadata;
-                      console.log('reset');
 
                       icosahedron.notifyTrianglesChanged([tr1, tr2]);
                     }
@@ -120,12 +129,6 @@ class FlipGesture extends Gesture {
                     triangleMesh: this.secondTriangleMesh,
                     direction: 1,
                     onFlipEnd: () => {
-                      console.log('onFlipEnd', flipEnded);
-                      console.log(
-                        this.firstTriangleMesh,
-                        this.secondTriangleMesh,
-                      );
-
                       if (
                         flipEnded &&
                         this.firstTriangleMesh &&
@@ -144,12 +147,6 @@ class FlipGesture extends Gesture {
                     triangleMesh: this.firstTriangleMesh,
                     direction: -1,
                     onFlipEnd: () => {
-                      console.log('onFlipEnd', flipEnded);
-                      console.log(
-                        this.firstTriangleMesh,
-                        this.secondTriangleMesh,
-                      );
-
                       if (
                         flipEnded &&
                         this.firstTriangleMesh &&

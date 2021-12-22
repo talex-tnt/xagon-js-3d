@@ -65,7 +65,7 @@ class InputManager {
               gesture = this.gesturesMap[pointerId];
             }
 
-            gesture.onMove();
+            gesture.onMove(pointerInfo);
           }
           break;
         case PointerEventTypes.POINTERUP:

@@ -9,6 +9,7 @@ import {
   MeshBuilder,
   // PointerEventTypes, // #DEBUG
 } from '@babylonjs/core';
+import { DEBUG_RENDERING } from 'constants/debug';
 
 import Triangle, { TriangleId } from 'models/Triangle';
 
@@ -27,9 +28,15 @@ const generateInputMesh = (
   const rootNode = new TransformNode(name, scene);
 
   triangles.forEach((triangle) => {
-    MeshBuilder.CreateLines(`tr${triangle.getName()}`, {
-      points: [triangle.getCenterPoint().scale(1.2), triangle.getCenterPoint()],
-    });
+    if (DEBUG_RENDERING) {
+      MeshBuilder.CreateLines(`tr${triangle.getName()}`, {
+        points: [
+          triangle.getCenterPoint().scale(1.05),
+          triangle.getCenterPoint(),
+        ],
+      });
+    }
+
     const vertexData = createVertexData(triangle, renderNormals);
     const meshName = getMeshName(triangle.getId());
     const mesh = createMesh(meshName, scene, vertexData);
