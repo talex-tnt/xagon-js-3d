@@ -85,8 +85,10 @@ class TriangleMesh {
         this.setupDeformation({
           scene,
           originalMesh: mesh,
-          radiusEquilaterTriangle,
+          triangle: this.triangle,
         });
+
+        this.setupBonesScaling(radiusEquilaterTriangle);
 
         const thisMesh = this.getTriangleMesh();
         if (thisMesh && thisMesh.skeleton) {
@@ -228,31 +230,29 @@ class TriangleMesh {
     }
   }
 
-  private setupDeformation({
+  public setupDeformation({
     scene,
     originalMesh,
-    radiusEquilaterTriangle,
+    triangle,
   }: {
     scene: Scene;
     originalMesh: AbstractMesh;
-    radiusEquilaterTriangle: number;
+    triangle: Triangle;
   }): void {
-    const triangleCenter = this.triangle.getCenterPoint();
-    const p1CenterVector = this.triangle.p1().subtract(triangleCenter);
-    const p2CenterVector = this.triangle.p2().subtract(triangleCenter);
-    const p3CenterVector = this.triangle.p3().subtract(triangleCenter);
+    const triangleCenter = triangle.getCenterPoint();
+    const p1CenterVector = triangle.p1().subtract(triangleCenter);
+    const p2CenterVector = triangle.p2().subtract(triangleCenter);
+    const p3CenterVector = triangle.p3().subtract(triangleCenter);
     this.vertices_Center_Vectors = [
       p1CenterVector,
       p2CenterVector,
       p3CenterVector,
     ];
-    const positionNode = scene.getNodeByName(
-      `positionNode${this.triangle.getId()}`,
-    );
+    const positionNode = scene.getNodeByName(`positionNode${triangle.getId()}`);
 
     if (originalMesh.skeleton && this.triangleMesh && positionNode) {
       this.triangleMesh.skeleton = originalMesh.skeleton.clone(
-        `skeleton${this.triangle.getId()}`,
+        `skeleton${triangle.getId()}`,
       );
       const skeletonMesh = this.triangleMesh.skeleton;
 
@@ -274,18 +274,28 @@ class TriangleMesh {
       rotationBone2.y += angleP1ToP2 + math.angle120;
       skeletonMesh.bones[0].setRotation(rotationBone1);
       skeletonMesh.bones[1].setRotation(rotationBone2);
+    }
+  }
 
-      if (radiusEquilaterTriangle) {
-        const scaleBones = [
-          p3CenterVector.length() / radiusEquilaterTriangle,
-          p2CenterVector.length() / radiusEquilaterTriangle,
-          p1CenterVector.length() / radiusEquilaterTriangle,
-        ];
+  public setupBonesScaling(radiusEquilaterTriangle: number): void {
+    const triangleCenter = this.triangle.getCenterPoint();
+    const p1CenterVector = this.triangle.p1().subtract(triangleCenter);
+    const p2CenterVector = this.triangle.p2().subtract(triangleCenter);
+    const p3CenterVector = this.triangle.p3().subtract(triangleCenter);
+    if (
+      this.triangleMesh &&
+      this.triangleMesh.skeleton &&
+      radiusEquilaterTriangle
+    ) {
+      const scaleBones = [
+        p3CenterVector.length() / radiusEquilaterTriangle,
+        p2CenterVector.length() / radiusEquilaterTriangle,
+        p1CenterVector.length() / radiusEquilaterTriangle,
+      ];
 
-        skeletonMesh.bones.map((bone, index) =>
-          bone.scale(1, scaleBones[index], 1),
-        );
-      }
+      this.triangleMesh.skeleton.bones.map((bone, index) =>
+        bone.scale(1, scaleBones[index], 1),
+      );
     }
   }
 

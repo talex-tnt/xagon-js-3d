@@ -71,7 +71,7 @@ class FlipGesture extends Gesture {
         const now = Date.now();
         const deltaTime = now - this.lastEventTimestamp;
 
-        if (deltaTime > 500) {
+        if (deltaTime > 300) {
           this.startPoint = new Vector2(
             this.context.scene.pointerX,
             this.context.scene.pointerY,
@@ -84,7 +84,7 @@ class FlipGesture extends Gesture {
 
           const gestureLength = this.startPoint.subtract(finalPoint).length();
 
-          const isValidGesture = deltaTime <= 500 && gestureLength > 1;
+          const isValidGesture = deltaTime <= 300 && gestureLength > 1;
 
           if (isValidGesture) {
             if (
