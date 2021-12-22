@@ -54,6 +54,7 @@ class FlipGesture extends Gesture {
     );
     if (pickinfo) {
       const mesh = pickinfo.pickedMesh;
+
       if (this.firstTriangleMesh) {
         const firstTriangle = this.firstTriangleMesh.getTriangle();
 
@@ -148,7 +149,6 @@ class FlipGesture extends Gesture {
                       }
                     },
                   });
-
                   this.context.onFlipBegin();
                 }
               }

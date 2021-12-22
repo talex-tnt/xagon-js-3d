@@ -64,6 +64,7 @@ class InputManager {
               this.gesturesMap[pointerId] = new FlipGesture(gestureContext);
               gesture = this.gesturesMap[pointerId];
             }
+
             gesture.onMove();
           }
           break;
