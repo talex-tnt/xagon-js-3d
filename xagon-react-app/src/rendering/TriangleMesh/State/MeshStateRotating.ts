@@ -6,7 +6,9 @@ import {
   Vector3,
   Scalar,
   Bone,
+  MeshBuilder,
 } from '@babylonjs/core';
+import { DEBUG_RENDERING } from 'constants/debug';
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
 import MeshStateIdle from './MeshStateIdle';
@@ -249,6 +251,17 @@ class MeshStateRotating extends IMeshState {
         this.amount,
       );
 
+      if (DEBUG_RENDERING) {
+        const meshLine = MeshBuilder.CreateSphere(
+          `tr${this.mesh.getTriangle().getName()}`,
+          {
+            diameter: 0.1,
+          },
+        );
+
+        meshLine.parent = scalingNode;
+      }
+
       this.amount += rotationSpeed * (deltaTimeInMillis / 1000);
     } else if (this.amount >= 1) {
       this.nextState = new MeshStateIdle({
@@ -265,7 +278,7 @@ class MeshStateRotating extends IMeshState {
   }
 
   public getRotationSpeed(): number {
-    const rpm = 120;
+    const rpm = 1.2;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
   }

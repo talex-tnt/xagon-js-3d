@@ -15,7 +15,7 @@ interface GestureContext {
   scene: Scene;
   triangleMesh: AbstractMesh;
   scalingRatio: number;
-  onFlipBegin: () => void;
+  onFlipEnded: () => void;
 }
 
 class FlipGesture extends Gesture {
@@ -99,8 +99,7 @@ class FlipGesture extends Gesture {
               if (this.secondTriangleMesh) {
                 const secondTriangle = this.secondTriangleMesh.getTriangle();
                 if (firstTriangle.isAdjacent(secondTriangle)) {
-                  let flipEnded1 = false;
-                  let flipEnded2 = false;
+                  let flipEnded = false;
                   const swapType = (trM1: TriangleMesh, trM2: TriangleMesh) => {
                     if (trM1 && trM2) {
                       const tr1 = trM1.getTriangle();
@@ -111,6 +110,8 @@ class FlipGesture extends Gesture {
                       trM1.reset(tr2Type);
                       trM2.reset(tr1Type);
                       const { icosahedron } = this.context.scene.metadata;
+                      console.log('reset');
+
                       icosahedron.notifyTrianglesChanged([tr1, tr2]);
                     }
                   };
@@ -119,9 +120,14 @@ class FlipGesture extends Gesture {
                     triangleMesh: this.secondTriangleMesh,
                     direction: 1,
                     onFlipEnd: () => {
-                      flipEnded1 = true;
+                      console.log('onFlipEnd', flipEnded);
+                      console.log(
+                        this.firstTriangleMesh,
+                        this.secondTriangleMesh,
+                      );
+
                       if (
-                        flipEnded2 &&
+                        flipEnded &&
                         this.firstTriangleMesh &&
                         this.secondTriangleMesh
                       ) {
@@ -129,16 +135,23 @@ class FlipGesture extends Gesture {
                           this.firstTriangleMesh,
                           this.secondTriangleMesh,
                         );
+                        this.context.onFlipEnded();
                       }
+                      flipEnded = true;
                     },
                   });
                   this.secondTriangleMesh.flip({
                     triangleMesh: this.firstTriangleMesh,
                     direction: -1,
                     onFlipEnd: () => {
-                      flipEnded2 = true;
+                      console.log('onFlipEnd', flipEnded);
+                      console.log(
+                        this.firstTriangleMesh,
+                        this.secondTriangleMesh,
+                      );
+
                       if (
-                        flipEnded1 &&
+                        flipEnded &&
                         this.firstTriangleMesh &&
                         this.secondTriangleMesh
                       ) {
@@ -146,10 +159,11 @@ class FlipGesture extends Gesture {
                           this.firstTriangleMesh,
                           this.secondTriangleMesh,
                         );
+                        this.context.onFlipEnded();
                       }
+                      flipEnded = true;
                     },
                   });
-                  this.context.onFlipBegin();
                 }
               }
             }
@@ -160,8 +174,8 @@ class FlipGesture extends Gesture {
   }
 
   public onRelease(pointerInfo: PointerInfo): void {
-    this.firstTriangleMesh = null;
-    this.secondTriangleMesh = null;
+    // this.firstTriangleMesh = null;
+    // this.secondTriangleMesh = null;
   }
 
   public computeObjSpaceData(assetMesh: AbstractMesh):

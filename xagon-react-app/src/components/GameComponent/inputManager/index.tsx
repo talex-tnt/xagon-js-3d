@@ -39,7 +39,7 @@ class InputManager {
                 scene: this.scene,
                 triangleMesh,
                 scalingRatio,
-                onFlipBegin: () => {
+                onFlipEnded: () => {
                   delete this.gesturesMap[pointerId];
                 },
               };
@@ -57,7 +57,7 @@ class InputManager {
                 scene: this.scene,
                 triangleMesh,
                 scalingRatio,
-                onFlipBegin: () => {
+                onFlipEnded: () => {
                   delete this.gesturesMap[pointerId];
                 },
               };
