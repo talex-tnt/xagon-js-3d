@@ -8,10 +8,8 @@ import {
   Nullable,
   Quaternion,
   Matrix,
-  MeshBuilder,
-  Color3,
 } from '@babylonjs/core';
-import { addAxisToScene, math } from 'utils';
+import { math } from 'utils';
 import { k_triangleAssetName } from 'constants/identifiers';
 import { k_epsilon, k_triangleScale } from 'constants/index';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
@@ -193,7 +191,7 @@ class TriangleMesh {
     return this.vectors_Center_Vertices;
   }
 
-  public update(context: {
+  public update(context?: {
     adjacentTriangleMesh: TriangleMesh;
     direction: number;
     onFlipEnd?: () => void;
@@ -366,6 +364,7 @@ class TriangleMesh {
   }
 
   public computeBonesDeformation(): Vector3[] {
+    // eslint-disable-next-line no-console
     console.assert(
       this.triangleMesh && this.triangleMesh.skeleton,
       'Mesh and skeleton must exist',
@@ -415,7 +414,7 @@ class TriangleMesh {
       );
       material.diffuseColor = this.triangle.getColor();
       material.backFaceCulling = false;
-      material.alpha = 0.3;
+      material.alpha = 1;
       this.triangleMesh.material = material;
       // addAxisToScene({
       //   scene: this.scene,
