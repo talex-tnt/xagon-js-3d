@@ -29,12 +29,13 @@ const generateInputMesh = (
 
   triangles.forEach((triangle) => {
     if (DEBUG_RENDERING) {
-      MeshBuilder.CreateLines(`tr${triangle.getName()}`, {
+      const line = MeshBuilder.CreateLines(`tr${triangle.getName()}`, {
         points: [
           triangle.getCenterPoint().scale(1.05),
           triangle.getCenterPoint(),
         ],
       });
+      line.color = new Color3(0, 0, 0);
     }
 
     const vertexData = createVertexData(triangle, renderNormals);

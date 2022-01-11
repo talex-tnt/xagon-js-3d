@@ -1,4 +1,4 @@
-import { Nullable, Scene } from '@babylonjs/core';
+import { Nullable, Scene, MeshBuilder, Color3 } from '@babylonjs/core';
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
 import MeshStateRotating from './MeshStateRotating';
@@ -30,6 +30,8 @@ class MeshStateIdle extends IMeshState {
     }> = null,
   ): Nullable<IMeshState> {
     if (args && args.adjacentTriangleMesh && args.direction) {
+      console.log('rotating creation');
+
       this.nextState = new MeshStateRotating({
         thisTriangleMesh: this.triangleMesh,
         adjacentTriangleMesh: args.adjacentTriangleMesh,

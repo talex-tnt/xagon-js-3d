@@ -61,8 +61,8 @@ class InputManager {
                   delete this.gesturesMap[pointerId];
                 },
               };
-              this.gesturesMap[pointerId] = new FlipGesture(gestureContext);
-              gesture = this.gesturesMap[pointerId];
+              gesture = new FlipGesture(gestureContext);
+              this.gesturesMap[pointerId] = gesture;
             }
 
             gesture.onMove(pointerInfo);

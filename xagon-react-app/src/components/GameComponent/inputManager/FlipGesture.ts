@@ -7,6 +7,7 @@ import {
   Vector2,
   Matrix,
 } from '@babylonjs/core';
+import { k_gestureLength, k_deltaTime } from 'constants/index';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
@@ -71,7 +72,7 @@ class FlipGesture extends Gesture {
         const now = Date.now();
         const deltaTime = now - this.lastEventTimestamp;
 
-        if (deltaTime > 300) {
+        if (deltaTime > k_deltaTime) {
           this.startPoint = new Vector2(
             this.context.scene.pointerX,
             this.context.scene.pointerY,
@@ -84,17 +85,20 @@ class FlipGesture extends Gesture {
 
           const gestureLength = this.startPoint.subtract(finalPoint).length();
 
-          const isValidGesture = deltaTime <= 300 && gestureLength > 1;
+          const isValidGesture = gestureLength > k_gestureLength;
 
           if (isValidGesture) {
             if (
               mesh &&
+              mesh.metadata &&
+              mesh.metadata.triangle &&
               mesh.metadata.triangle.getId() !== firstTriangle.getId()
             ) {
               const originalMesh = getAssetMesh({
                 scene: this.context.scene,
                 triangleMesh: mesh,
               });
+
               if (originalMesh) {
                 const assetMesh = originalMesh.metadata.triangleMesh;
                 const data = this.computeObjSpaceData(originalMesh);
@@ -171,8 +175,8 @@ class FlipGesture extends Gesture {
   }
 
   public onRelease(pointerInfo: PointerInfo): void {
-    // this.firstTriangleMesh = null;
-    // this.secondTriangleMesh = null;
+    // eslint-disable-next-line no-console
+    console.log(pointerInfo);
   }
 
   public computeObjSpaceData(assetMesh: AbstractMesh):
@@ -181,9 +185,9 @@ class FlipGesture extends Gesture {
         edges: Vector3[];
       }
     | undefined {
-    if (assetMesh && assetMesh.skeleton) {
+    if (assetMesh) {
       const tr = assetMesh.metadata.triangleMesh.getTriangle();
-      const matrix = assetMesh.getWorldMatrix();
+      const matrix = assetMesh.computeWorldMatrix(true);
       const vertices = [
         Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)).scale(
           this.context.scalingRatio,

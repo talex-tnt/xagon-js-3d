@@ -1,4 +1,11 @@
-import { Vector3, Scene, SceneLoader } from '@babylonjs/core';
+import {
+  Vector3,
+  Scene,
+  SceneLoader,
+  MeshBuilder,
+  StandardMaterial,
+  Color3,
+} from '@babylonjs/core';
 import {
   k_triangleAssetName,
   k_triangleAssetDebugFileName,
@@ -15,6 +22,7 @@ import {
   Hexagons,
 } from 'gameplay/ShapeDetector/shapesVerify';
 import Triangle from 'models/Triangle';
+import { addAxisToScene } from 'utils';
 import setupCamera from '../../components/GameComponent/setupCamera';
 import setupLight from '../../components/GameComponent/setupLight';
 import InputManager from '../../components/GameComponent/InputManager';
@@ -87,15 +95,76 @@ const useGameLogic = (): {
       if (meshes && meshes.length > 0 && skeletons) {
         const assetMesh = meshes[0];
 
-        const triangleMeshes = triangles.map(
-          (tr) =>
-            new TriangleMesh({
-              scene,
-              triangle: tr,
-              equilateralTriangleProvider: icosahedron,
-            }),
-        );
+        const testTriangle = triangles.filter((t) => t.getId() === BigInt(361));
+        const testAdjacents = testTriangle[0].getAdjacents();
+
+        const triangleMeshes = triangles
+          .filter((t) => {
+            if (testTriangle && testAdjacents) {
+              return (
+                t.getId() === testTriangle[0].getId() ||
+                t.getId() === testAdjacents[0].getId() ||
+                t.getId() === testAdjacents[1].getId() ||
+                t.getId() === testAdjacents[2].getId()
+              );
+            }
+            return t;
+          })
+          .map(
+            (tr) =>
+              new TriangleMesh({
+                scene,
+                triangle: tr,
+                equilateralTriangleProvider: icosahedron,
+              }),
+          );
         assetMesh.visibility = 0;
+
+        triangleMeshes
+          .filter((t) => t.getTriangle().getId() === BigInt(179))
+          .forEach((tr) => {
+            console.log(0);
+
+            const meshLine1 = MeshBuilder.CreateSphere(
+              `trddddd1${tr.getTriangle().getName()}`,
+              {
+                diameter: 0.01,
+              },
+            );
+            meshLine1.position = tr.getTriangle().p1();
+            const mat1 = new StandardMaterial(
+              `color${tr.getTriangle().p1()}`,
+              scene,
+            );
+            mat1.diffuseColor = new Color3(0, 0, 1);
+            meshLine1.material = mat1;
+            const meshLine2 = MeshBuilder.CreateSphere(
+              `trddddd2${tr.getTriangle().getName()}`,
+              {
+                diameter: 0.01,
+              },
+            );
+            meshLine2.position = tr.getTriangle().p2();
+            const mat2 = new StandardMaterial(
+              `color${tr.getTriangle().p2()}`,
+              scene,
+            );
+            mat2.diffuseColor = new Color3(0, 1, 0);
+            meshLine2.material = mat2;
+            const meshLine3 = MeshBuilder.CreateSphere(
+              `trddddd3${tr.getTriangle().getName()}`,
+              {
+                diameter: 0.01,
+              },
+            );
+            meshLine3.position = tr.getTriangle().p3();
+            const mat3 = new StandardMaterial(
+              `color${tr.getTriangle().p3()}`,
+              scene,
+            );
+            mat3.diffuseColor = new Color3(1, 0, 0);
+            meshLine3.material = mat3;
+          });
         scene.registerBeforeRender(() => {
           triangleMeshes.forEach((t) => t.update());
         });
