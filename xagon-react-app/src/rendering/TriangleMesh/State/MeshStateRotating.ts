@@ -519,60 +519,27 @@ class MeshStateRotating extends IMeshState {
           Matrix.Invert(triangleMeshMatrix),
         );
 
-        const worldSpaceAdjEdge1 = objSpaceData.vertices[indices[1]].subtract(
-          objSpaceData.vertices[indices[0]],
-        );
+        const point1 = this.computeVectorProjectionPoint({
+          vertices: objSpaceData.vertices,
+          index1: indices[1],
+          index2: indices[0],
+        });
+        const point2 = this.computeVectorProjectionPoint({
+          vertices: objSpaceData.vertices,
+          center: centerADJ,
+          index1: indices[0],
+          index2: indices[1],
+        });
 
-        const projectionAngle1 = Vector3.GetAngleBetweenVectors(
-          Vector3.Zero().subtract(objSpaceData.vertices[indices[0]]),
-          worldSpaceAdjEdge1,
-          Vector3.Cross(
-            Vector3.Zero().subtract(objSpaceData.vertices[indices[0]]),
-            worldSpaceAdjEdge1,
-          ),
-        );
-
-        const scalarProjection =
-          Vector3.Zero().subtract(objSpaceData.vertices[indices[0]]).length() *
-          Math.cos(projectionAngle1);
-
-        const point1 = objSpaceData.vertices[indices[0]].add(
-          worldSpaceAdjEdge1.scale(
-            scalarProjection / worldSpaceAdjEdge1.length(),
-          ),
-        );
-
-        const worldSpaceAdjEdge2 = objSpaceData.vertices[indices[0]].subtract(
-          objSpaceData.vertices[indices[1]],
-        );
-
-        const projectionAngle2 = Vector3.GetAngleBetweenVectors(
-          centerADJ.subtract(objSpaceData.vertices[indices[1]]),
-          worldSpaceAdjEdge2,
-          Vector3.Cross(
-            centerADJ.subtract(objSpaceData.vertices[indices[1]]),
-            worldSpaceAdjEdge2,
-          ),
-        );
-
-        const scalarProjection2 =
-          centerADJ.subtract(objSpaceData.vertices[indices[1]]).length() *
-          Math.cos(projectionAngle2);
-
-        const point2 = objSpaceData.vertices[indices[1]].add(
-          worldSpaceAdjEdge2.scale(
-            scalarProjection2 / worldSpaceAdjEdge2.length(),
-          ),
-        );
+        const vectorCenterPoint = Vector3.Zero().subtract(point1);
+        const adjVectorCenterPoint = centerADJ.subtract(point2);
+        const normal = Vector3.Cross(vectorCenterPoint, adjVectorCenterPoint);
 
         const rotationDownAngle = Math.abs(
           Vector3.GetAngleBetweenVectors(
-            Vector3.Zero().subtract(point1),
-            centerADJ.subtract(point2),
-            Vector3.Cross(
-              Vector3.Zero().subtract(point1),
-              centerADJ.subtract(point2),
-            ),
+            vectorCenterPoint,
+            adjVectorCenterPoint,
+            normal,
           ),
         );
 
@@ -593,6 +560,35 @@ class MeshStateRotating extends IMeshState {
       }
     }
     return null;
+  }
+
+  public computeVectorProjectionPoint({
+    vertices,
+    center = Vector3.Zero(),
+    index1,
+    index2,
+  }: {
+    vertices: Vector3[];
+    center?: Vector3;
+    index1: number;
+    index2: number;
+  }): Vector3 {
+    const worldSpaceAdjEdge = vertices[index1].subtract(vertices[index2]);
+
+    const projectionAngle = Vector3.GetAngleBetweenVectors(
+      center.subtract(vertices[index2]),
+      worldSpaceAdjEdge,
+      Vector3.Cross(center.subtract(vertices[index2]), worldSpaceAdjEdge),
+    );
+
+    const scalarProjection =
+      center.subtract(vertices[index2]).length() * Math.cos(projectionAngle);
+
+    const point = vertices[index2].add(
+      worldSpaceAdjEdge.scale(scalarProjection / worldSpaceAdjEdge.length()),
+    );
+
+    return point;
   }
 
   public computeVectorProjectionRatio(
