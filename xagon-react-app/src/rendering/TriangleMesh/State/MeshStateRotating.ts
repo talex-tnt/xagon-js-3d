@@ -93,6 +93,8 @@ class MeshStateRotating extends IMeshState {
 
             const edgeIndex = mesh.getTriangleMeshFlipEdgeIndex(vertIndicesSum);
 
+            this.rotationAxis = edges[edgeIndex];
+
             if (flipNode) {
               const flipNodeCenter = Vector3.Zero(); // node position in object space
               const edgeCenterPoint = Vector3.Center(
@@ -118,20 +120,12 @@ class MeshStateRotating extends IMeshState {
                   this.rotationAngle =
                     Math.PI * 2 - rotationData.rotationDownAngle;
                 }
+                // computing length ratio between vector (edge's center - mesh's center) of the first triangle and vector (edge's center - mesh's center) of the second triangle to shift the scaling node during rotation
+                const scalingNodeShiftRatio =
+                  rotationData.adjRotationVector.length() /
+                  rotationData.rotationVector.length();
 
                 if (adjacentMesh && adjacentMesh.getTriangleMesh()) {
-                  // computing length ratio between vector (edge's center - mesh's center) of the first triangle and vector (edge's center - mesh's center) of the second triangle to shift the scaling node during rotation
-                  const scalingNodeShiftRatio =
-                    rotationData.adjRotationVector.length() /
-                    rotationData.rotationVector.length();
-
-                  const edgeVector = vertices[vertIndices[1]].subtract(
-                    vertices[vertIndices[0]],
-                  );
-
-                  const vectorProjectionRatio =
-                    this.computeVectorProjectionRatio(vertices, vertIndices);
-
                   const adjVertices = adjacentMesh.getVertices();
                   const adjVertIndices = adjacentsVerticesMap.adjTrAdjs;
                   const adjNotAdjVertexIndex = [0, 1, 2].findIndex(
@@ -139,6 +133,9 @@ class MeshStateRotating extends IMeshState {
                   );
 
                   if (adjVertices) {
+                    const vectorProjectionRatio =
+                      this.computeVectorProjectionRatio(vertices, vertIndices);
+
                     const adjVectorProjectionRatio =
                       this.computeVectorProjectionRatio(
                         adjVertices,
@@ -147,28 +144,23 @@ class MeshStateRotating extends IMeshState {
 
                     const deltaCenterShift =
                       vectorProjectionRatio - adjVectorProjectionRatio;
+
+                    const edgeVector = vertices[vertIndices[1]].subtract(
+                      vertices[vertIndices[0]],
+                    );
                     const centerShiftVector =
                       edgeVector.scale(deltaCenterShift);
 
                     this.scalingNodeOrigPos = this.scalingNode.position.clone();
-                    this.scalingNodeFinPos = this.scalingNode.position
+                    this.scalingNodeFinPos = this.scalingNodeOrigPos
                       .scale(scalingNodeShiftRatio)
                       .subtract(centerShiftVector);
-
-                    this.rotationAxis = edges[edgeIndex];
 
                     const bonesIndices =
                       mesh.getTriangleMeshBonesIndices(vertIndices);
 
                     const notAdjBoneIndex = [0, 1, 2].findIndex(
                       (e) => e !== bonesIndices[0] && e !== bonesIndices[1],
-                    );
-
-                    const adjBonesIndices =
-                      adjacentMesh.getTriangleMeshBonesIndices(adjVertIndices);
-                    const adjNotAdjBoneIndex = [0, 1, 2].findIndex(
-                      (e) =>
-                        e !== adjBonesIndices[0] && e !== adjBonesIndices[1],
                     );
 
                     this.bonesIndices = [...bonesIndices, notAdjBoneIndex];
@@ -202,6 +194,16 @@ class MeshStateRotating extends IMeshState {
                         adjTriangleMesh.skeleton.bones;
 
                       if (adjSkeleton) {
+                        const adjBonesIndices =
+                          adjacentMesh.getTriangleMeshBonesIndices(
+                            adjVertIndices,
+                          );
+                        const adjNotAdjBoneIndex = [0, 1, 2].findIndex(
+                          (e) =>
+                            e !== adjBonesIndices[0] &&
+                            e !== adjBonesIndices[1],
+                        );
+
                         this.adjTriangleMeshBonesScaleY = [
                           adjSkeleton[adjBonesIndices[0]].scaling.y,
                           adjSkeleton[adjBonesIndices[1]].scaling.y,
@@ -406,7 +408,7 @@ class MeshStateRotating extends IMeshState {
 
   public update(): Nullable<IMeshState> {
     const rotationSpeed = this.getRotationSpeed();
-    const deltaTimeInMillis = this.scene.getEngine().getDeltaTime();
+    const deltaTimeInMs = this.scene.getEngine().getDeltaTime();
     const scalingNode = this.scalingNode as TransformNode;
     const flipNode = this.flipNode as TransformNode;
     const skeleton = this.skeleton as Bone[];
@@ -439,7 +441,7 @@ class MeshStateRotating extends IMeshState {
           rotation.y -= Scalar.Lerp(
             0,
             bonesDeformation[i],
-            rotationSpeed * (deltaTimeInMillis / 1000),
+            rotationSpeed * (deltaTimeInMs / 1000),
           );
           b.setRotation(rotation);
         });
@@ -466,16 +468,16 @@ class MeshStateRotating extends IMeshState {
         this.amount,
       );
 
-      // if (DEBUG_RENDERING) {
-      //   const meshLine = MeshBuilder.CreateSphere(
-      //     `tr${this.mesh.getTriangle().getName()}`,
-      //     {
-      //       diameter: 0.1,
-      //     },
-      //   );
-      //   meshLine.parent = scalingNode;
-      // }
-      this.amount += rotationSpeed * (deltaTimeInMillis / 1000);
+      if (DEBUG_RENDERING) {
+        const meshLine = MeshBuilder.CreateSphere(
+          `tr${this.mesh.getTriangle().getName()}`,
+          {
+            diameter: 0.1,
+          },
+        );
+        meshLine.parent = scalingNode;
+      }
+      this.amount += rotationSpeed * (deltaTimeInMs / 1000);
     } else if (this.amount >= 1) {
       scalingNode.rotation.y = Scalar.LerpAngle(0, -this.nodeRotationAngle, 0);
       this.nextState = new MeshStateIdle({
@@ -491,7 +493,7 @@ class MeshStateRotating extends IMeshState {
   }
 
   public getRotationSpeed(): number {
-    const rpm = 30;
+    const rpm = 1;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
   }
