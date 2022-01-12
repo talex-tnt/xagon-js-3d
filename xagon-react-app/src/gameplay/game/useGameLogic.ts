@@ -40,7 +40,7 @@ const useGameLogic = (): {
       console.log('Icosahedron JSON file was not found.');
     }
     const icosahedron = new Icosahedron({ subdivisionStrategy });
-    icosahedron.subdivide(3);
+    icosahedron.subdivide(2);
     // #Serialization
     // const serializer = new JsonIcosahedronSerializer();
     // const json = serializer.serialize(icosahedron);

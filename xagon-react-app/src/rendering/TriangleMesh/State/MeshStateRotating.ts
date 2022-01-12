@@ -10,6 +10,7 @@ import {
   Color3,
   StandardMaterial,
   Matrix,
+  AbstractMesh,
 } from '@babylonjs/core';
 import { DEBUG_RENDERING } from 'constants/debug';
 import Triangle from 'models/Triangle';
@@ -211,189 +212,73 @@ class MeshStateRotating extends IMeshState {
                         ];
                       }
 
-                      if (triangleMesh.skeleton && adjTriangleMesh.skeleton) {
-                        const adjPointCenterVectors = [
-                          adjacentMesh
-                            .getTriangle()
-                            .p1()
-                            .subtract(
-                              adjacentMesh.getTriangle().getCenterPoint(),
-                            ),
-                          adjacentMesh
-                            .getTriangle()
-                            .p2()
-                            .subtract(
-                              adjacentMesh.getTriangle().getCenterPoint(),
-                            ),
-                          adjacentMesh
-                            .getTriangle()
-                            .p3()
-                            .subtract(
-                              adjacentMesh.getTriangle().getCenterPoint(),
-                            ),
-                        ];
+                      let vertIndex = vertIndices.findIndex((v) => v === 0);
+                      if (vertIndex === -1) {
+                        vertIndex = adjNotAdjVertexIndex;
+                      } else {
+                        vertIndex = adjVertIndices[vertIndex];
+                      }
 
-                        // Nodes transformations to compute Matrix
-                        flipNode.rotationQuaternion = Quaternion.RotationAxis(
-                          this.rotationAxis,
-                          this.rotationAngle,
+                      this.nodeRotationAngle = this.computeNodeRotationAngle(
+                        adjacentMesh,
+                        vertIndex,
+                      );
+
+                      this.bonesDeformation = this.computeBonesDeformation(
+                        adjacentMesh,
+                        vertIndex,
+                      );
+
+                      if (DEBUG_RENDERING) {
+                        // eslint-disable-next-line no-console
+                        console.log(
+                          'TriangleID - ',
+                          this.mesh.getTriangle().getId(),
+                          'AdjacentTriangleID - ',
+                          adjacentMesh.getTriangle().getId(),
                         );
-                        this.scalingNode.position = Vector3.Lerp(
-                          this.scalingNodeOrigPos,
-                          this.scalingNodeFinPos,
-                          1,
+                        const meshSPHERE1 = MeshBuilder.CreateSphere(
+                          `tr1${this.mesh.getTriangle().getName()}`,
+                          {
+                            diameter: 0.1,
+                          },
                         );
-
-                        const rotationNode = this.scalingNode
-                          .parent as TransformNode;
-                        const positionNode =
-                          rotationNode.parent as TransformNode;
-                        positionNode.computeWorldMatrix(true);
-                        rotationNode.computeWorldMatrix(true);
-                        this.flipNode.computeWorldMatrix(true);
-                        this.scalingNode.computeWorldMatrix(true);
-                        const matrix = triangleMesh.computeWorldMatrix(true);
-
-                        // RESET Nodes transformations after compute Matrix
-                        flipNode.rotationQuaternion = Quaternion.RotationAxis(
-                          this.rotationAxis,
-                          0,
+                        meshSPHERE1.parent = this.scalingNode;
+                        meshSPHERE1.position = vertices[0].scale(1.5);
+                        const mat1 = new StandardMaterial(
+                          `color${vertices[0]}`,
+                          scene,
                         );
-                        this.scalingNode.position = Vector3.Lerp(
-                          this.scalingNodeFinPos,
-                          this.scalingNodeOrigPos,
-                          1,
+                        mat1.diffuseColor = new Color3(0, 0, 1);
+                        meshSPHERE1.material = mat1;
+                        const meshSPHERE2 = MeshBuilder.CreateSphere(
+                          `tr2${this.mesh.getTriangle().getName()}`,
+                          {
+                            diameter: 0.1,
+                          },
                         );
-
-                        const centerPointAfterRotation =
-                          Vector3.TransformCoordinates(
-                            new Vector3(0, 0, 0),
-                            matrix,
-                          );
-
-                        const worldVertAfterRotation = vertices.map((v) =>
-                          Vector3.TransformCoordinates(v, matrix),
+                        meshSPHERE2.parent = this.scalingNode;
+                        meshSPHERE2.position = vertices[1].scale(1.5);
+                        const mat2 = new StandardMaterial(
+                          `color${vertices[1]}`,
+                          scene,
                         );
-
-                        let vertIndex = vertIndices.findIndex((v) => v === 0);
-
-                        if (vertIndex === -1) {
-                          vertIndex = adjNotAdjVertexIndex;
-                        } else {
-                          vertIndex = adjVertIndices[vertIndex];
-                        }
-
-                        this.nodeRotationAngle = Vector3.GetAngleBetweenVectors(
-                          worldVertAfterRotation[0].subtract(
-                            centerPointAfterRotation,
-                          ),
-                          adjPointCenterVectors[vertIndex],
-                          adjacentMesh.getTriangle().getCenterPoint(),
+                        mat2.diffuseColor = new Color3(0, 1, 0);
+                        meshSPHERE2.material = mat2;
+                        const meshSPHERE3 = MeshBuilder.CreateSphere(
+                          `tr3${this.mesh.getTriangle().getName()}`,
+                          {
+                            diameter: 0.1,
+                          },
                         );
-
-                        const customTriangleIndices = [vertIndex];
-
-                        switch (vertIndex) {
-                          case 0: {
-                            customTriangleIndices.push(1);
-                            customTriangleIndices.push(2);
-                            break;
-                          }
-                          case 1: {
-                            customTriangleIndices.push(2);
-                            customTriangleIndices.push(0);
-                            break;
-                          }
-                          case 2: {
-                            customTriangleIndices.push(0);
-                            customTriangleIndices.push(1);
-                            break;
-                          }
-                          default:
-                        }
-
-                        const adjTriangleVertices = adjacentMesh
-                          .getTriangle()
-                          .getVertices();
-
-                        const customTriangleVertices =
-                          customTriangleIndices.map(
-                            (i) => adjTriangleVertices[i],
-                          );
-
-                        const bonesRotations =
-                          adjacentMesh.computeAngleBonesRotation({
-                            triangle: new Triangle(
-                              BigInt(0),
-                              customTriangleVertices[0],
-                              customTriangleVertices[1],
-                              customTriangleVertices[2],
-                            ),
-                          });
-                        const bonesFirstRotations =
-                          this.mesh.getAngleBonesRotation();
-
-                        const bone1DeltaRotation =
-                          bonesFirstRotations[0] + bonesRotations[1];
-                        const bone2DeltaRotation =
-                          bonesFirstRotations[1] + bonesRotations[0];
-
-                        this.bonesDeformation = [
-                          bone1DeltaRotation,
-                          bone2DeltaRotation,
-                        ];
-
-                        if (DEBUG_RENDERING) {
-                          // eslint-disable-next-line no-console
-                          console.log(
-                            'TriangleID - ',
-                            this.mesh.getTriangle().getId(),
-                            'AdjacentTriangleID - ',
-                            adjacentMesh.getTriangle().getId(),
-                          );
-                          const meshSPHERE1 = MeshBuilder.CreateSphere(
-                            `tr1${this.mesh.getTriangle().getName()}`,
-                            {
-                              diameter: 0.1,
-                            },
-                          );
-                          meshSPHERE1.parent = this.scalingNode;
-                          meshSPHERE1.position = vertices[0].scale(1.5);
-                          const mat1 = new StandardMaterial(
-                            `color${vertices[0]}`,
-                            scene,
-                          );
-                          mat1.diffuseColor = new Color3(0, 0, 1);
-                          meshSPHERE1.material = mat1;
-                          const meshSPHERE2 = MeshBuilder.CreateSphere(
-                            `tr2${this.mesh.getTriangle().getName()}`,
-                            {
-                              diameter: 0.1,
-                            },
-                          );
-                          meshSPHERE2.parent = this.scalingNode;
-                          meshSPHERE2.position = vertices[1].scale(1.5);
-                          const mat2 = new StandardMaterial(
-                            `color${vertices[1]}`,
-                            scene,
-                          );
-                          mat2.diffuseColor = new Color3(0, 1, 0);
-                          meshSPHERE2.material = mat2;
-                          const meshSPHERE3 = MeshBuilder.CreateSphere(
-                            `tr3${this.mesh.getTriangle().getName()}`,
-                            {
-                              diameter: 0.1,
-                            },
-                          );
-                          meshSPHERE3.parent = this.scalingNode;
-                          meshSPHERE3.position = vertices[2].scale(1.5);
-                          const mat3 = new StandardMaterial(
-                            `color${vertices[2]}`,
-                            scene,
-                          );
-                          mat3.diffuseColor = new Color3(1, 0, 0);
-                          meshSPHERE3.material = mat3;
-                        }
+                        meshSPHERE3.parent = this.scalingNode;
+                        meshSPHERE3.position = vertices[2].scale(1.5);
+                        const mat3 = new StandardMaterial(
+                          `color${vertices[2]}`,
+                          scene,
+                        );
+                        mat3.diffuseColor = new Color3(1, 0, 0);
+                        meshSPHERE3.material = mat3;
                       }
                     }
                   }
@@ -427,15 +312,6 @@ class MeshStateRotating extends IMeshState {
         this.adjTriangleMeshBonesScaleY &&
         bonesDeformation
       ) {
-        const bonesScaleY = bonesScaling.map(
-          (boneScaling, i) =>
-            boneScaling &&
-            Scalar.Lerp(
-              boneScaling.y,
-              this.adjTriangleMeshBonesScaleY[i],
-              this.amount,
-            ),
-        );
         skeleton.slice(0, 2).forEach((b, i) => {
           const { rotation } = b;
           rotation.y -= Scalar.Lerp(
@@ -446,6 +322,15 @@ class MeshStateRotating extends IMeshState {
           b.setRotation(rotation);
         });
 
+        const bonesScaleY = bonesScaling.map(
+          (boneScaling, i) =>
+            boneScaling &&
+            Scalar.Lerp(
+              boneScaling.y,
+              this.adjTriangleMeshBonesScaleY[i],
+              this.amount,
+            ),
+        );
         this.bonesIndices.forEach((boneIndex, i) => {
           skeleton[boneIndex].setScale(
             new Vector3(
@@ -493,9 +378,126 @@ class MeshStateRotating extends IMeshState {
   }
 
   public getRotationSpeed(): number {
-    const rpm = 1;
+    const rpm = 5;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
+  }
+
+  private computeNodeRotationAngle(
+    adjMesh: TriangleMesh,
+    vertIndex: number,
+  ): number {
+    const matrix = this.computeMatrix();
+
+    const centerPointAfterRotation = Vector3.TransformCoordinates(
+      new Vector3(0, 0, 0),
+      matrix,
+    );
+    const vertices = this.mesh.getVertices();
+
+    if (vertices) {
+      const worldVertAfterRotation = vertices.map((v) =>
+        Vector3.TransformCoordinates(v, matrix),
+      );
+
+      const adjTriangle = adjMesh.getTriangle();
+      const adjTriangleCenter = adjTriangle.getCenterPoint();
+      const adjTriangleVertices = adjTriangle.getVertices();
+      const adjPointCenterVector =
+        adjTriangleVertices[vertIndex].subtract(adjTriangleCenter);
+
+      const nodeRotationAngle = Vector3.GetAngleBetweenVectors(
+        worldVertAfterRotation[0].subtract(centerPointAfterRotation),
+        adjPointCenterVector,
+        adjTriangleCenter,
+      );
+
+      return nodeRotationAngle;
+    }
+    return 0;
+  }
+
+  private computeMatrix(): Matrix {
+    const mesh = this.mesh.getTriangleMesh();
+    if (mesh && this.flipNode && this.scalingNode) {
+      this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
+        this.rotationAxis,
+        this.rotationAngle,
+      );
+      this.scalingNode.position = this.scalingNodeFinPos;
+
+      const rotationNode = this.scalingNode.parent as TransformNode;
+      const positionNode = rotationNode.parent as TransformNode;
+      positionNode.computeWorldMatrix(true);
+      rotationNode.computeWorldMatrix(true);
+      this.flipNode.computeWorldMatrix(true);
+      this.scalingNode.computeWorldMatrix(true);
+      const matrix = mesh.computeWorldMatrix(true);
+
+      // RESET Nodes transformations after compute Matrix
+      this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
+        this.rotationAxis,
+        0,
+      );
+      this.scalingNode.position = Vector3.Lerp(
+        this.scalingNodeFinPos,
+        this.scalingNodeOrigPos,
+        1,
+      );
+      return matrix;
+    }
+    return mesh.computeWorldMatrix(true);
+  }
+
+  public computeBonesDeformation(mesh: TriangleMesh, index: number): number[] {
+    const customTriangleVertices = this.computeCustomTriangleVertices(
+      mesh,
+      index,
+    );
+
+    const bonesRotations = mesh.computeAngleBonesRotation({
+      triangle: new Triangle(
+        BigInt(0),
+        customTriangleVertices[0],
+        customTriangleVertices[1],
+        customTriangleVertices[2],
+      ),
+    });
+    const bonesFirstRotations = this.mesh.getAngleBonesRotation();
+
+    const bone1DeltaRotation = bonesFirstRotations[0] + bonesRotations[1];
+    const bone2DeltaRotation = bonesFirstRotations[1] + bonesRotations[0];
+
+    return [bone1DeltaRotation, bone2DeltaRotation];
+  }
+
+  public computeCustomTriangleVertices(
+    mesh: TriangleMesh,
+    index: number,
+  ): Vector3[] {
+    let customTriangleIndices: number[] = [];
+    switch (index) {
+      case 0: {
+        customTriangleIndices = [0, 1, 2];
+        break;
+      }
+      case 1: {
+        customTriangleIndices = [1, 2, 0];
+        break;
+      }
+      case 2: {
+        customTriangleIndices = [2, 0, 1];
+        break;
+      }
+      default:
+    }
+    const vertices = mesh.getTriangle().getVertices();
+
+    const customTriangleVertices = customTriangleIndices.map(
+      (i) => vertices[i],
+    );
+
+    return customTriangleVertices;
   }
 
   public computeRotationData(
