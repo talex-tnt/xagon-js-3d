@@ -85,116 +85,108 @@ class MeshStateRotating extends IMeshState {
     this.mesh = thisTriangleMesh;
     this.adjacentMesh = adjacentTriangleMesh;
 
-    const adjacentMesh = adjacentTriangleMesh;
     const adjacentsVerticesMap = this.mesh.getAdjacentsVerticesMap(
       this.adjacentMesh.getTriangle(),
     );
 
-    if (this.mesh && this.adjacentMesh) {
-      const triangleMesh = this.mesh.getTriangleMesh();
-      if (triangleMesh) {
-        this.scalingNode.node = triangleMesh.parent as TransformNode;
+    const trMesh = this.mesh.getTriangleMesh();
+    if (trMesh) {
+      this.scalingNode.node = trMesh.parent as TransformNode;
 
-        const vertIndices = adjacentsVerticesMap.trAdjs;
+      const vertIndices = adjacentsVerticesMap.trAdjs;
 
-        this.rotation.axis = this.computeRotationAxis(vertIndices);
+      this.rotation.axis = this.computeRotationAxis(vertIndices);
 
-        this.flipNode = this.computeFlipNodePosition(vertIndices);
+      this.flipNode = this.computeFlipNodePosition(vertIndices);
 
-        const rotationData = this.computeRotationData(vertIndices);
+      const rotationData = this.computeRotationData(vertIndices);
 
-        if (rotationData) {
-          if (direction === 1) {
-            this.rotation.angle = -rotationData.rotationDownAngle;
-          } else {
-            this.rotation.angle = Math.PI * 2 - rotationData.rotationDownAngle;
-          }
-          // computing length ratio between vector (edge's center - mesh's center) of the first triangle and vector (edge's center - mesh's center) of the second triangle to shift the scaling node during rotation
-          const scalingNodeShiftRatio =
-            rotationData.adjRotationVector.length() /
-            rotationData.rotationVector.length();
+      if (rotationData) {
+        if (direction === 1) {
+          this.rotation.angle = -rotationData.rotationDownAngle;
+        } else {
+          this.rotation.angle = Math.PI * 2 - rotationData.rotationDownAngle;
+        }
+        // computing length ratio between vector (edge's center - mesh's center) of the first triangle and vector (edge's center - mesh's center) of the second triangle to shift the scaling node during rotation
+        const scalingNodeShiftRatio =
+          rotationData.adjRotationVector.length() /
+          rotationData.rotationVector.length();
 
-          const centerShiftVector =
-            this.computeCenterShiftVector(adjacentsVerticesMap);
+        const centerShiftVector =
+          this.computeCenterShiftVector(adjacentsVerticesMap);
 
-          this.scalingNode.originalPosition =
-            this.scalingNode.node.position.clone();
-          this.scalingNode.finalPosition = this.scalingNode.originalPosition
-            .scale(scalingNodeShiftRatio)
-            .subtract(centerShiftVector);
+        this.scalingNode.originalPosition =
+          this.scalingNode.node.position.clone();
+        this.scalingNode.finalPosition = this.scalingNode.originalPosition
+          .scale(scalingNodeShiftRatio)
+          .subtract(centerShiftVector);
 
-          this.skeleton.bonesIndices = this.getBonesIndices(vertIndices);
+        this.skeleton.bones = trMesh.skeleton && trMesh.skeleton.bones;
+        this.skeleton.bonesScaling = this.getBonesScaling();
+        this.skeleton.bonesIndices = this.getBonesIndices(vertIndices);
 
-          this.skeleton.bones =
-            triangleMesh &&
-            triangleMesh.skeleton &&
-            triangleMesh.skeleton.bones;
+        const adjVertIndices = adjacentsVerticesMap.adjTrAdjs;
+        this.adjBonesScalingY = this.computeAdjBonesScalingY(adjVertIndices);
 
-          this.skeleton.bonesScaling = this.getBonesScaling();
+        const adjNotAdjVertexIndex = [0, 1, 2].findIndex(
+          (e) => e !== adjVertIndices[0] && e !== adjVertIndices[1],
+        );
 
-          const adjVertIndices = adjacentsVerticesMap.adjTrAdjs;
-          this.adjBonesScalingY = this.computeAdjBonesScalingY(adjVertIndices);
+        let vertIndex = vertIndices.findIndex((v) => v === 0);
+        if (vertIndex === -1) {
+          vertIndex = adjNotAdjVertexIndex;
+        } else {
+          vertIndex = adjVertIndices[vertIndex];
+        }
 
-          const adjNotAdjVertexIndex = [0, 1, 2].findIndex(
-            (e) => e !== adjVertIndices[0] && e !== adjVertIndices[1],
+        this.scalingNode.rotationAngle =
+          this.computeNodeRotationAngle(vertIndex);
+
+        this.skeleton.bonesDeformation =
+          this.computeBonesDeformation(vertIndex);
+
+        if (DEBUG_RENDERING) {
+          const vertices = this.mesh.getVertices();
+          // eslint-disable-next-line no-console
+          console.log(
+            'TriangleID - ',
+            this.mesh.getTriangle().getId(),
+            'AdjacentTriangleID - ',
+            this.adjacentMesh.getTriangle().getId(),
           );
-
-          let vertIndex = vertIndices.findIndex((v) => v === 0);
-          if (vertIndex === -1) {
-            vertIndex = adjNotAdjVertexIndex;
-          } else {
-            vertIndex = adjVertIndices[vertIndex];
-          }
-
-          this.scalingNode.rotationAngle =
-            this.computeNodeRotationAngle(vertIndex);
-
-          this.skeleton.bonesDeformation =
-            this.computeBonesDeformation(vertIndex);
-
-          if (DEBUG_RENDERING) {
-            const vertices = this.mesh.getVertices();
-            // eslint-disable-next-line no-console
-            console.log(
-              'TriangleID - ',
-              this.mesh.getTriangle().getId(),
-              'AdjacentTriangleID - ',
-              adjacentMesh.getTriangle().getId(),
-            );
-            const meshSPHERE1 = MeshBuilder.CreateSphere(
-              `tr1${this.mesh.getTriangle().getName()}`,
-              {
-                diameter: 0.1,
-              },
-            );
-            meshSPHERE1.parent = this.scalingNode.node;
-            meshSPHERE1.position = vertices[0].scale(1.5);
-            const mat1 = new StandardMaterial(`color${vertices[0]}`, scene);
-            mat1.diffuseColor = new Color3(0, 0, 1);
-            meshSPHERE1.material = mat1;
-            const meshSPHERE2 = MeshBuilder.CreateSphere(
-              `tr2${this.mesh.getTriangle().getName()}`,
-              {
-                diameter: 0.1,
-              },
-            );
-            meshSPHERE2.parent = this.scalingNode.node;
-            meshSPHERE2.position = vertices[1].scale(1.5);
-            const mat2 = new StandardMaterial(`color${vertices[1]}`, scene);
-            mat2.diffuseColor = new Color3(0, 1, 0);
-            meshSPHERE2.material = mat2;
-            const meshSPHERE3 = MeshBuilder.CreateSphere(
-              `tr3${this.mesh.getTriangle().getName()}`,
-              {
-                diameter: 0.1,
-              },
-            );
-            meshSPHERE3.parent = this.scalingNode.node;
-            meshSPHERE3.position = vertices[2].scale(1.5);
-            const mat3 = new StandardMaterial(`color${vertices[2]}`, scene);
-            mat3.diffuseColor = new Color3(1, 0, 0);
-            meshSPHERE3.material = mat3;
-          }
+          const meshSPHERE1 = MeshBuilder.CreateSphere(
+            `tr1${this.mesh.getTriangle().getName()}`,
+            {
+              diameter: 0.1,
+            },
+          );
+          meshSPHERE1.parent = this.scalingNode.node;
+          meshSPHERE1.position = vertices[0].scale(1.5);
+          const mat1 = new StandardMaterial(`color${vertices[0]}`, scene);
+          mat1.diffuseColor = new Color3(0, 0, 1);
+          meshSPHERE1.material = mat1;
+          const meshSPHERE2 = MeshBuilder.CreateSphere(
+            `tr2${this.mesh.getTriangle().getName()}`,
+            {
+              diameter: 0.1,
+            },
+          );
+          meshSPHERE2.parent = this.scalingNode.node;
+          meshSPHERE2.position = vertices[1].scale(1.5);
+          const mat2 = new StandardMaterial(`color${vertices[1]}`, scene);
+          mat2.diffuseColor = new Color3(0, 1, 0);
+          meshSPHERE2.material = mat2;
+          const meshSPHERE3 = MeshBuilder.CreateSphere(
+            `tr3${this.mesh.getTriangle().getName()}`,
+            {
+              diameter: 0.1,
+            },
+          );
+          meshSPHERE3.parent = this.scalingNode.node;
+          meshSPHERE3.position = vertices[2].scale(1.5);
+          const mat3 = new StandardMaterial(`color${vertices[2]}`, scene);
+          mat3.diffuseColor = new Color3(1, 0, 0);
+          meshSPHERE3.material = mat3;
         }
       }
     }
