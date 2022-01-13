@@ -10,7 +10,6 @@ import {
   Color3,
   StandardMaterial,
   Matrix,
-  AbstractMesh,
 } from '@babylonjs/core';
 import { DEBUG_RENDERING } from 'constants/debug';
 import Triangle from 'models/Triangle';
@@ -157,35 +156,14 @@ class MeshStateRotating extends IMeshState {
                       .scale(scalingNodeShiftRatio)
                       .subtract(centerShiftVector);
 
-                    const bonesIndices =
-                      mesh.getTriangleMeshBonesIndices(vertIndices);
-
-                    const notAdjBoneIndex = [0, 1, 2].findIndex(
-                      (e) => e !== bonesIndices[0] && e !== bonesIndices[1],
-                    );
-
-                    this.bonesIndices = [...bonesIndices, notAdjBoneIndex];
+                    this.bonesIndices = this.getBonesIndices(vertIndices);
 
                     this.skeleton =
                       triangleMesh &&
                       triangleMesh.skeleton &&
                       triangleMesh.skeleton.bones;
 
-                    const firstBoneScaling =
-                      this.skeleton && this.skeleton[bonesIndices[0]].scaling;
-                    const secondBoneScaling =
-                      this.skeleton && this.skeleton[bonesIndices[1]].scaling;
-                    const notAdjBoneScaling =
-                      this.skeleton && this.skeleton[notAdjBoneIndex].scaling;
-
-                    const bonesScaling = [
-                      firstBoneScaling,
-                      secondBoneScaling,
-                      notAdjBoneScaling,
-                    ];
-                    this.bonesScaling = bonesScaling.map(
-                      (boneScaling) => boneScaling && boneScaling.clone(),
-                    );
+                    this.bonesScaling = this.getBonesScaling();
 
                     this.adjBonesScalingY = this.computeAdjBonesScalingY(
                       adjacentMesh,
@@ -284,6 +262,16 @@ class MeshStateRotating extends IMeshState {
         this.rotationAxis,
         Scalar.LerpAngle(0, this.rotationAngle, this.amount),
       );
+      scalingNode.position = Vector3.Lerp(
+        this.scalingNodeOrigPos,
+        this.scalingNodeFinPos,
+        this.amount,
+      );
+      scalingNode.rotation.y = Scalar.LerpAngle(
+        0,
+        -this.nodeRotationAngle,
+        this.amount,
+      );
 
       if (
         skeleton &&
@@ -316,17 +304,7 @@ class MeshStateRotating extends IMeshState {
           );
         });
       }
-
-      scalingNode.position = Vector3.Lerp(
-        this.scalingNodeOrigPos,
-        this.scalingNodeFinPos,
-        this.amount,
-      );
-      scalingNode.rotation.y = Scalar.LerpAngle(
-        0,
-        -this.nodeRotationAngle,
-        this.amount,
-      );
+      this.amount += rotationSpeed * (deltaTimeInMs / 1000);
 
       if (DEBUG_RENDERING) {
         const meshLine = MeshBuilder.CreateSphere(
@@ -337,7 +315,6 @@ class MeshStateRotating extends IMeshState {
         );
         meshLine.parent = scalingNode;
       }
-      this.amount += rotationSpeed * (deltaTimeInMs / 1000);
     } else if (this.amount >= 1) {
       scalingNode.rotation.y = Scalar.LerpAngle(0, -this.nodeRotationAngle, 0);
       this.nextState = new MeshStateIdle({
@@ -356,6 +333,36 @@ class MeshStateRotating extends IMeshState {
     const rpm = 5;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
+  }
+
+  private getBonesIndices(indices: number[]): number[] {
+    const adjBonesIndices = this.mesh.getTriangleMeshBonesIndices(indices);
+
+    const notAdjBoneIndex = [0, 1, 2].findIndex(
+      (e) => e !== adjBonesIndices[0] && e !== adjBonesIndices[1],
+    );
+
+    const bonesIndices = [...adjBonesIndices, notAdjBoneIndex];
+
+    return bonesIndices;
+  }
+
+  private getBonesScaling(): Vector3[] {
+    if (this.skeleton) {
+      const firstBoneScaling = this.skeleton[this.bonesIndices[0]].scaling;
+      const secondBoneScaling = this.skeleton[this.bonesIndices[1]].scaling;
+      const notAdjBoneScaling = this.skeleton[this.bonesIndices[2]].scaling;
+
+      const bonesScaling = [
+        firstBoneScaling,
+        secondBoneScaling,
+        notAdjBoneScaling,
+      ];
+      return bonesScaling.map((boneScaling) => boneScaling.clone());
+    }
+    // eslint-disable-next-line no-console
+    console.assert(this.skeleton, 'Skeleton must exist');
+    return [Vector3.One(), Vector3.One(), Vector3.One()];
   }
 
   private computeAdjBonesScalingY(
