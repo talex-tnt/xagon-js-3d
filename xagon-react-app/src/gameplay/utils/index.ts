@@ -1,5 +1,5 @@
 import { Vector3 } from '@babylonjs/core';
-import { k_epsilon } from 'constants/index';
+import { k_epsilon } from 'game-constants/index';
 import Triangle from 'models/Triangle';
 
 export const isDuplicated = (

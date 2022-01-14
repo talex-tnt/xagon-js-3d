@@ -3,7 +3,7 @@ import {
   k_triangleAssetName,
   k_triangleAssetDebugFileName,
   k_triangleAssetPath,
-} from 'constants/identifiers';
+} from 'game-constants/identifiers';
 import Icosahedron from 'models/Icosahedron';
 import _1to4SubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/1to4SubdivisionStrategy';
 import TriangleMesh from 'rendering/TriangleMesh/index';

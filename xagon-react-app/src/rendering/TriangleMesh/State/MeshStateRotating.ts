@@ -12,7 +12,7 @@ import {
   Matrix,
 } from '@babylonjs/core';
 import { Direction } from 'components/GameComponent/InputManager/FlipGesture';
-import { DEBUG_RENDERING } from 'constants/debug';
+import { DEBUG_RENDERING } from 'game-constants/debug';
 import Triangle from 'models/Triangle';
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';

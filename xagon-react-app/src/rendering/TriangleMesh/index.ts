@@ -10,8 +10,9 @@ import {
   Matrix,
 } from '@babylonjs/core';
 import { math } from 'utils';
-import { k_triangleAssetName } from 'constants/identifiers';
-import { k_epsilon, k_triangleScale } from 'constants/index';
+import { k_triangleAssetName } from 'game-constants/identifiers';
+import { k_epsilon, k_triangleScale } from 'game-constants';
+import { getAssetMesh } from 'utils/scene';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
 import IMeshState from './State/IMeshState';
 import MeshStateIdle from './State/MeshStateIdle';
