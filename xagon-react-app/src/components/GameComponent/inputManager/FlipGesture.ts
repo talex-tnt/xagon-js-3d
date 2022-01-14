@@ -7,7 +7,7 @@ import {
   Vector2,
   Matrix,
 } from '@babylonjs/core';
-import { k_gestureLength, k_deltaTime } from 'constants/index';
+import { k_gestureLength, k_gestureDeltaTimeThreshold } from 'constants/index';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
@@ -17,6 +17,11 @@ interface GestureContext {
   triangleMesh: AbstractMesh;
   scalingRatio: number;
   onFlipEnded: () => void;
+}
+
+export enum Direction {
+  Up = -1,
+  Down = 1,
 }
 
 class FlipGesture extends Gesture {
@@ -72,7 +77,7 @@ class FlipGesture extends Gesture {
         const now = Date.now();
         const deltaTime = now - this.lastEventTimestamp;
 
-        if (deltaTime > k_deltaTime) {
+        if (deltaTime > k_gestureDeltaTimeThreshold) {
           this.startPoint = new Vector2(
             this.context.scene.pointerX,
             this.context.scene.pointerY,
@@ -106,7 +111,16 @@ class FlipGesture extends Gesture {
                   assetMesh.setVertices(data.vertices);
                   assetMesh.setEdges(data.edges);
 
-                  this.secondTriangleMesh = assetMesh;
+                  const assetMeshID = assetMesh.getTriangle().getId();
+
+                  const isAdjacent = !!this.firstTriangleMesh
+                    .getTriangle()
+                    .getAdjacents()
+                    .find((a) => a?.getId() === assetMeshID);
+
+                  if (isAdjacent) {
+                    this.secondTriangleMesh = assetMesh;
+                  }
                 }
               }
 
@@ -131,7 +145,7 @@ class FlipGesture extends Gesture {
 
                   this.firstTriangleMesh.flip({
                     triangleMesh: this.secondTriangleMesh,
-                    direction: 1,
+                    direction: Direction.Up,
                     onFlipEnd: () => {
                       if (
                         flipEnded &&
@@ -149,7 +163,7 @@ class FlipGesture extends Gesture {
                   });
                   this.secondTriangleMesh.flip({
                     triangleMesh: this.firstTriangleMesh,
-                    direction: -1,
+                    direction: Direction.Down,
                     onFlipEnd: () => {
                       if (
                         flipEnded &&
@@ -175,8 +189,7 @@ class FlipGesture extends Gesture {
   }
 
   public onRelease(pointerInfo: PointerInfo): void {
-    // eslint-disable-next-line no-console
-    console.log(pointerInfo);
+    //
   }
 
   public computeObjSpaceData(assetMesh: AbstractMesh):

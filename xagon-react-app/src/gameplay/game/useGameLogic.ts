@@ -15,9 +15,9 @@ import {
   Hexagons,
 } from 'gameplay/ShapeDetector/shapesVerify';
 import Triangle from 'models/Triangle';
-import setupCamera from '../../components/GameComponent/setupCamera';
-import setupLight from '../../components/GameComponent/setupLight';
-import InputManager from '../../components/GameComponent/InputManager';
+import setupCamera from 'components/GameComponent/setupCamera';
+import setupLight from 'components/GameComponent/setupLight';
+import InputManager from 'components/GameComponent/InputManager';
 
 const useGameLogic = (): {
   onRender: (scene: Scene) => void;

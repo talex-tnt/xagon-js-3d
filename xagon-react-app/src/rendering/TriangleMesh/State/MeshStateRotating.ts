@@ -11,6 +11,7 @@ import {
   StandardMaterial,
   Matrix,
 } from '@babylonjs/core';
+import { Direction } from 'components/GameComponent/InputManager/FlipGesture';
 import { DEBUG_RENDERING } from 'constants/debug';
 import Triangle from 'models/Triangle';
 import TriangleMesh from '..';
@@ -102,7 +103,7 @@ class MeshStateRotating extends IMeshState {
       const rotationData = this.computeRotationData(vertIndices);
 
       if (rotationData) {
-        if (direction === 1) {
+        if (direction === Direction.Down) {
           this.rotation.angle = -rotationData.rotationDownAngle;
         } else {
           this.rotation.angle = Math.PI * 2 - rotationData.rotationDownAngle;
@@ -147,46 +148,48 @@ class MeshStateRotating extends IMeshState {
 
         if (DEBUG_RENDERING) {
           const vertices = this.mesh.getVertices();
-          // eslint-disable-next-line no-console
-          console.log(
-            'TriangleID - ',
-            this.mesh.getTriangle().getId(),
-            'AdjacentTriangleID - ',
-            this.adjacentMesh.getTriangle().getId(),
-          );
-          const meshSPHERE1 = MeshBuilder.CreateSphere(
-            `tr1${this.mesh.getTriangle().getName()}`,
-            {
-              diameter: 0.1,
-            },
-          );
-          meshSPHERE1.parent = this.scalingNode.node;
-          meshSPHERE1.position = vertices[0].scale(1.5);
-          const mat1 = new StandardMaterial(`color${vertices[0]}`, scene);
-          mat1.diffuseColor = new Color3(0, 0, 1);
-          meshSPHERE1.material = mat1;
-          const meshSPHERE2 = MeshBuilder.CreateSphere(
-            `tr2${this.mesh.getTriangle().getName()}`,
-            {
-              diameter: 0.1,
-            },
-          );
-          meshSPHERE2.parent = this.scalingNode.node;
-          meshSPHERE2.position = vertices[1].scale(1.5);
-          const mat2 = new StandardMaterial(`color${vertices[1]}`, scene);
-          mat2.diffuseColor = new Color3(0, 1, 0);
-          meshSPHERE2.material = mat2;
-          const meshSPHERE3 = MeshBuilder.CreateSphere(
-            `tr3${this.mesh.getTriangle().getName()}`,
-            {
-              diameter: 0.1,
-            },
-          );
-          meshSPHERE3.parent = this.scalingNode.node;
-          meshSPHERE3.position = vertices[2].scale(1.5);
-          const mat3 = new StandardMaterial(`color${vertices[2]}`, scene);
-          mat3.diffuseColor = new Color3(1, 0, 0);
-          meshSPHERE3.material = mat3;
+          if (vertices) {
+            // eslint-disable-next-line no-console
+            console.log(
+              'TriangleID - ',
+              this.mesh.getTriangle().getId(),
+              'AdjacentTriangleID - ',
+              this.adjacentMesh.getTriangle().getId(),
+            );
+            const meshSPHERE1 = MeshBuilder.CreateSphere(
+              `tr1${this.mesh.getTriangle().getName()}`,
+              {
+                diameter: 0.1,
+              },
+            );
+            meshSPHERE1.parent = this.scalingNode.node;
+            meshSPHERE1.position = vertices[0].scale(1.5);
+            const mat1 = new StandardMaterial(`color${vertices[0]}`, scene);
+            mat1.diffuseColor = new Color3(0, 0, 1);
+            meshSPHERE1.material = mat1;
+            const meshSPHERE2 = MeshBuilder.CreateSphere(
+              `tr2${this.mesh.getTriangle().getName()}`,
+              {
+                diameter: 0.1,
+              },
+            );
+            meshSPHERE2.parent = this.scalingNode.node;
+            meshSPHERE2.position = vertices[1].scale(1.5);
+            const mat2 = new StandardMaterial(`color${vertices[1]}`, scene);
+            mat2.diffuseColor = new Color3(0, 1, 0);
+            meshSPHERE2.material = mat2;
+            const meshSPHERE3 = MeshBuilder.CreateSphere(
+              `tr3${this.mesh.getTriangle().getName()}`,
+              {
+                diameter: 0.1,
+              },
+            );
+            meshSPHERE3.parent = this.scalingNode.node;
+            meshSPHERE3.position = vertices[2].scale(1.5);
+            const mat3 = new StandardMaterial(`color${vertices[2]}`, scene);
+            mat3.diffuseColor = new Color3(1, 0, 0);
+            meshSPHERE3.material = mat3;
+          }
         }
       }
     }
@@ -197,7 +200,7 @@ class MeshStateRotating extends IMeshState {
     const deltaTimeInMs = this.scene.getEngine().getDeltaTime();
     const scalingNode = this.scalingNode.node as TransformNode;
     const flipNode = this.flipNode as TransformNode;
-    const skeleton = this.skeleton.bones as Bone[];
+    const skeletonBones = this.skeleton.bones as Bone[];
     const bonesScaling = this.skeleton.bonesScaling as Vector3[];
     const { bonesDeformation } = this.skeleton;
 
@@ -218,12 +221,12 @@ class MeshStateRotating extends IMeshState {
       );
 
       if (
-        skeleton &&
+        skeletonBones &&
         bonesScaling &&
         this.adjBonesScalingY &&
         bonesDeformation
       ) {
-        skeleton.slice(0, 2).forEach((b, i) => {
+        skeletonBones.slice(0, 2).forEach((b, i) => {
           const { rotation } = b;
           rotation.y -= Scalar.Lerp(
             0,
@@ -239,11 +242,11 @@ class MeshStateRotating extends IMeshState {
             Scalar.Lerp(boneScaling.y, this.adjBonesScalingY[i], this.amount),
         );
         this.skeleton.bonesIndices.forEach((boneIndex, i) => {
-          skeleton[boneIndex].setScale(
+          skeletonBones[boneIndex].setScale(
             new Vector3(
-              skeleton[boneIndex].scaling.x,
+              skeletonBones[boneIndex].scaling.x,
               bonesScaleY[i],
-              skeleton[boneIndex].scaling.z,
+              skeletonBones[boneIndex].scaling.z,
             ),
           );
         });
@@ -278,7 +281,7 @@ class MeshStateRotating extends IMeshState {
   }
 
   private getRotationSpeed(): number {
-    const rpm = 30;
+    const rpm = 120;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
   }
