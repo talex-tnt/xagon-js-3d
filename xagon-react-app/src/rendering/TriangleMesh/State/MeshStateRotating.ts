@@ -122,8 +122,8 @@ class MeshStateRotating extends IMeshState {
           .subtract(centerShiftVector);
 
         this.skeleton.bones = trMesh.skeleton && trMesh.skeleton.bones;
-        this.skeleton.bonesScaling = this.getBonesScaling();
         this.skeleton.bonesIndices = this.getBonesIndices(vertIndices);
+        this.skeleton.bonesScaling = this.getBonesScaling();
 
         const adjVertIndices = adjacentsVerticesMap.adjTrAdjs;
         this.adjBonesScalingY = this.computeAdjBonesScalingY(adjVertIndices);
