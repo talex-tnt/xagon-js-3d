@@ -7,7 +7,7 @@ import {
   Vector2,
   Matrix,
 } from '@babylonjs/core';
-import { k_gestureLength, k_gestureDeltaTimeThreshold } from 'constants/index';
+import { k_gestureLength, k_gestureDeltaTimeThreshold } from 'game-constants';
 import TriangleMesh from 'rendering/TriangleMesh';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';

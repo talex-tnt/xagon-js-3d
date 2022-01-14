@@ -9,7 +9,7 @@ import {
   MeshBuilder,
   // PointerEventTypes, // #DEBUG
 } from '@babylonjs/core';
-import { DEBUG_RENDERING } from 'constants/debug';
+import { DEBUG_RENDERING } from 'game-constants/debug';
 
 import Triangle, { TriangleId } from 'models/Triangle';
 
