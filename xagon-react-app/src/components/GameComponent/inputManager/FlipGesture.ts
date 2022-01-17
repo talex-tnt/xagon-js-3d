@@ -3,9 +3,7 @@ import {
   PointerInfo,
   Scene,
   Nullable,
-  Vector3,
   Vector2,
-  Matrix,
 } from '@babylonjs/core';
 import { k_gestureLength, k_gestureDeltaTimeThreshold } from 'game-constants';
 import TriangleMesh from 'rendering/TriangleMesh';
@@ -20,8 +18,8 @@ interface GestureContext {
 }
 
 export enum Direction {
-  Up = -1,
-  Down = 1,
+  Up = 1,
+  Down,
 }
 
 class FlipGesture extends Gesture {
