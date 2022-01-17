@@ -7,7 +7,7 @@ import {
   VertexData,
   Color3,
   MeshBuilder,
-  // PointerEventTypes, // #DEBUG
+  PointerEventTypes,
 } from '@babylonjs/core';
 import { DEBUG_RENDERING } from 'game-constants/debug';
 
@@ -45,40 +45,39 @@ const generateInputMesh = (
     mesh.metadata = { triangle };
   });
 
-  // #DEBUG
-  // scene.onPointerObservable.add((pointerInfo) => {
-  //   switch (pointerInfo.type) {
-  //     case PointerEventTypes.POINTERDOWN:
-  //       {
-  //         const mesh =
-  //           pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
-  //         const metadata = mesh && mesh.metadata;
-  //         if (metadata) {
-  //           const { triangle } = metadata;
-  //           const adjacentIds: Array<TriangleId> = triangle
-  //             .getAdjacents()
-  //             .map((tr: Triangle) => tr?.getId() || -1);
-  //           // eslint-disable-next-line no-console
-  //           // console.log('picked triangle', triangle, adjacentIds);
-  //           adjacentIds.forEach((adjId) => {
-  //             const adjMesh = scene.getMeshByName(getMeshName(adjId));
-  //             // console.log('adj mesh', adjMesh);
+  if (DEBUG_RENDERING) {
+    scene.onPointerObservable.add((pointerInfo) => {
+      switch (pointerInfo.type) {
+        case PointerEventTypes.POINTERDOWN:
+          {
+            const mesh =
+              pointerInfo?.pickInfo?.hit && pointerInfo.pickInfo.pickedMesh;
+            const metadata = mesh && mesh.metadata;
+            if (metadata) {
+              const { triangle } = metadata;
+              const adjacentIds: Array<TriangleId> = triangle
+                .getAdjacents()
+                .map((tr: Triangle) => tr?.getId() || -1);
 
-  //             if (adjMesh && adjMesh.material) {
-  //               // adjMesh.material.alpha = 0.5;
-  //               const mat: StandardMaterial =
-  //                 adjMesh.material as StandardMaterial;
-  //               mat.diffuseColor = new Color3(0, 0, 0);
-  //             }
-  //           });
-  //         }
-  //       }
+              adjacentIds.forEach((adjId) => {
+                const adjMesh = scene.getMeshByName(getMeshName(adjId));
 
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // });
+                if (adjMesh && adjMesh.material) {
+                  adjMesh.material.alpha = 0.5;
+                  const mat: StandardMaterial =
+                    adjMesh.material as StandardMaterial;
+                  mat.diffuseColor = new Color3(0, 0, 0);
+                }
+              });
+            }
+          }
+
+          break;
+        default:
+          break;
+      }
+    });
+  }
 };
 
 const createVertexData = (triangle: Triangle, renderNormals: boolean) => {

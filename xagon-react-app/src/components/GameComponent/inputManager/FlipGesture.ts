@@ -13,7 +13,6 @@ import Gesture from './Gesture';
 interface GestureContext {
   scene: Scene;
   triangleMesh: AbstractMesh;
-  scalingRatio: number;
   onFlipEnded: () => void;
 }
 
