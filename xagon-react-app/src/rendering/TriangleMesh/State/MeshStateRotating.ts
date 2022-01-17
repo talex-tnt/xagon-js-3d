@@ -147,7 +147,7 @@ class MeshStateRotating extends IMeshState {
             : adjTriangleAdjVertIndices[index];
 
         this.scalingNode.rotationAngle =
-          this.computeNodeRotationAngle(adjTriangleVertIndex);
+          this.computeNodeRotationAngleToVertex(adjTriangleVertIndex);
 
         this.skeleton.bonesDeformation =
           this.computeBonesDeformation(adjTriangleVertIndex);
@@ -412,17 +412,17 @@ class MeshStateRotating extends IMeshState {
     return adjBonesScalingY;
   }
 
-  private computeNodeRotationAngle(vertIndex: number): number {
-    const matrix = this.computeMatrix();
+  private computeNodeRotationAngleToVertex(vertexIndex: number): number {
+    const matrix = this.computeFinPosWorldMatrix();
 
-    const centerPointAfterRotation = Vector3.TransformCoordinates(
+    const rotatedCenterPoint = Vector3.TransformCoordinates(
       new Vector3(0, 0, 0),
       matrix,
     );
     const vertices = this.mesh.getVertices();
 
     if (vertices) {
-      const worldVertAfterRotation = vertices.map((v) =>
+      const rotatedWorldVertices = vertices.map((v) =>
         Vector3.TransformCoordinates(v, matrix),
       );
 
@@ -430,10 +430,10 @@ class MeshStateRotating extends IMeshState {
       const adjTriangleCenter = adjTriangle.getCenterPoint();
       const adjTriangleVertices = adjTriangle.getVertices();
       const adjPointCenterVector =
-        adjTriangleVertices[vertIndex].subtract(adjTriangleCenter);
+        adjTriangleVertices[vertexIndex].subtract(adjTriangleCenter);
 
       const nodeRotationAngle = Vector3.GetAngleBetweenVectors(
-        worldVertAfterRotation[0].subtract(centerPointAfterRotation),
+        rotatedWorldVertices[0].subtract(rotatedCenterPoint),
         adjPointCenterVector,
         adjTriangleCenter,
       );
@@ -443,7 +443,7 @@ class MeshStateRotating extends IMeshState {
     return 0;
   }
 
-  private computeMatrix(): Matrix {
+  private computeFinPosWorldMatrix(): Matrix {
     const mesh = this.mesh.getTriangleMesh();
     if (mesh && this.flipNode && this.scalingNode.node) {
       this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
@@ -465,11 +465,7 @@ class MeshStateRotating extends IMeshState {
         this.rotation.axis,
         0,
       );
-      this.scalingNode.node.position = Vector3.Lerp(
-        this.scalingNode.finalPosition,
-        this.scalingNode.originalPosition,
-        1,
-      );
+      this.scalingNode.node.position = this.scalingNode.originalPosition;
       return matrix;
     }
     // eslint-disable-next-line no-console
@@ -478,17 +474,17 @@ class MeshStateRotating extends IMeshState {
   }
 
   private computeBonesDeformation(index: number): number[] {
-    const customTriangleVertices = this.computeCustomTriangleVertices(
+    const rotatedTriangleVertices = this.computeRotatedTriangleVertices(
       this.adjacentMesh,
       index,
     );
 
-    const bonesRotations = this.adjacentMesh.computeAngleBonesRotation({
+    const bonesRotations = this.adjacentMesh.computeBonesRotationAngle({
       triangle: new Triangle(
         BigInt(0),
-        customTriangleVertices[0],
-        customTriangleVertices[1],
-        customTriangleVertices[2],
+        rotatedTriangleVertices[0],
+        rotatedTriangleVertices[1],
+        rotatedTriangleVertices[2],
       ),
     });
     const bonesFirstRotations = this.mesh.getAngleBonesRotation();
@@ -499,29 +495,29 @@ class MeshStateRotating extends IMeshState {
     return [bone1DeltaRotation, bone2DeltaRotation];
   }
 
-  private computeCustomTriangleVertices(
+  private computeRotatedTriangleVertices(
     mesh: TriangleMesh,
-    index: number,
+    vertexIndex: number,
   ): Vector3[] {
-    let customTriangleIndices: number[] = [];
-    switch (index) {
+    let rotatedTriangleIndices: number[] = [];
+    switch (vertexIndex) {
       case 0: {
-        customTriangleIndices = [0, 1, 2];
+        rotatedTriangleIndices = [0, 1, 2];
         break;
       }
       case 1: {
-        customTriangleIndices = [1, 2, 0];
+        rotatedTriangleIndices = [1, 2, 0];
         break;
       }
       case 2: {
-        customTriangleIndices = [2, 0, 1];
+        rotatedTriangleIndices = [2, 0, 1];
         break;
       }
       default:
     }
     const vertices = mesh.getTriangle().getVertices();
 
-    const customTriangleVertices = customTriangleIndices.map(
+    const customTriangleVertices = rotatedTriangleIndices.map(
       (i) => vertices[i],
     );
 
@@ -538,9 +534,9 @@ class MeshStateRotating extends IMeshState {
     const triangleMesh = this.mesh.getTriangleMesh();
 
     if (triangleMesh) {
-      const objSpaceData = this.mesh.computeObjSpaceData(triangleMesh);
+      const vertices = this.mesh.computeObjSpaceAssetMeshVertices();
 
-      if (objSpaceData) {
+      if (vertices) {
         const triangleMeshMatrix = triangleMesh.computeWorldMatrix(true);
 
         const centerADJ = Vector3.TransformCoordinates(
@@ -549,12 +545,12 @@ class MeshStateRotating extends IMeshState {
         );
 
         const point1 = this.computeVectorProjectionPoint({
-          vertices: objSpaceData.vertices,
+          vertices,
           index1: indices[1],
           index2: indices[0],
         });
         const point2 = this.computeVectorProjectionPoint({
-          vertices: objSpaceData.vertices,
+          vertices,
           center: centerADJ,
           index1: indices[0],
           index2: indices[1],

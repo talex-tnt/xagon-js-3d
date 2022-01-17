@@ -182,38 +182,6 @@ class FlipGesture extends Gesture {
     //
   }
 
-  public computeObjSpaceData(assetMesh: AbstractMesh):
-    | {
-        vertices: Vector3[];
-        edges: Vector3[];
-      }
-    | undefined {
-    if (assetMesh) {
-      const tr = assetMesh.metadata.triangleMesh.getTriangle();
-      const matrix = assetMesh.computeWorldMatrix(true);
-      const vertices = [
-        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)).scale(
-          this.context.scalingRatio,
-        ),
-        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)).scale(
-          this.context.scalingRatio,
-        ),
-        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)).scale(
-          this.context.scalingRatio,
-        ),
-      ];
-
-      const edges = vertices.map((v, i) =>
-        v.subtract(vertices[(i + 1) % vertices.length]),
-      );
-
-      return { vertices, edges };
-    }
-    // eslint-disable-next-line no-console
-    console.assert(typeof assetMesh === 'object', 'Asset not found');
-    return undefined;
-  }
-
   public getTriangleMesh(mesh: AbstractMesh): Nullable<TriangleMesh> {
     const originalMesh = getAssetMesh({
       scene: this.context.scene,
@@ -223,10 +191,12 @@ class FlipGesture extends Gesture {
     if (originalMesh) {
       const { triangleMesh } = originalMesh.metadata;
       if (triangleMesh) {
-        const data = this.computeObjSpaceData(originalMesh);
-        if (data) {
-          triangleMesh.setVertices(data.vertices);
-          triangleMesh.setEdges(data.edges);
+        const vertices = triangleMesh.computeObjSpaceVertices();
+        const edges = triangleMesh.computeObjSpaceEdges(vertices);
+
+        if (vertices && edges) {
+          triangleMesh.setVertices(vertices);
+          triangleMesh.setEdges(edges);
 
           return triangleMesh;
         }
