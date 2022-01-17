@@ -94,13 +94,13 @@ class MeshStateRotating extends IMeshState {
     if (trMesh) {
       this.scalingNode.node = trMesh.parent as TransformNode;
 
-      const vertIndices = adjacentsVerticesMap.trAdjs;
+      const thisTriangleAdjVertIndices = adjacentsVerticesMap.trAdjs;
 
-      this.rotation.axis = this.computeRotationAxis(vertIndices);
+      this.rotation.axis = this.computeRotationAxis(thisTriangleAdjVertIndices);
 
-      this.flipNode = this.computeFlipNodePosition(vertIndices);
+      this.flipNode = this.computeFlipNodePosition(thisTriangleAdjVertIndices);
 
-      const rotationData = this.computeRotationData(vertIndices);
+      const rotationData = this.computeRotationData(thisTriangleAdjVertIndices);
 
       if (rotationData) {
         if (direction === Direction.Down) {
@@ -123,28 +123,34 @@ class MeshStateRotating extends IMeshState {
           .subtract(centerShiftVector);
 
         this.skeleton.bones = trMesh.skeleton && trMesh.skeleton.bones;
-        this.skeleton.bonesIndices = this.getBonesIndices(vertIndices);
+        this.skeleton.bonesIndices = this.getBonesIndices(
+          thisTriangleAdjVertIndices,
+        );
         this.skeleton.bonesScaling = this.getBonesScaling();
 
-        const adjVertIndices = adjacentsVerticesMap.adjTrAdjs;
-        this.adjBonesScalingY = this.computeAdjBonesScalingY(adjVertIndices);
-
-        const adjNotAdjVertexIndex = [0, 1, 2].findIndex(
-          (e) => e !== adjVertIndices[0] && e !== adjVertIndices[1],
+        const adjTriangleAdjVertIndices = adjacentsVerticesMap.adjTrAdjs;
+        this.adjBonesScalingY = this.computeAdjBonesScalingY(
+          adjTriangleAdjVertIndices,
         );
 
-        let vertIndex = vertIndices.findIndex((v) => v === 0);
-        if (vertIndex === -1) {
-          vertIndex = adjNotAdjVertexIndex;
-        } else {
-          vertIndex = adjVertIndices[vertIndex];
-        }
+        const adjTriangleNotAdjVertexIndex = [0, 1, 2].findIndex(
+          (e) =>
+            e !== adjTriangleAdjVertIndices[0] &&
+            e !== adjTriangleAdjVertIndices[1],
+        );
+
+        const index = thisTriangleAdjVertIndices.findIndex((v) => v === 0);
+
+        const adjTriangleVertIndex =
+          index === -1
+            ? adjTriangleNotAdjVertexIndex
+            : adjTriangleAdjVertIndices[index];
 
         this.scalingNode.rotationAngle =
-          this.computeNodeRotationAngle(vertIndex);
+          this.computeNodeRotationAngle(adjTriangleVertIndex);
 
         this.skeleton.bonesDeformation =
-          this.computeBonesDeformation(vertIndex);
+          this.computeBonesDeformation(adjTriangleVertIndex);
 
         if (DEBUG_RENDERING) {
           const vertices = this.mesh.getVertices();
