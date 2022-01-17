@@ -99,28 +99,18 @@ class FlipGesture extends Gesture {
               mesh.metadata.triangle &&
               mesh.metadata.triangle.getId() !== firstTriangle.getId()
             ) {
-              const originalMesh = getAssetMesh({
-                scene: this.context.scene,
-                triangleMesh: mesh,
-              });
+              const assetMesh = this.getTriangleMesh(mesh);
 
-              if (originalMesh) {
-                const assetMesh = originalMesh.metadata.triangleMesh;
-                const data = this.computeObjSpaceData(originalMesh);
-                if (data) {
-                  assetMesh.setVertices(data.vertices);
-                  assetMesh.setEdges(data.edges);
+              if (assetMesh) {
+                const assetMeshID = assetMesh.getTriangle().getId();
 
-                  const assetMeshID = assetMesh.getTriangle().getId();
+                const isAdjacent = !!this.firstTriangleMesh
+                  .getTriangle()
+                  .getAdjacents()
+                  .find((a) => a?.getId() === assetMeshID);
 
-                  const isAdjacent = !!this.firstTriangleMesh
-                    .getTriangle()
-                    .getAdjacents()
-                    .find((a) => a?.getId() === assetMeshID);
-
-                  if (isAdjacent) {
-                    this.secondTriangleMesh = assetMesh;
-                  }
+                if (isAdjacent) {
+                  this.secondTriangleMesh = assetMesh;
                 }
               }
 
