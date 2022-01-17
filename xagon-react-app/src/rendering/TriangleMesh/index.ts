@@ -39,6 +39,8 @@ class TriangleMesh {
 
   private scalingNodeInitialPosition: Vector3 = Vector3.Zero();
 
+  private scalingNodeInitialRotation: Vector3 = Vector3.Zero();
+
   private currentState: IMeshState;
 
   public constructor({
@@ -472,6 +474,7 @@ class TriangleMesh {
     const scalingNode = mesh?.parent as TransformNode;
     const flipNode = scalingNode.parent as TransformNode;
     scalingNode.position = this.scalingNodeInitialPosition;
+    scalingNode.rotation = this.scalingNodeInitialRotation;
     flipNode.position = this.scalingNodeInitialPosition;
     flipNode.rotationQuaternion = new Quaternion(0, 0, 0, 1);
 

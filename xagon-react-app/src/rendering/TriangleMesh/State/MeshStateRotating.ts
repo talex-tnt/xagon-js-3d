@@ -201,97 +201,6 @@ class MeshStateRotating extends IMeshState {
     }
   }
 
-  public update(): Nullable<IMeshState> {
-    const rotationSpeed = this.getRotationSpeed();
-    const deltaTimeInMs = this.scene.getEngine().getDeltaTime();
-    const scalingNode = this.scalingNode.node as TransformNode;
-    const flipNode = this.flipNode as TransformNode;
-    const skeletonBones = this.skeleton.bones as Bone[];
-    const bonesScaling = this.skeleton.bonesScaling as Vector3[];
-    const { bonesDeformation } = this.skeleton;
-
-    if (this.amount < 1) {
-      flipNode.rotationQuaternion = Quaternion.RotationAxis(
-        this.rotation.axis,
-        Scalar.LerpAngle(0, this.rotation.angle, this.amount),
-      );
-      scalingNode.position = Vector3.Lerp(
-        this.scalingNode.originalPosition,
-        this.scalingNode.finalPosition,
-        this.amount,
-      );
-      scalingNode.rotation.y = Scalar.LerpAngle(
-        0,
-        -this.scalingNode.rotationAngle,
-        this.amount,
-      );
-
-      if (
-        skeletonBones &&
-        bonesScaling &&
-        this.adjBonesScalingY &&
-        bonesDeformation
-      ) {
-        skeletonBones.slice(0, 2).forEach((b, i) => {
-          const { rotation } = b;
-          rotation.y -= Scalar.Lerp(
-            0,
-            bonesDeformation[i],
-            rotationSpeed * (deltaTimeInMs / 1000),
-          );
-          b.setRotation(rotation);
-        });
-
-        const bonesScaleY = bonesScaling.map(
-          (boneScaling, i) =>
-            boneScaling &&
-            Scalar.Lerp(boneScaling.y, this.adjBonesScalingY[i], this.amount),
-        );
-        this.skeleton.bonesIndices.forEach((boneIndex, i) => {
-          skeletonBones[boneIndex].setScale(
-            new Vector3(
-              skeletonBones[boneIndex].scaling.x,
-              bonesScaleY[i],
-              skeletonBones[boneIndex].scaling.z,
-            ),
-          );
-        });
-      }
-      this.amount += rotationSpeed * (deltaTimeInMs / 1000);
-
-      if (DEBUG_RENDERING) {
-        const meshLine = MeshBuilder.CreateSphere(
-          `tr${this.mesh.getTriangle().getName()}`,
-          {
-            diameter: 0.1,
-          },
-        );
-        meshLine.parent = scalingNode;
-      }
-    } else if (this.amount >= 1) {
-      scalingNode.rotation.y = Scalar.LerpAngle(
-        0,
-        -this.scalingNode.rotationAngle,
-        0,
-      );
-      this.nextState = new MeshStateIdle({
-        triangleMesh: this.mesh,
-        scene: this.scene,
-      });
-      if (this.onFlipEnd) {
-        this.onFlipEnd();
-      }
-    }
-
-    return this.nextState;
-  }
-
-  private getRotationSpeed(): number {
-    const rpm = 5;
-    const rotationSpeed = (rpm / 60) * Math.PI * 2;
-    return rotationSpeed;
-  }
-
   private computeRotationAxis(vertIndices: number[]): Vector3 {
     const vertIndicesSum = this.mesh.getTriangleMeshIndicesSum(vertIndices);
     const edgeIndex = this.mesh.getTriangleMeshFlipEdgeIndex(vertIndicesSum);
@@ -323,6 +232,98 @@ class MeshStateRotating extends IMeshState {
     return null;
   }
 
+  private computeRotationData(indices: number[]): Nullable<{
+    rotationVector: Vector3;
+    adjRotationVector: Vector3;
+    rotationDownAngle: number;
+  }> {
+    const worldSpaceVertices = this.mesh.getTriangle().getVertices();
+
+    const triangleMesh = this.mesh.getTriangleMesh();
+
+    if (triangleMesh) {
+      const vertices = this.mesh.computeObjSpaceAssetMeshVertices();
+
+      if (vertices) {
+        const triangleMeshMatrix = triangleMesh.computeWorldMatrix(true);
+
+        const centerADJ = Vector3.TransformCoordinates(
+          this.adjacentMesh.getTriangle().getCenterPoint(),
+          Matrix.Invert(triangleMeshMatrix),
+        );
+
+        const point1 = this.computeVectorProjectionPoint({
+          vertices,
+          index1: indices[1],
+          index2: indices[0],
+        });
+        const point2 = this.computeVectorProjectionPoint({
+          vertices,
+          center: centerADJ,
+          index1: indices[0],
+          index2: indices[1],
+        });
+
+        const vectorCenterPoint = Vector3.Zero().subtract(point1);
+        const adjVectorCenterPoint = centerADJ.subtract(point2);
+        const normal = Vector3.Cross(vectorCenterPoint, adjVectorCenterPoint);
+
+        const rotationDownAngle = Math.abs(
+          Vector3.GetAngleBetweenVectors(
+            vectorCenterPoint,
+            adjVectorCenterPoint,
+            normal,
+          ),
+        );
+
+        const worldSpaceAdjEdgeCenterPoint = Vector3.Center(
+          worldSpaceVertices[indices[0]],
+          worldSpaceVertices[indices[1]],
+        );
+        const rotationVector = this.mesh
+          .getTriangle()
+          .getCenterPoint()
+          .subtract(worldSpaceAdjEdgeCenterPoint);
+        const adjRotationVector = this.adjacentMesh
+          .getTriangle()
+          .getCenterPoint()
+          .subtract(worldSpaceAdjEdgeCenterPoint);
+
+        return { rotationVector, adjRotationVector, rotationDownAngle };
+      }
+    }
+    return null;
+  }
+
+  private computeVectorProjectionPoint({
+    vertices,
+    center = Vector3.Zero(),
+    index1,
+    index2,
+  }: {
+    vertices: Vector3[];
+    center?: Vector3;
+    index1: number;
+    index2: number;
+  }): Vector3 {
+    const worldSpaceAdjEdge = vertices[index1].subtract(vertices[index2]);
+
+    const projectionAngle = Vector3.GetAngleBetweenVectors(
+      center.subtract(vertices[index2]),
+      worldSpaceAdjEdge,
+      Vector3.Cross(center.subtract(vertices[index2]), worldSpaceAdjEdge),
+    );
+
+    const scalarProjection =
+      center.subtract(vertices[index2]).length() * Math.cos(projectionAngle);
+
+    const point = vertices[index2].add(
+      worldSpaceAdjEdge.scale(scalarProjection / worldSpaceAdjEdge.length()),
+    );
+
+    return point;
+  }
+
   private computeCenterShiftVector(
     verticesMap: Record<string, number[]>,
   ): Vector3 {
@@ -352,6 +353,30 @@ class MeshStateRotating extends IMeshState {
       return centerShiftVector;
     }
     return Vector3.Zero();
+  }
+
+  private computeVectorProjectionRatio(
+    vertices: Vector3[],
+    indices: number[],
+  ): number {
+    const vectorCenterVertex = Vector3.Zero().subtract(vertices[indices[0]]);
+    const edgeVector = vertices[indices[1]].subtract(vertices[indices[0]]);
+    const normalToComputeAngle = Vector3.Cross(vectorCenterVertex, edgeVector);
+
+    const projectionAngle = Vector3.GetAngleBetweenVectors(
+      vectorCenterVertex,
+      edgeVector,
+      normalToComputeAngle,
+    );
+
+    const scalarProjection =
+      vectorCenterVertex.length() * Math.cos(projectionAngle);
+
+    const vectorProjectionRatio = Math.abs(
+      scalarProjection / edgeVector.length(),
+    );
+
+    return vectorProjectionRatio;
   }
 
   private getBonesIndices(indices: number[]): number[] {
@@ -524,120 +549,102 @@ class MeshStateRotating extends IMeshState {
     return customTriangleVertices;
   }
 
-  private computeRotationData(indices: number[]): Nullable<{
-    rotationVector: Vector3;
-    adjRotationVector: Vector3;
-    rotationDownAngle: number;
-  }> {
-    const worldSpaceVertices = this.mesh.getTriangle().getVertices();
+  public update(): Nullable<IMeshState> {
+    const rotationSpeed = this.getRotationSpeed();
+    const deltaTimeInMs = this.scene.getEngine().getDeltaTime();
+    const { amount } = this;
 
-    const triangleMesh = this.mesh.getTriangleMesh();
+    if (amount < 1) {
+      this.setupNodesOnFlipping(amount);
+      this.setupBonesOnFlipping(amount);
 
-    if (triangleMesh) {
-      const vertices = this.mesh.computeObjSpaceAssetMeshVertices();
+      this.amount += rotationSpeed * (deltaTimeInMs / 1000);
 
-      if (vertices) {
-        const triangleMeshMatrix = triangleMesh.computeWorldMatrix(true);
-
-        const centerADJ = Vector3.TransformCoordinates(
-          this.adjacentMesh.getTriangle().getCenterPoint(),
-          Matrix.Invert(triangleMeshMatrix),
+      if (DEBUG_RENDERING) {
+        const scalingNode = this.scalingNode.node as TransformNode;
+        const meshLine = MeshBuilder.CreateSphere(
+          `tr${this.mesh.getTriangle().getName()}`,
+          {
+            diameter: 0.1,
+          },
         );
+        meshLine.parent = scalingNode;
+      }
+    } else if (amount >= 1) {
+      this.completeFlipping();
+    }
 
-        const point1 = this.computeVectorProjectionPoint({
-          vertices,
-          index1: indices[1],
-          index2: indices[0],
+    return this.nextState;
+  }
+
+  private getRotationSpeed(): number {
+    const rpm = 5;
+    const rotationSpeed = (rpm / 60) * Math.PI * 2;
+    return rotationSpeed;
+  }
+
+  private setupNodesOnFlipping(amount: number): void {
+    if (this.flipNode && this.scalingNode.node) {
+      this.flipNode.rotationQuaternion = Quaternion.RotationAxis(
+        this.rotation.axis,
+        Scalar.LerpAngle(0, this.rotation.angle, amount),
+      );
+      this.scalingNode.node.position = Vector3.Lerp(
+        this.scalingNode.originalPosition,
+        this.scalingNode.finalPosition,
+        amount,
+      );
+      this.scalingNode.node.rotation.y = Scalar.LerpAngle(
+        0,
+        -this.scalingNode.rotationAngle,
+        amount,
+      );
+    }
+  }
+
+  private setupBonesOnFlipping(amount: number): void {
+    const { bones, bonesDeformation, bonesScaling } = this.skeleton;
+    const rotationSpeed = this.getRotationSpeed();
+    const deltaTimeInMs = this.scene.getEngine().getDeltaTime();
+
+    if (bones && bonesDeformation && bonesScaling) {
+      bones.slice(0, 2).forEach((b, i) => {
+        const { rotation } = b;
+        rotation.y -= Scalar.Lerp(
+          0,
+          bonesDeformation[i],
+          rotationSpeed * (deltaTimeInMs / 1000),
+        );
+        b.setRotation(rotation);
+      });
+
+      const bonesScaleY = bonesScaling.map(
+        (boneScaling, i) =>
+          boneScaling &&
+          Scalar.Lerp(boneScaling.y, this.adjBonesScalingY[i], amount),
+      ) as number[];
+      if (bonesScaleY) {
+        this.skeleton.bonesIndices.forEach((boneIndex, i) => {
+          bones[boneIndex].setScale(
+            new Vector3(
+              bones[boneIndex].scaling.x,
+              bonesScaleY[i],
+              bones[boneIndex].scaling.z,
+            ),
+          );
         });
-        const point2 = this.computeVectorProjectionPoint({
-          vertices,
-          center: centerADJ,
-          index1: indices[0],
-          index2: indices[1],
-        });
-
-        const vectorCenterPoint = Vector3.Zero().subtract(point1);
-        const adjVectorCenterPoint = centerADJ.subtract(point2);
-        const normal = Vector3.Cross(vectorCenterPoint, adjVectorCenterPoint);
-
-        const rotationDownAngle = Math.abs(
-          Vector3.GetAngleBetweenVectors(
-            vectorCenterPoint,
-            adjVectorCenterPoint,
-            normal,
-          ),
-        );
-
-        const worldSpaceAdjEdgeCenterPoint = Vector3.Center(
-          worldSpaceVertices[indices[0]],
-          worldSpaceVertices[indices[1]],
-        );
-        const rotationVector = this.mesh
-          .getTriangle()
-          .getCenterPoint()
-          .subtract(worldSpaceAdjEdgeCenterPoint);
-        const adjRotationVector = this.adjacentMesh
-          .getTriangle()
-          .getCenterPoint()
-          .subtract(worldSpaceAdjEdgeCenterPoint);
-
-        return { rotationVector, adjRotationVector, rotationDownAngle };
       }
     }
-    return null;
   }
 
-  private computeVectorProjectionPoint({
-    vertices,
-    center = Vector3.Zero(),
-    index1,
-    index2,
-  }: {
-    vertices: Vector3[];
-    center?: Vector3;
-    index1: number;
-    index2: number;
-  }): Vector3 {
-    const worldSpaceAdjEdge = vertices[index1].subtract(vertices[index2]);
-
-    const projectionAngle = Vector3.GetAngleBetweenVectors(
-      center.subtract(vertices[index2]),
-      worldSpaceAdjEdge,
-      Vector3.Cross(center.subtract(vertices[index2]), worldSpaceAdjEdge),
-    );
-
-    const scalarProjection =
-      center.subtract(vertices[index2]).length() * Math.cos(projectionAngle);
-
-    const point = vertices[index2].add(
-      worldSpaceAdjEdge.scale(scalarProjection / worldSpaceAdjEdge.length()),
-    );
-
-    return point;
-  }
-
-  private computeVectorProjectionRatio(
-    vertices: Vector3[],
-    indices: number[],
-  ): number {
-    const vectorCenterVertex = Vector3.Zero().subtract(vertices[indices[0]]);
-    const edgeVector = vertices[indices[1]].subtract(vertices[indices[0]]);
-    const normalToComputeAngle = Vector3.Cross(vectorCenterVertex, edgeVector);
-
-    const projectionAngle = Vector3.GetAngleBetweenVectors(
-      vectorCenterVertex,
-      edgeVector,
-      normalToComputeAngle,
-    );
-
-    const scalarProjection =
-      vectorCenterVertex.length() * Math.cos(projectionAngle);
-
-    const vectorProjectionRatio = Math.abs(
-      scalarProjection / edgeVector.length(),
-    );
-
-    return vectorProjectionRatio;
+  private completeFlipping(): void {
+    this.nextState = new MeshStateIdle({
+      triangleMesh: this.mesh,
+      scene: this.scene,
+    });
+    if (this.onFlipEnd) {
+      this.onFlipEnd();
+    }
   }
 }
 export default MeshStateRotating;
