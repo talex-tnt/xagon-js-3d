@@ -8,10 +8,12 @@ import {
   Nullable,
   Quaternion,
   Matrix,
+  MeshBuilder,
 } from '@babylonjs/core';
-import { math } from 'utils';
+import { addAxisToScene, math } from 'utils';
 import { k_triangleAssetName } from 'game-constants/identifiers';
 import { k_epsilon, k_triangleScale } from 'game-constants';
+import { DEBUG_RENDERING } from 'game-constants/debug';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
 import IMeshState from './State/IMeshState';
 import MeshStateIdle from './State/MeshStateIdle';
@@ -38,8 +40,6 @@ class TriangleMesh {
   private bonesRotationAngle: number[] = [];
 
   private scalingNodeInitialPosition: Vector3 = Vector3.Zero();
-
-  private scalingNodeInitialRotation: Vector3 = Vector3.Zero();
 
   private currentState: IMeshState;
 
@@ -290,11 +290,23 @@ class TriangleMesh {
       const p1CenterVector = this.triangle.p1().subtract(triangleCenter);
 
       const angle = Vector3.GetAngleBetweenVectors(
-        (positionNode as TransformNode).forward,
+        (rotationNode as TransformNode).forward,
         p1CenterVector,
-        (positionNode as TransformNode).up,
+        (rotationNode as TransformNode).up,
       );
-      (rotationNode as TransformNode).rotate(this.triangleMesh.up, angle);
+
+      if (Math.abs(angle) > 0.05) {
+        (rotationNode as TransformNode).rotate(this.triangleMesh.up, angle);
+      } else if (DEBUG_RENDERING) {
+        addAxisToScene({
+          scene,
+          size: 0.5,
+          parent: rotationNode as TransformNode,
+        });
+        MeshBuilder.CreateLines('line', {
+          points: [this.triangle.p1(), triangleCenter],
+        });
+      }
     }
   }
 
@@ -474,7 +486,7 @@ class TriangleMesh {
     const scalingNode = mesh?.parent as TransformNode;
     const flipNode = scalingNode.parent as TransformNode;
     scalingNode.position = this.scalingNodeInitialPosition;
-    scalingNode.rotation = this.scalingNodeInitialRotation;
+    scalingNode.rotation.y = 0;
     flipNode.position = this.scalingNodeInitialPosition;
     flipNode.rotationQuaternion = new Quaternion(0, 0, 0, 1);
 
