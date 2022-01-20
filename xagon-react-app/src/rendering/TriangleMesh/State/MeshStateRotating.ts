@@ -242,7 +242,7 @@ class MeshStateRotating extends IMeshState {
     const triangleMesh = this.mesh.getTriangleMesh();
 
     if (triangleMesh) {
-      const vertices = this.mesh.computeObjSpaceAssetMeshVertices();
+      const vertices = this.mesh.computeObjSpaceVertices();
 
       if (vertices) {
         const triangleMeshMatrix = triangleMesh.computeWorldMatrix(true);

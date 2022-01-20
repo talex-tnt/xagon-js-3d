@@ -124,110 +124,6 @@ class TriangleMesh {
     }
   }
 
-  public getVertices(): Nullable<Vector3[]> {
-    return this.triangleVertices;
-  }
-
-  public getEdges(): Nullable<Vector3[]> {
-    return this.triangleEdges;
-  }
-
-  public setVertices(vertices: Vector3[]): void {
-    this.triangleVertices = vertices;
-  }
-
-  public setEdges(edges: Vector3[]): void {
-    this.triangleEdges = edges;
-  }
-
-  public getTriangleMesh(): Nullable<AbstractMesh> {
-    return this.triangleMesh;
-  }
-
-  public update(context?: {
-    adjacentTriangleMesh: TriangleMesh;
-    direction: number;
-    onFlipEnd?: () => void;
-  }): void {
-    const nextState = this.currentState.update(context);
-
-    if (nextState) {
-      this.currentState = nextState;
-    }
-  }
-
-  public flip({
-    triangleMesh,
-    direction,
-    onFlipEnd,
-  }: {
-    triangleMesh: TriangleMesh;
-    direction: number;
-    onFlipEnd?: () => void;
-  }): void {
-    const context = {
-      adjacentTriangleMesh: triangleMesh,
-      direction,
-      onFlipEnd,
-    };
-    this.update(context);
-  }
-
-  public getTriangle(): Triangle {
-    return this.triangle;
-  }
-
-  public getScalingRatio(): number {
-    return this.scalingRatio;
-  }
-
-  public computeObjSpaceAssetMeshVertices(): Vector3[] | undefined {
-    if (this.triangle && this.triangleMesh) {
-      const tr = this.triangle;
-      const matrix = this.triangleMesh.computeWorldMatrix(true);
-      const vertices = [
-        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)),
-        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)),
-        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)),
-      ];
-
-      return vertices;
-    }
-    // eslint-disable-next-line no-console
-    console.assert(this.triangleMesh && this.triangle, 'Asset not found');
-    return undefined;
-  }
-
-  public computeObjSpaceVertices(): Vector3[] | undefined {
-    if (this.triangle && this.triangleMesh) {
-      const tr = this.triangle;
-      const matrix = this.triangleMesh.computeWorldMatrix(true);
-      const vertices = [
-        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)).scale(
-          this.getScalingRatio(),
-        ),
-        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)).scale(
-          this.getScalingRatio(),
-        ),
-        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)).scale(
-          this.getScalingRatio(),
-        ),
-      ];
-
-      return vertices;
-    }
-    // eslint-disable-next-line no-console
-    console.assert(this.triangle && this.triangleMesh, 'Asset not found');
-    return undefined;
-  }
-
-  public computeObjSpaceEdges(vertices: Vector3[]): Vector3[] {
-    const edges = vertices.map((v, i) =>
-      v.subtract(vertices[(i + 1) % vertices.length]),
-    );
-    return edges;
-  }
-
   private createNodesStructure(scene: Scene): void {
     if (this.triangleMesh) {
       const rootNode = scene.getNodeByName('root');
@@ -248,7 +144,6 @@ class TriangleMesh {
 
       scalingNode.parent = flipNode;
       this.triangleMesh.parent = scalingNode;
-
       this.scalingNodeInitialPosition = scalingNode.position;
     }
   }
@@ -343,6 +238,10 @@ class TriangleMesh {
     return [0, 0, 0];
   }
 
+  public setAngleBonesRotation(rotations: number[]): void {
+    this.bonesRotationAngle = rotations;
+  }
+
   public computeBonesDeformation(): Vector3[] {
     // eslint-disable-next-line no-console
     console.assert(
@@ -398,6 +297,87 @@ class TriangleMesh {
     }
   }
 
+  public getTriangle(): Triangle {
+    return this.triangle;
+  }
+
+  public getTriangleMesh(): Nullable<AbstractMesh> {
+    return this.triangleMesh;
+  }
+
+  public getVertices(): Nullable<Vector3[]> {
+    return this.triangleVertices;
+  }
+
+  public setVertices(vertices: Vector3[]): void {
+    this.triangleVertices = vertices;
+  }
+
+  public getEdges(): Nullable<Vector3[]> {
+    return this.triangleEdges;
+  }
+
+  public setEdges(edges: Vector3[]): void {
+    this.triangleEdges = edges;
+  }
+
+  public getScalingRatio(): number {
+    return this.scalingRatio;
+  }
+
+  public flip({
+    triangleMesh,
+    direction,
+    onFlipEnd,
+  }: {
+    triangleMesh: TriangleMesh;
+    direction: number;
+    onFlipEnd?: () => void;
+  }): void {
+    const context = {
+      adjacentTriangleMesh: triangleMesh,
+      direction,
+      onFlipEnd,
+    };
+    this.update(context);
+  }
+
+  public update(context?: {
+    adjacentTriangleMesh: TriangleMesh;
+    direction: number;
+    onFlipEnd?: () => void;
+  }): void {
+    const nextState = this.currentState.update(context);
+
+    if (nextState) {
+      this.currentState = nextState;
+    }
+  }
+
+  public computeObjSpaceVertices(): Vector3[] | undefined {
+    if (this.triangle && this.triangleMesh) {
+      const tr = this.triangle;
+      const matrix = this.triangleMesh.computeWorldMatrix(true);
+      const vertices = [
+        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)),
+        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)),
+        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)),
+      ];
+
+      return vertices;
+    }
+    // eslint-disable-next-line no-console
+    console.assert(this.triangleMesh && this.triangle, 'Asset not found');
+    return undefined;
+  }
+
+  public computeObjSpaceEdges(vertices: Vector3[]): Vector3[] {
+    const edges = vertices.map((v, i) =>
+      v.subtract(vertices[(i + 1) % vertices.length]),
+    );
+    return edges;
+  }
+
   public getAdjacentsVerticesMap(
     adjTriangle: Triangle,
   ): Record<string, number[]> {
@@ -446,41 +426,34 @@ class TriangleMesh {
   }
 
   public getTriangleMeshFlipEdgeIndex(indicesSum: number): number {
-    let flipEdgeIndex = 0;
     switch (indicesSum) {
       case 1:
-        flipEdgeIndex = 0;
-        break;
+        return 0;
       case 2:
-        flipEdgeIndex = 2;
-        break;
+        return 2;
       case 3:
-        flipEdgeIndex = 1;
-        break;
+        return 1;
       default:
     }
-    return flipEdgeIndex;
+    // eslint-disable-next-line no-console
+    console.assert(true, 'return value should be a number beetwen 0 and 2');
+    return -1;
   }
 
   public getAngleBonesRotation(): number[] {
     return this.bonesRotationAngle;
   }
 
-  public setAngleBonesRotation(rotations: number[]): void {
-    this.bonesRotationAngle = rotations;
-  }
-
   public reset(type: Type): void {
-    const mesh = this.getTriangleMesh();
+    const mesh = this.triangleMesh;
     if (mesh && mesh.skeleton) {
-      mesh.skeleton.bones.map((b, i) => {
+      mesh.skeleton.bones.forEach((b, i) => {
         if (this.skeletonBonesScaling) {
           b.setScale(this.skeletonBonesScaling[i]);
         }
         if (this.skeletonBonesRotation) {
           b.setRotation(this.skeletonBonesRotation[i]);
         }
-        return undefined;
       });
     }
     const scalingNode = mesh?.parent as TransformNode;

@@ -4,6 +4,7 @@ import {
   Scene,
   Nullable,
   Vector2,
+  Vector3,
 } from '@babylonjs/core';
 import { k_gestureLength, k_gestureDeltaTimeThreshold } from 'game-constants';
 import TriangleMesh from 'rendering/TriangleMesh';
@@ -189,10 +190,14 @@ class FlipGesture extends Gesture {
       const { triangleMesh } = originalMesh.metadata;
       if (triangleMesh) {
         const vertices = triangleMesh.computeObjSpaceVertices();
-        const edges = triangleMesh.computeObjSpaceEdges(vertices);
+        const scalingRatio = triangleMesh.getScalingRatio();
+        const scaledVertices = vertices.map((v: Vector3) =>
+          v.scale(scalingRatio),
+        );
+        const edges = triangleMesh.computeObjSpaceEdges(scaledVertices);
 
-        if (vertices && edges) {
-          triangleMesh.setVertices(vertices);
+        if (scaledVertices && edges) {
+          triangleMesh.setVertices(scaledVertices);
           triangleMesh.setEdges(edges);
 
           return triangleMesh;
