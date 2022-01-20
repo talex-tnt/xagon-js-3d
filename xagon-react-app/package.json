@@ -1,19 +1,25 @@
 {
   "name": "xagon-react-app",
-  "version": "0.1.0",
+  "version": "0.1.7",
   "private": true,
   "dependencies": {
     "@babel/core": "^7.15.5",
     "@babylonjs/core": "^4.2.0",
     "@babylonjs/gui": "^4.2.0",
     "@babylonjs/loaders": "^4.2.0",
+    "@testdeck/mocha": "^0.2.0",
     "cannon": "^0.6.2",
+    "chai": "^4.3.4",
+    "mocha": "^9.1.4",
+    "nyc": "^15.1.0",
     "react": "^17.0.2",
     "react-babylonjs": "^3.0.24",
     "react-dom": "^17.0.2",
     "react-router-dom": "^6.0.2",
     "react-scripts": "4.0.3",
     "redux-saga": "^1.1.3",
+    "ts-mockito": "^2.6.1",
+    "ts-node": "^10.4.0",
     "typescript": "^4.1.2",
     "web-vitals": "^1.0.1"
   },
@@ -43,7 +49,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "nyc ./node_modules/.bin/_mocha 'tests/**/*.test.ts'",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

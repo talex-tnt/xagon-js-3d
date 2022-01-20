@@ -1,5 +1,5 @@
-import Icosahedron from '..';
-import Triangle from '../../Triangle';
+import Triangle from 'models/Triangle';
+import Icosahedron from 'models/Icosahedron';
 export { Triangle, Icosahedron };
 export type Triangles = Array<Triangle>;
 

@@ -1,7 +1,7 @@
 import { Vector3 } from '@babylonjs/core';
-import { k_epsilon } from '../../constants/index';
-import EquilateralTriangleProvider from '../../rendering/TriangleMesh/EquilateralTriangleProvider';
-import Triangle from '../Triangle';
+import { k_epsilon } from 'game-constants';
+import EquilateralTriangleProvider from 'rendering/TriangleMesh/EquilateralTriangleProvider';
+import Triangle from 'models/Triangle';
 import ISubdivisionStrategy from './SubdivisionStrategy/ISubdivisionStrategy';
 export type Triangles = Array<Triangle>;
 interface Context {

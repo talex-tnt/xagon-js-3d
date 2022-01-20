@@ -9,22 +9,10 @@ export type Hexagons = Hexagon[];
 export const shapesVerify = (triangles: Triangle[]): Hexagons => {
   const shapes: Hexagons = [];
   triangles.forEach((tr) => {
-    const adjs: Array<Triangle[]> = [[], [], []];
-
-    adjs.forEach((adj, index) => {
-      tr.getAdjacents()
-        .filter((a, i) => i !== index)
-        .forEach((tr1) => {
-          if (tr1) {
-            adj.push(tr1);
-          }
-        });
-    });
-
     const shapesList = [
-      { pivotPoint: tr.p1(), adjsPivotPoint: adjs[1] },
-      { pivotPoint: tr.p2(), adjsPivotPoint: adjs[2] },
-      { pivotPoint: tr.p3(), adjsPivotPoint: adjs[0] },
+      { pivotPoint: tr.p1(), adjsPivotPoint: getAdjacentsToPoint(tr, 1) },
+      { pivotPoint: tr.p2(), adjsPivotPoint: getAdjacentsToPoint(tr, 2) },
+      { pivotPoint: tr.p3(), adjsPivotPoint: getAdjacentsToPoint(tr, 0) },
     ]
       .map(({ pivotPoint, adjsPivotPoint }) =>
         findHexagon(tr, pivotPoint, adjsPivotPoint),
@@ -91,3 +79,6 @@ const findHexagon = (
 
   return null;
 };
+
+const getAdjacentsToPoint = (tr: Triangle, index: number): Triangle[] =>
+  tr.getAdjacents().filter((a, i) => i !== index) as Triangle[];

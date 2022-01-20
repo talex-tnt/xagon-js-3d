@@ -1,7 +1,6 @@
 /* eslint-disable react/no-children-prop */
 import React from 'react';
 import { Scene, Engine, SceneEventArgs } from 'react-babylonjs';
-// import { Vector3, ArcRotateCamera} from '@babylonjs/core';
 import {
   ArcRotateCamera,
   Vector3,

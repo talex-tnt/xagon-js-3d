@@ -25,7 +25,7 @@ class InputManager {
     setupInput(scene, camera, triangles);
   }
 
-  public onMeshLoaded(triangleMesh: AbstractMesh, scalingRatio: number): void {
+  public onMeshLoaded(triangleMesh: AbstractMesh): void {
     this.scene.onPointerObservable.add((pointerInfo) => {
       const { pointerId } = pointerInfo.event;
       switch (pointerInfo.type) {
@@ -38,8 +38,7 @@ class InputManager {
               const gestureContext = {
                 scene: this.scene,
                 triangleMesh,
-                scalingRatio,
-                onFlipBegin: () => {
+                onFlipEnded: () => {
                   delete this.gesturesMap[pointerId];
                 },
               };
@@ -51,10 +50,20 @@ class InputManager {
 
         case PointerEventTypes.POINTERMOVE:
           {
-            const gesture = this.gesturesMap[pointerId];
-            if (gesture) {
-              gesture.onMove();
+            let gesture = this.gesturesMap[pointerId];
+            if (!gesture) {
+              const gestureContext = {
+                scene: this.scene,
+                triangleMesh,
+                onFlipEnded: () => {
+                  delete this.gesturesMap[pointerId];
+                },
+              };
+              gesture = new FlipGesture(gestureContext);
+              this.gesturesMap[pointerId] = gesture;
             }
+
+            gesture.onMove(pointerInfo);
           }
           break;
         case PointerEventTypes.POINTERUP:

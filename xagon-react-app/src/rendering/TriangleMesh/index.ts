@@ -7,10 +7,13 @@ import {
   StandardMaterial,
   Nullable,
   Quaternion,
+  Matrix,
+  MeshBuilder,
 } from '@babylonjs/core';
-import { math } from 'utils';
-import { k_triangleAssetName } from 'constants/identifiers';
-import { k_epsilon, k_triangleScale } from 'constants/index';
+import { addAxisToScene, math } from 'utils';
+import { k_triangleAssetName } from 'game-constants/identifiers';
+import { k_epsilon, k_triangleScale } from 'game-constants';
+import { DEBUG_RENDERING_ROTATION_NODE_ALIGNMENT } from 'game-constants/debug';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
 import IMeshState from './State/IMeshState';
 import MeshStateIdle from './State/MeshStateIdle';
@@ -26,15 +29,17 @@ class TriangleMesh {
 
   private triangleVertices: Nullable<Vector3[]> = null;
 
-  private vertices_Center_Vectors: Nullable<Vector3[]>;
+  private equilateralTriangleRadius: number;
 
   private scalingRatio: number;
 
-  private skeletonScaling?: Vector3[];
+  private skeletonBonesScaling?: Vector3[];
+
+  private skeletonBonesRotation?: Vector3[];
+
+  private bonesRotationAngle: number[] = [];
 
   private scalingNodeInitialPosition: Vector3 = Vector3.Zero();
-
-  private flipNodeInitialPosition: Vector3 = Vector3.Zero();
 
   private currentState: IMeshState;
 
@@ -50,7 +55,6 @@ class TriangleMesh {
     this.currentState = new MeshStateIdle({ triangleMesh: this, scene });
     this.triangle = triangle;
     this.triangleMesh = null;
-    this.vertices_Center_Vectors = null;
     this.scene = scene;
 
     const TRIANGLE_RADIUS = 1;
@@ -66,7 +70,7 @@ class TriangleMesh {
     this.scalingRatio =
       (1 / TRIANGLE_SIDE) * triangleEdgeLength * k_triangleScale;
 
-    const radiusEquilaterTriangle = equilateralTriangle
+    this.equilateralTriangleRadius = equilateralTriangle
       .p1()
       .subtract(equilateralTriangle?.getCenterPoint())
       .length();
@@ -82,78 +86,42 @@ class TriangleMesh {
 
         this.setupPosition(scene, this.scalingRatio);
 
-        this.setupDeformation({
-          scene,
-          originalMesh: mesh,
-          radiusEquilaterTriangle,
+        triangleMesh.skeleton =
+          mesh &&
+          mesh.skeleton &&
+          mesh.skeleton.clone(`skeleton${triangle.getId()}`);
+
+        const angleBonesRotation = this.computeBonesRotationAngle({
+          triangle: this.triangle,
         });
 
-        const thisMesh = this.getTriangleMesh();
-        if (thisMesh && thisMesh.skeleton) {
-          this.skeletonScaling = thisMesh.skeleton.bones.map(
-            (b) => new Vector3(b.scaling.x, b.scaling.y, b.scaling.z),
-          );
+        this.setAngleBonesRotation(angleBonesRotation);
 
-          this.setupMaterial();
+        const rotations = this.computeBonesDeformation();
+        const bonesScaleY = this.computeBonesScaling();
+
+        if (
+          this.triangleMesh &&
+          this.triangleMesh.skeleton &&
+          rotations &&
+          bonesScaleY
+        ) {
+          this.triangleMesh.skeleton.bones.forEach((bone, index) => {
+            bone.setRotation(rotations[index]);
+            bone.scale(1, bonesScaleY[index], 1);
+          });
+
+          this.skeletonBonesScaling = this.triangleMesh.skeleton.bones.map(
+            ({ scaling }) => new Vector3(scaling.x, scaling.y, scaling.z),
+          );
+          this.skeletonBonesRotation = this.triangleMesh.skeleton.bones.map(
+            ({ rotation }) => new Vector3(rotation.x, rotation.y, rotation.z),
+          );
         }
+
+        this.setupMaterial();
       }
     }
-  }
-
-  public getVertices(): Nullable<Vector3[]> {
-    return this.triangleVertices;
-  }
-
-  public getEdges(): Nullable<Vector3[]> {
-    return this.triangleEdges;
-  }
-
-  public setVertices(vertices: Vector3[]): void {
-    this.triangleVertices = vertices;
-  }
-
-  public setEdges(edges: Vector3[]): void {
-    this.triangleEdges = edges;
-  }
-
-  public getTriangleMesh(): Nullable<AbstractMesh> {
-    return this.triangleMesh;
-  }
-
-  public getVertices_Center_Vectors(): Nullable<Vector3[]> {
-    return this.vertices_Center_Vectors;
-  }
-
-  public update(): void {
-    const nextState = this.currentState.update();
-    if (nextState) {
-      this.currentState = nextState;
-    }
-  }
-
-  public flip({
-    triangleMesh,
-    direction,
-    onFlipEnd,
-  }: {
-    triangleMesh: TriangleMesh;
-    direction: number;
-    onFlipEnd?: () => void;
-  }): void {
-    const context = {
-      adjacentTriangleMesh: triangleMesh,
-      direction,
-      onFlipEnd,
-    };
-    this.currentState.update(context);
-  }
-
-  public getTriangle(): Triangle {
-    return this.triangle;
-  }
-
-  public getScalingRatio(): number {
-    return this.scalingRatio;
   }
 
   private createNodesStructure(scene: Scene): void {
@@ -176,9 +144,7 @@ class TriangleMesh {
 
       scalingNode.parent = flipNode;
       this.triangleMesh.parent = scalingNode;
-
       this.scalingNodeInitialPosition = scalingNode.position;
-      this.flipNodeInitialPosition = flipNode.position;
     }
   }
 
@@ -219,46 +185,41 @@ class TriangleMesh {
       const p1CenterVector = this.triangle.p1().subtract(triangleCenter);
 
       const angle = Vector3.GetAngleBetweenVectors(
-        (positionNode as TransformNode).forward,
+        (rotationNode as TransformNode).forward,
         p1CenterVector,
-        (positionNode as TransformNode).up,
+        (rotationNode as TransformNode).up,
       );
 
-      (rotationNode as TransformNode).rotate(this.triangleMesh.up, angle);
+      if (Math.abs(angle) > 0.05) {
+        (rotationNode as TransformNode).rotate(this.triangleMesh.up, angle);
+      } else if (DEBUG_RENDERING_ROTATION_NODE_ALIGNMENT) {
+        addAxisToScene({
+          scene,
+          size: 0.5,
+          parent: rotationNode as TransformNode,
+        });
+        MeshBuilder.CreateLines('line', {
+          points: [this.triangle.p1(), triangleCenter],
+        });
+      }
     }
   }
 
-  private setupDeformation({
-    scene,
-    originalMesh,
-    radiusEquilaterTriangle,
+  public computeBonesRotationAngle({
+    triangle,
   }: {
-    scene: Scene;
-    originalMesh: AbstractMesh;
-    radiusEquilaterTriangle: number;
-  }): void {
-    const triangleCenter = this.triangle.getCenterPoint();
-    const p1CenterVector = this.triangle.p1().subtract(triangleCenter);
-    const p2CenterVector = this.triangle.p2().subtract(triangleCenter);
-    const p3CenterVector = this.triangle.p3().subtract(triangleCenter);
-    this.vertices_Center_Vectors = [
-      p1CenterVector,
-      p2CenterVector,
-      p3CenterVector,
-    ];
-    const positionNode = scene.getNodeByName(
-      `positionNode${this.triangle.getId()}`,
+    triangle: Triangle;
+  }): number[] {
+    const triangleCenter = triangle.getCenterPoint();
+    const p1CenterVector = triangle.p1().subtract(triangleCenter);
+    const p2CenterVector = triangle.p2().subtract(triangleCenter);
+    const p3CenterVector = triangle.p3().subtract(triangleCenter);
+
+    const positionNode = this.scene.getNodeByName(
+      `positionNode${this.getTriangle().getId()}`,
     );
 
-    if (originalMesh.skeleton && this.triangleMesh && positionNode) {
-      this.triangleMesh.skeleton = originalMesh.skeleton.clone(
-        `skeleton${this.triangle.getId()}`,
-      );
-      const skeletonMesh = this.triangleMesh.skeleton;
-
-      const rotationBone1 = skeletonMesh.bones[0].rotation;
-      const rotationBone2 = skeletonMesh.bones[1].rotation;
-
+    if (positionNode) {
       const angleP1ToP3 = Vector3.GetAngleBetweenVectors(
         p1CenterVector,
         p3CenterVector,
@@ -269,24 +230,58 @@ class TriangleMesh {
         p2CenterVector,
         (positionNode as TransformNode).up,
       );
+      const deltaAngle1 = angleP1ToP3 - math.angle120;
+      const deltaAngle2 = angleP1ToP2 + math.angle120;
 
-      rotationBone1.y += angleP1ToP3 - math.angle120;
-      rotationBone2.y += angleP1ToP2 + math.angle120;
-      skeletonMesh.bones[0].setRotation(rotationBone1);
-      skeletonMesh.bones[1].setRotation(rotationBone2);
-
-      if (radiusEquilaterTriangle) {
-        const scaleBones = [
-          p3CenterVector.length() / radiusEquilaterTriangle,
-          p2CenterVector.length() / radiusEquilaterTriangle,
-          p1CenterVector.length() / radiusEquilaterTriangle,
-        ];
-
-        skeletonMesh.bones.map((bone, index) =>
-          bone.scale(1, scaleBones[index], 1),
-        );
-      }
+      return [deltaAngle1, deltaAngle2, 0];
     }
+    return [0, 0, 0];
+  }
+
+  public setAngleBonesRotation(rotations: number[]): void {
+    this.bonesRotationAngle = rotations;
+  }
+
+  public computeBonesDeformation(): Vector3[] {
+    // eslint-disable-next-line no-console
+    console.assert(
+      this.triangleMesh && this.triangleMesh.skeleton,
+      'Mesh and skeleton must exist',
+    );
+    if (this.triangleMesh && this.triangleMesh.skeleton) {
+      const skeletonMesh = this.triangleMesh.skeleton;
+
+      const bone1rotation = skeletonMesh.bones[0].rotation.clone();
+      const bone2rotation = skeletonMesh.bones[1].rotation.clone();
+      const bone3rotation = skeletonMesh.bones[2].rotation.clone();
+
+      bone1rotation.y += this.bonesRotationAngle[0];
+      bone2rotation.y += this.bonesRotationAngle[1];
+
+      return [bone1rotation, bone2rotation, bone3rotation];
+    }
+    return [Vector3.Zero(), Vector3.Zero(), Vector3.Zero()];
+  }
+
+  public computeBonesScaling(): number[] {
+    const triangleCenter = this.triangle.getCenterPoint();
+    const p1CenterVector = this.triangle.p1().subtract(triangleCenter);
+    const p2CenterVector = this.triangle.p2().subtract(triangleCenter);
+    const p3CenterVector = this.triangle.p3().subtract(triangleCenter);
+    if (
+      this.triangleMesh &&
+      this.triangleMesh.skeleton &&
+      this.equilateralTriangleRadius
+    ) {
+      const scaleBones = [
+        p3CenterVector.length() / this.equilateralTriangleRadius,
+        p2CenterVector.length() / this.equilateralTriangleRadius,
+        p1CenterVector.length() / this.equilateralTriangleRadius,
+      ];
+
+      return scaleBones;
+    }
+    return [1, 1, 1];
   }
 
   public setupMaterial(): void {
@@ -302,18 +297,103 @@ class TriangleMesh {
     }
   }
 
+  public getTriangle(): Triangle {
+    return this.triangle;
+  }
+
+  public getTriangleMesh(): Nullable<AbstractMesh> {
+    return this.triangleMesh;
+  }
+
+  public getVertices(): Nullable<Vector3[]> {
+    return this.triangleVertices;
+  }
+
+  public setVertices(vertices: Vector3[]): void {
+    this.triangleVertices = vertices;
+  }
+
+  public getEdges(): Nullable<Vector3[]> {
+    return this.triangleEdges;
+  }
+
+  public setEdges(edges: Vector3[]): void {
+    this.triangleEdges = edges;
+  }
+
+  public getScalingRatio(): number {
+    return this.scalingRatio;
+  }
+
+  public flip({
+    triangleMesh,
+    direction,
+    onFlipEnd,
+  }: {
+    triangleMesh: TriangleMesh;
+    direction: number;
+    onFlipEnd?: () => void;
+  }): void {
+    const context = {
+      adjacentTriangleMesh: triangleMesh,
+      direction,
+      onFlipEnd,
+    };
+    this.update(context);
+  }
+
+  public update(context?: {
+    adjacentTriangleMesh: TriangleMesh;
+    direction: number;
+    onFlipEnd?: () => void;
+  }): void {
+    const nextState = this.currentState.update(context);
+
+    if (nextState) {
+      this.currentState = nextState;
+    }
+  }
+
+  public computeObjSpaceVertices(): Vector3[] | undefined {
+    if (this.triangle && this.triangleMesh) {
+      const tr = this.triangle;
+      const matrix = this.triangleMesh.computeWorldMatrix(true);
+      const vertices = [
+        Vector3.TransformCoordinates(tr.p1(), Matrix.Invert(matrix)),
+        Vector3.TransformCoordinates(tr.p2(), Matrix.Invert(matrix)),
+        Vector3.TransformCoordinates(tr.p3(), Matrix.Invert(matrix)),
+      ];
+
+      return vertices;
+    }
+    // eslint-disable-next-line no-console
+    console.assert(this.triangleMesh && this.triangle, 'Asset not found');
+    return undefined;
+  }
+
+  public computeObjSpaceEdges(vertices: Vector3[]): Vector3[] {
+    const edges = vertices.map((v, i) =>
+      v.subtract(vertices[(i + 1) % vertices.length]),
+    );
+    return edges;
+  }
+
   public getAdjacentsVerticesMap(
     adjTriangle: Triangle,
-  ): Record<number, number> {
+  ): Record<string, number[]> {
     const trVertices = this.triangle.getVertices();
     const adjTrVertices = adjTriangle.getVertices();
-    const adjacentsMap: Record<number, number> = {};
+    const adjacentsMap: Record<string, number[]> = {
+      trAdjs: [],
+      adjTrAdjs: [],
+    };
     if (trVertices && adjTrVertices) {
       trVertices.forEach((trVertice: Vector3, indexTrVertice: number) => {
         adjTrVertices.forEach(
           (adjTrVertice: Vector3, indexAdjTrVertice: number) => {
             if (adjTrVertice.subtract(trVertice).length() < k_epsilon) {
-              adjacentsMap[indexTrVertice] = indexAdjTrVertice;
+              adjacentsMap.trAdjs.push(indexTrVertice);
+              adjacentsMap.adjTrAdjs.push(indexAdjTrVertice);
             }
           },
         );
@@ -346,32 +426,40 @@ class TriangleMesh {
   }
 
   public getTriangleMeshFlipEdgeIndex(indicesSum: number): number {
-    let flipEdgeIndex = 0;
     switch (indicesSum) {
       case 1:
-        flipEdgeIndex = 0;
-        break;
+        return 0;
       case 2:
-        flipEdgeIndex = 2;
-        break;
+        return 2;
       case 3:
-        flipEdgeIndex = 1;
-        break;
+        return 1;
       default:
     }
-    return flipEdgeIndex;
+    // eslint-disable-next-line no-console
+    console.assert(true, 'return value should be a number beetwen 0 and 2');
+    return -1;
+  }
+
+  public getAngleBonesRotation(): number[] {
+    return this.bonesRotationAngle;
   }
 
   public reset(type: Type): void {
-    const mesh = this.getTriangleMesh();
+    const mesh = this.triangleMesh;
     if (mesh && mesh.skeleton) {
-      mesh.skeleton.bones.map(
-        (b, i) => this.skeletonScaling && b.setScale(this.skeletonScaling[i]),
-      );
+      mesh.skeleton.bones.forEach((b, i) => {
+        if (this.skeletonBonesScaling) {
+          b.setScale(this.skeletonBonesScaling[i]);
+        }
+        if (this.skeletonBonesRotation) {
+          b.setRotation(this.skeletonBonesRotation[i]);
+        }
+      });
     }
     const scalingNode = mesh?.parent as TransformNode;
     const flipNode = scalingNode.parent as TransformNode;
     scalingNode.position = this.scalingNodeInitialPosition;
+    scalingNode.rotation.y = 0;
     flipNode.position = this.scalingNodeInitialPosition;
     flipNode.rotationQuaternion = new Quaternion(0, 0, 0, 1);
 

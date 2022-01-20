@@ -6,7 +6,7 @@ export const getAssetMesh = ({
   scene: Scene;
   triangleMesh: Nullable<AbstractMesh>;
 }): Nullable<AbstractMesh> => {
-  if (triangleMesh) {
+  if (triangleMesh && triangleMesh.metadata && triangleMesh.metadata.triangle) {
     const name = triangleMesh.metadata.triangle.getName();
     const assetMesh = scene.getMeshByName(name);
     if (assetMesh) {

@@ -1,9 +1,8 @@
 // eslint-disable-next-line no-console
 // import * as fs from 'fs';
-import Icosahedron from '../models/Icosahedron';
-import JsonIcosahedronSerializer from '../serializers/JsonIcosahedronSerializer';
-import _1to4SubdivisionStrategy from '../models/Icosahedron/SubdivisionStrategy/1to4SubdivisionStrategy';
-import { k_icosahedronJsonFilename } from '../constants/identifiers';
+import Icosahedron from 'models/Icosahedron';
+import JsonIcosahedronSerializer from 'serializers/JsonIcosahedronSerializer';
+import _1to4SubdivisionStrategy from 'models/Icosahedron/SubdivisionStrategy/1to4SubdivisionStrategy';
 
 // eslint-disable-next-line no-console
 console.log('Serializing Icosahedron');

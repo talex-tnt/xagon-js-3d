@@ -7,6 +7,7 @@ import {
   TransformNode,
   Scene,
 } from '@babylonjs/core';
+import Triangle from 'models/Triangle';
 
 export { default as math } from './math';
 
@@ -80,4 +81,23 @@ export const addAxisToScene = ({
   axisZ.color = new Color3(0, 0, 1);
   const zChar = makeTextPlane('Z', 'blue', size / 10);
   zChar.position = new Vector3(0, 0.05 * size, 0.9 * size);
+};
+
+export const adjsTrianglesDebug = (
+  triangles: Triangle[],
+  id: number,
+): Triangle[] => {
+  const testTriangle = triangles.filter((t) => t.getId() === BigInt(id));
+  const testAdjacents = testTriangle[0].getAdjacents() as Triangle[];
+  return triangles.filter((t) => {
+    if (testTriangle && testAdjacents) {
+      return (
+        t.getId() === testTriangle[0].getId() ||
+        t.getId() === testAdjacents[0].getId() ||
+        t.getId() === testAdjacents[1].getId() ||
+        t.getId() === testAdjacents[2].getId()
+      );
+    }
+    return t;
+  });
 };
