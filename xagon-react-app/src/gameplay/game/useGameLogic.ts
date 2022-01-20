@@ -18,6 +18,8 @@ import Triangle from 'models/Triangle';
 import setupCamera from 'components/GameComponent/setupCamera';
 import setupLight from 'components/GameComponent/setupLight';
 import InputManager from 'components/GameComponent/InputManager';
+import { DEBUG_RENDERING_ADJS_TRIANGLES_BY_ID } from 'game-constants/debug';
+import { adjsTrianglesDebug } from 'utils';
 
 const useGameLogic = (): {
   onRender: (scene: Scene) => void;
@@ -87,39 +89,25 @@ const useGameLogic = (): {
       if (meshes && meshes.length > 0 && skeletons) {
         const assetMesh = meshes[0];
 
-        // const testTriangle = triangles.filter((t) => t.getId() === BigInt(361));
-        // const testAdjacents = testTriangle[0].getAdjacents();
+        const trianglesMeshesToRender = DEBUG_RENDERING_ADJS_TRIANGLES_BY_ID
+          ? adjsTrianglesDebug(triangles, 361)
+          : triangles;
 
-        const triangleMeshes = triangles
-          // .filter((t) => {
-          //   if (testTriangle && testAdjacents) {
-          //     return (
-          //       t.getId() === testTriangle[0].getId() ||
-          //       t.getId() === testAdjacents[0].getId() ||
-          //       t.getId() === testAdjacents[1].getId() ||
-          //       t.getId() === testAdjacents[2].getId()
-          //     );
-          //   }
-          //   return t;
-          // })
-          .map(
-            (tr) =>
-              new TriangleMesh({
-                scene,
-                triangle: tr,
-                equilateralTriangleProvider: icosahedron,
-              }),
-          );
+        const triangleMeshes = trianglesMeshesToRender.map(
+          (tr) =>
+            new TriangleMesh({
+              scene,
+              triangle: tr,
+              equilateralTriangleProvider: icosahedron,
+            }),
+        );
         assetMesh.visibility = 0;
 
         scene.registerBeforeRender(() => {
           triangleMeshes.forEach((t) => t.update());
         });
 
-        inputManager.onMeshLoaded(
-          assetMesh,
-          triangleMeshes[0].getScalingRatio(),
-        );
+        inputManager.onMeshLoaded(assetMesh);
       }
     });
   };

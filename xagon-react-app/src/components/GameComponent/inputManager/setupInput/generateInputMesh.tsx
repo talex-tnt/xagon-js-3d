@@ -9,7 +9,10 @@ import {
   MeshBuilder,
   PointerEventTypes,
 } from '@babylonjs/core';
-import { DEBUG_RENDERING } from 'game-constants/debug';
+import {
+  DEBUG_RENDERING_ADJACENTS,
+  DEBUG_RENDERING_ALL_TRIANGLES_CENTER,
+} from 'game-constants/debug';
 
 import Triangle, { TriangleId } from 'models/Triangle';
 
@@ -28,7 +31,7 @@ const generateInputMesh = (
   const rootNode = new TransformNode(name, scene);
 
   triangles.forEach((triangle) => {
-    if (DEBUG_RENDERING) {
+    if (DEBUG_RENDERING_ALL_TRIANGLES_CENTER) {
       const line = MeshBuilder.CreateLines(`tr${triangle.getName()}`, {
         points: [
           triangle.getCenterPoint().scale(1.05),
@@ -45,7 +48,7 @@ const generateInputMesh = (
     mesh.metadata = { triangle };
   });
 
-  if (DEBUG_RENDERING) {
+  if (DEBUG_RENDERING_ADJACENTS) {
     scene.onPointerObservable.add((pointerInfo) => {
       switch (pointerInfo.type) {
         case PointerEventTypes.POINTERDOWN:

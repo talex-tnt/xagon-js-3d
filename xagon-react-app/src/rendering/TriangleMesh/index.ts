@@ -13,7 +13,7 @@ import {
 import { addAxisToScene, math } from 'utils';
 import { k_triangleAssetName } from 'game-constants/identifiers';
 import { k_epsilon, k_triangleScale } from 'game-constants';
-import { DEBUG_RENDERING } from 'game-constants/debug';
+import { DEBUG_RENDERING_ROTATION_NODE_ALIGNMENT } from 'game-constants/debug';
 import EquilateralTriangleProvider from './EquilateralTriangleProvider';
 import IMeshState from './State/IMeshState';
 import MeshStateIdle from './State/MeshStateIdle';
@@ -192,7 +192,7 @@ class TriangleMesh {
 
       if (Math.abs(angle) > 0.05) {
         (rotationNode as TransformNode).rotate(this.triangleMesh.up, angle);
-      } else if (DEBUG_RENDERING) {
+      } else if (DEBUG_RENDERING_ROTATION_NODE_ALIGNMENT) {
         addAxisToScene({
           scene,
           size: 0.5,

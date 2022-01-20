@@ -12,7 +12,10 @@ import {
   Matrix,
 } from '@babylonjs/core';
 import { Direction } from 'components/GameComponent/InputManager/FlipGesture';
-import { DEBUG_RENDERING } from 'game-constants/debug';
+import {
+  DEBUG_RENDERING_TRIANGLES_CENTER_DURING_ROTATION,
+  DEBUG_RENDERING_BONES_IDENTIFIER,
+} from 'game-constants/debug';
 import Triangle from 'models/Triangle';
 import TriangleMesh from '..';
 import IMeshState from './IMeshState';
@@ -152,7 +155,7 @@ class MeshStateRotating extends IMeshState {
         this.skeleton.bonesDeformation =
           this.computeBonesDeformation(adjTriangleVertIndex);
 
-        if (DEBUG_RENDERING) {
+        if (DEBUG_RENDERING_BONES_IDENTIFIER) {
           const vertices = this.mesh.getVertices();
           if (vertices) {
             // eslint-disable-next-line no-console
@@ -560,7 +563,7 @@ class MeshStateRotating extends IMeshState {
 
       this.amount += rotationSpeed * (deltaTimeInMs / 1000);
 
-      if (DEBUG_RENDERING) {
+      if (DEBUG_RENDERING_TRIANGLES_CENTER_DURING_ROTATION) {
         const scalingNode = this.scalingNode.node as TransformNode;
         const meshLine = MeshBuilder.CreateSphere(
           `tr${this.mesh.getTriangle().getName()}`,

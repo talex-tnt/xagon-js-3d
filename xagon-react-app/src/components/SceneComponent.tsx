@@ -1,7 +1,7 @@
 import { Engine, EngineOptions, Scene, SceneOptions } from '@babylonjs/core';
 // fixme: enable this import only on debug
 import '@babylonjs/inspector';
-import { DEBUG_RENDERING } from 'game-constants/debug';
+import { DEBUG_RENDERING_WORLD_AXIS } from 'game-constants/debug';
 
 import React, { useEffect, useRef } from 'react';
 import { addAxisToScene } from 'utils';
@@ -63,7 +63,7 @@ const SceneComponent: React.FC<SceneComponentProps> = (props) => {
         window.addEventListener('resize', resize);
       }
 
-      if (DEBUG_RENDERING) {
+      if (DEBUG_RENDERING_WORLD_AXIS) {
         scene.debugLayer.show();
         // WORLD AXIS
         addAxisToScene({ scene, size: 5 });
