@@ -8,7 +8,7 @@ import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/xagon-js">
       <Routes>
         <Route path="/" element={<GameComponent />} />
       </Routes>
