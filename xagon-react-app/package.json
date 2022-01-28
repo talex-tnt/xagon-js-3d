@@ -48,7 +48,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && mv build xagon",
     "test": "nyc ./node_modules/.bin/_mocha 'tests/**/*.test.ts'",
     "eject": "react-scripts eject"
   },
