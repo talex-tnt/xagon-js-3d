@@ -35,6 +35,7 @@ jobs:
         API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
       with:
         source-directory: './xagon-react-app/xagon'
+        target-directory: 'xagon-js'
         destination-github-username: 'talex-tnt'
         destination-repository-name: 'talex-tnt.github.io'
         user-email: alextinti83@gmail.com
