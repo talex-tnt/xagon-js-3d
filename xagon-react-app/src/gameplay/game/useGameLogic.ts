@@ -1,4 +1,9 @@
-import { Vector3, Scene, SceneLoader } from '@babylonjs/core';
+import {
+  Vector3,
+  Scene,
+  SceneLoader,
+  ArcRotateCameraPointersInput,
+} from '@babylonjs/core';
 import {
   k_triangleAssetName,
   k_triangleAssetDebugFileName,
@@ -55,7 +60,8 @@ const useGameLogic = (): {
     const scene: Scene = sceneArg;
     const target = new Vector3(0, 0, 0);
     const camera = setupCamera(scene, target);
-    camera.inputs.attached.pointers.buttons = [1];
+    (camera.inputs.attached.pointers as ArcRotateCameraPointersInput).buttons =
+      [1];
     const icosahedron = await loadIcosahedron();
     // console.log('Icosahedron loaded');
     icosahedron.registerOnTriangleChanged((triangles) => {
