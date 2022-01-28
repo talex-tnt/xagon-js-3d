@@ -34,7 +34,7 @@ jobs:
       env:
         API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
       with:
-        source-directory: 'xagon'
+        source-directory: '.'
         destination-github-username: 'talex-tnt'
         destination-repository-name: 'talex-tnt.github.io'
         user-email: alextinti83@gmail.com
