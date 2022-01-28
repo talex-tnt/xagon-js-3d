@@ -9,6 +9,9 @@ name: Node.js CI
   pull_request:
     branches:
     - develop
+defaults:
+  run:
+   working-directory: xagon-react-app
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,9 +19,6 @@ jobs:
       matrix:
         node-version:
         - 14.x
-    defaults:
-      run:
-        working-directory: ./xagon-react-app
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
