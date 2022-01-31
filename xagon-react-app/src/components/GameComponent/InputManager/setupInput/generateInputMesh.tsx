@@ -150,6 +150,7 @@ const createMesh = (
   vertexData: VertexData,
 ): Mesh => {
   const customMesh = new Mesh(name, scene);
+  customMesh.isPickable = true;
   const material = new StandardMaterial('myMaterial', scene);
   const hue = Math.random() * 255;
   const saturation = 1;
