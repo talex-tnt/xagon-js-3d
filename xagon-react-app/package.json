@@ -2,6 +2,7 @@
   "name": "xagon-react-app",
   "version": "0.1.7",
   "private": true,
+  "homepage": "/xagon-js",
   "dependencies": {
     "@babel/core": "^7.15.5",
     "@babylonjs/core": "^4.2.0",
@@ -47,8 +48,8 @@
     "prettier": "^2.4.1"
   },
   "scripts": {
-    "start": "PUBLIC_URL=/xagon-js && react-scripts start",
-    "build": "PUBLIC_URL=/xagon-js && react-scripts build && mv build xagon",
+    "start": "react-scripts start",
+    "build": "react-scripts build && mv build xagon",
     "test": "nyc ./node_modules/.bin/_mocha 'tests/**/*.test.ts'",
     "eject": "react-scripts eject"
   },
