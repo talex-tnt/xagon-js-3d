@@ -57,6 +57,9 @@ class FlipGesture extends Gesture {
       this.context.scene.pointerX,
       this.context.scene.pointerY,
     );
+    console.log('pointerInfo', pointerInfo);
+    console.log('pickInfo', pickinfo);
+
     if (pickinfo && pointerInfo.event.pressure !== 0) {
       const mesh = pickinfo.pickedMesh;
 
@@ -87,7 +90,6 @@ class FlipGesture extends Gesture {
           );
 
           const gestureLength = this.startPoint.subtract(finalPoint).length();
-
           const isValidGesture = gestureLength > k_gestureLength;
 
           if (isValidGesture) {
