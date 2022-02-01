@@ -57,8 +57,14 @@ class FlipGesture extends Gesture {
       this.context.scene.pointerX,
       this.context.scene.pointerY,
     );
-    console.log('pointerInfo.event', pointerInfo.event);
-    console.log('pickinfo.pickedMesh', pickinfo?.pickedMesh);
+    console.log(
+      'pointerInfo.event',
+      JSON.stringify(pointerInfo.event, null, 2),
+    );
+    console.log(
+      'pickinfo.pickedMesh',
+      JSON.stringify(pickinfo?.pickedMesh, null, 2),
+    );
 
     if (pickinfo && pointerInfo.event.pressure !== 0) {
       const mesh = pickinfo.pickedMesh;
