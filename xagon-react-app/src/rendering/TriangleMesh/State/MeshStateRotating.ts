@@ -581,7 +581,7 @@ class MeshStateRotating extends IMeshState {
   }
 
   private getRotationSpeed(): number {
-    const rpm = 5;
+    const rpm = 18;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
   }
