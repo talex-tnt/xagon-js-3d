@@ -33,7 +33,7 @@ const useGameLogic = (): {
   const loadIcosahedron = async () => {
     const subdivisionStrategy = new _1to4SubdivisionStrategy();
     try {
-      const json = await fetch('assets/data/icosahedron-4.json').then(
+      const json = await fetch('assets/data/icosahedron-3.json').then(
         (response) => response.text(),
       );
       if (json && json.length) {
