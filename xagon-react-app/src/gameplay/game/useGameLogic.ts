@@ -33,7 +33,7 @@ const useGameLogic = (): {
   const loadIcosahedron = async () => {
     const subdivisionStrategy = new _1to4SubdivisionStrategy();
     try {
-      const json = await fetch('assets/data/icosahedron-0.json').then(
+      const json = await fetch('assets/data/icosahedron-5.json').then(
         (response) => response.text(),
       );
       if (json && json.length) {
@@ -47,7 +47,7 @@ const useGameLogic = (): {
       console.log('Icosahedron JSON file was not found.');
     }
     const icosahedron = new Icosahedron({ subdivisionStrategy });
-    icosahedron.subdivide(2);
+    icosahedron.subdivide(3);
     // #Serialization
     // const serializer = new JsonIcosahedronSerializer();
     // const json = serializer.serialize(icosahedron);
