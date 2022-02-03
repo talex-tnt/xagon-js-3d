@@ -354,6 +354,10 @@ class TriangleMesh {
     }
   }
 
+  public isFlipping(): boolean {
+    return this.currentState.isFlipping();
+  }
+
   public computeObjSpaceVertices(): Vector3[] | undefined {
     if (this.triangle && this.triangleMesh) {
       const tr = this.triangle;

@@ -5,6 +5,8 @@ import {
   Nullable,
   Vector2,
   Vector3,
+  Matrix,
+  ArcRotateCamera,
 } from '@babylonjs/core';
 import { k_gestureLength, k_gestureDeltaTimeThreshold } from 'game-constants';
 import TriangleMesh from 'rendering/TriangleMesh';
@@ -86,7 +88,9 @@ class FlipGesture extends Gesture {
             this.context.scene.pointerY,
           );
 
-          const gestureLength = this.startPoint.subtract(finalPoint).length();
+          const gesture = this.startPoint.subtract(finalPoint);
+
+          const gestureLength = gesture.length();
           const isValidGesture = gestureLength > k_gestureLength;
 
           if (isValidGesture) {
@@ -115,57 +119,74 @@ class FlipGesture extends Gesture {
                 const secondTriangle = this.secondTriangleMesh.getTriangle();
                 if (firstTriangle.isAdjacent(secondTriangle)) {
                   let flipEnded = false;
-                  const swapType = (trM1: TriangleMesh, trM2: TriangleMesh) => {
-                    if (trM1 && trM2) {
-                      const tr1 = trM1.getTriangle();
-                      const tr2 = trM2.getTriangle();
-                      const tr1Type = tr1.getType();
-                      const tr2Type = tr2.getType();
+                  const adjVertices =
+                    this.firstTriangleMesh.getAdjacentsVerticesMap(
+                      secondTriangle,
+                    ).trAdjs;
+                  const adjVert1 = firstTriangle.getVertices()[adjVertices[0]];
+                  const adjVert2 = firstTriangle.getVertices()[adjVertices[1]];
+                  const adjVert1ScreenSpace =
+                    this.getScreenSpaceFromWorldVector(adjVert1);
+                  const adjVert2ScreenSpace =
+                    this.getScreenSpaceFromWorldVector(adjVert2);
 
-                      trM1.reset(tr2Type);
-                      trM2.reset(tr1Type);
-                      const { icosahedron } = this.context.scene.metadata;
+                  if (adjVert1ScreenSpace && adjVert2ScreenSpace) {
+                    const edgeScreenSpace3D =
+                      adjVert2ScreenSpace?.subtract(adjVert1ScreenSpace);
 
-                      icosahedron.notifyTrianglesChanged([tr1, tr2]);
+                    const edgeScreenSpace2D = new Vector2(
+                      edgeScreenSpace3D.x,
+                      edgeScreenSpace3D.y,
+                    );
+
+                    const gestureAngle = this.getAngleBetweenVectors2D(
+                      gesture,
+                      edgeScreenSpace2D,
+                    );
+
+                    if (
+                      !this.firstTriangleMesh.isFlipping() &&
+                      !this.secondTriangleMesh.isFlipping() &&
+                      this.isValidAngle(gestureAngle)
+                    ) {
+                      this.firstTriangleMesh.flip({
+                        triangleMesh: this.secondTriangleMesh,
+                        direction: Direction.Up,
+                        onFlipEnd: () => {
+                          if (
+                            flipEnded &&
+                            this.firstTriangleMesh &&
+                            this.secondTriangleMesh
+                          ) {
+                            this.swapType(
+                              this.firstTriangleMesh,
+                              this.secondTriangleMesh,
+                            );
+                            this.context.onFlipEnded();
+                          }
+                          flipEnded = true;
+                        },
+                      });
+                      this.secondTriangleMesh.flip({
+                        triangleMesh: this.firstTriangleMesh,
+                        direction: Direction.Down,
+                        onFlipEnd: () => {
+                          if (
+                            flipEnded &&
+                            this.firstTriangleMesh &&
+                            this.secondTriangleMesh
+                          ) {
+                            this.swapType(
+                              this.firstTriangleMesh,
+                              this.secondTriangleMesh,
+                            );
+                            this.context.onFlipEnded();
+                          }
+                          flipEnded = true;
+                        },
+                      });
                     }
-                  };
-
-                  this.firstTriangleMesh.flip({
-                    triangleMesh: this.secondTriangleMesh,
-                    direction: Direction.Up,
-                    onFlipEnd: () => {
-                      if (
-                        flipEnded &&
-                        this.firstTriangleMesh &&
-                        this.secondTriangleMesh
-                      ) {
-                        swapType(
-                          this.firstTriangleMesh,
-                          this.secondTriangleMesh,
-                        );
-                        this.context.onFlipEnded();
-                      }
-                      flipEnded = true;
-                    },
-                  });
-                  this.secondTriangleMesh.flip({
-                    triangleMesh: this.firstTriangleMesh,
-                    direction: Direction.Down,
-                    onFlipEnd: () => {
-                      if (
-                        flipEnded &&
-                        this.firstTriangleMesh &&
-                        this.secondTriangleMesh
-                      ) {
-                        swapType(
-                          this.firstTriangleMesh,
-                          this.secondTriangleMesh,
-                        );
-                        this.context.onFlipEnded();
-                      }
-                      flipEnded = true;
-                    },
-                  });
+                  }
                 }
               }
             }
@@ -204,6 +225,53 @@ class FlipGesture extends Gesture {
       }
     }
     return null;
+  }
+
+  public isValidAngle(angle: number): boolean {
+    return angle < Math.PI * (2 / 3) && angle > Math.PI * (1 / 3);
+  }
+
+  public swapType(trM1: TriangleMesh, trM2: TriangleMesh): void {
+    if (trM1 && trM2) {
+      const tr1 = trM1.getTriangle();
+      const tr2 = trM2.getTriangle();
+      const tr1Type = tr1.getType();
+      const tr2Type = tr2.getType();
+
+      trM1.reset(tr2Type);
+      trM2.reset(tr1Type);
+      const { icosahedron } = this.context.scene.metadata;
+
+      icosahedron.notifyTrianglesChanged([tr1, tr2]);
+    }
+  }
+
+  public getAngleBetweenVectors2D(v1: Vector2, v2: Vector2): number {
+    const scalarProd = v1.x * v2.x + v1.y * v2.y;
+    const modV1 = Math.sqrt(v1.x ** 2 + v1.y ** 2);
+    const modV2 = Math.sqrt(v2.x ** 2 + v2.y ** 2);
+    const modProd = modV1 * modV2;
+
+    const angle = Math.acos(scalarProd / modProd);
+    return angle;
+  }
+
+  public getScreenSpaceFromWorldVector(vector: Vector3): Vector3 {
+    const { scene } = this.context;
+    const camera = scene.activeCamera as ArcRotateCamera;
+    const engine = scene.getEngine();
+
+    const screenSpaceVector = Vector3.Project(
+      vector,
+      Matrix.Identity(),
+      scene.getTransformMatrix(),
+      camera.viewport.toGlobal(
+        engine.getRenderWidth(),
+        engine.getRenderHeight(),
+      ),
+    );
+
+    return screenSpaceVector;
   }
 }
 

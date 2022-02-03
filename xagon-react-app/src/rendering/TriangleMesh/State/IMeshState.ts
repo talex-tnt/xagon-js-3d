@@ -8,5 +8,7 @@ abstract class IMeshState {
       adjacentTriangleMesh?: Nullable<TriangleMesh>;
     }>,
   ): Nullable<IMeshState>;
+
+  abstract isFlipping(): boolean;
 }
 export default IMeshState;
