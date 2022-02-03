@@ -40,5 +40,9 @@ class MeshStateIdle extends IMeshState {
     }
     return this.nextState;
   }
+
+  public isFlipping(): boolean {
+    return false;
+  }
 }
 export default MeshStateIdle;

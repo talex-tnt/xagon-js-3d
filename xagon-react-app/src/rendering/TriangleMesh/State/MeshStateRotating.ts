@@ -581,7 +581,7 @@ class MeshStateRotating extends IMeshState {
   }
 
   private getRotationSpeed(): number {
-    const rpm = 18;
+    const rpm = 60;
     const rotationSpeed = (rpm / 60) * Math.PI * 2;
     return rotationSpeed;
   }
@@ -648,6 +648,10 @@ class MeshStateRotating extends IMeshState {
     if (this.onFlipEnd) {
       this.onFlipEnd();
     }
+  }
+
+  public isFlipping(): boolean {
+    return true;
   }
 }
 export default MeshStateRotating;

@@ -3,9 +3,11 @@ import {
   Mesh,
   StandardMaterial,
   Color3,
+  Vector2,
   Vector3,
   TransformNode,
   Scene,
+  Matrix,
 } from '@babylonjs/core';
 import Triangle from 'models/Triangle';
 
@@ -100,4 +102,38 @@ export const adjsTrianglesDebug = (
     }
     return t;
   });
+};
+
+export const getScreenSpaceFromWorldPoint = (
+  scene: Scene,
+  point: Vector3,
+): Vector3 => {
+  const camera = scene.activeCamera;
+  const engine = scene.getEngine();
+
+  if (camera) {
+    const screenSpacePoint = Vector3.Project(
+      point,
+      Matrix.Identity(),
+      scene.getTransformMatrix(),
+      camera.viewport.toGlobal(
+        engine.getRenderWidth(),
+        engine.getRenderHeight(),
+      ),
+    );
+    return screenSpacePoint;
+  }
+  // eslint-disable-next-line no-console
+  console.assert(true, 'Camera must exist');
+  return Vector3.Zero();
+};
+
+export const getAngleBetweenVectors2D = (v1: Vector2, v2: Vector2): number => {
+  const scalarProd = v1.x * v2.x + v1.y * v2.y;
+  const modV1 = Math.sqrt(v1.x ** 2 + v1.y ** 2);
+  const modV2 = Math.sqrt(v2.x ** 2 + v2.y ** 2);
+  const modProd = modV1 * modV2;
+
+  const angle = Math.acos(scalarProd / modProd);
+  return angle;
 };
