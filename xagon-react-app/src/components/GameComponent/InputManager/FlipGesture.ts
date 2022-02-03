@@ -5,11 +5,14 @@ import {
   Nullable,
   Vector2,
   Vector3,
-  Matrix,
-  ArcRotateCamera,
 } from '@babylonjs/core';
 import { k_gestureLength, k_gestureDeltaTimeThreshold } from 'game-constants';
 import TriangleMesh from 'rendering/TriangleMesh';
+import {
+  getAngleBetweenVectors2D,
+  getScreenSpaceFromWorldPoint,
+  math,
+} from 'utils';
 import { getAssetMesh } from 'utils/scene';
 import Gesture from './Gesture';
 
@@ -126,9 +129,9 @@ class FlipGesture extends Gesture {
                   const adjVert1 = firstTriangle.getVertices()[adjVertices[0]];
                   const adjVert2 = firstTriangle.getVertices()[adjVertices[1]];
                   const adjVert1ScreenSpace =
-                    this.getScreenSpaceFromWorldVector(adjVert1);
+                    this.getScreenSpacePoint(adjVert1);
                   const adjVert2ScreenSpace =
-                    this.getScreenSpaceFromWorldVector(adjVert2);
+                    this.getScreenSpacePoint(adjVert2);
 
                   if (adjVert1ScreenSpace && adjVert2ScreenSpace) {
                     const edgeScreenSpace3D =
@@ -139,7 +142,7 @@ class FlipGesture extends Gesture {
                       edgeScreenSpace3D.y,
                     );
 
-                    const gestureAngle = this.getAngleBetweenVectors2D(
+                    const gestureAngle = getAngleBetweenVectors2D(
                       gesture,
                       edgeScreenSpace2D,
                     );
@@ -228,7 +231,7 @@ class FlipGesture extends Gesture {
   }
 
   public isValidAngle(angle: number): boolean {
-    return angle < Math.PI * (2 / 3) && angle > Math.PI * (1 / 3);
+    return angle < math.angle120 && angle > math.angle60;
   }
 
   public swapType(trM1: TriangleMesh, trM2: TriangleMesh): void {
@@ -246,32 +249,8 @@ class FlipGesture extends Gesture {
     }
   }
 
-  public getAngleBetweenVectors2D(v1: Vector2, v2: Vector2): number {
-    const scalarProd = v1.x * v2.x + v1.y * v2.y;
-    const modV1 = Math.sqrt(v1.x ** 2 + v1.y ** 2);
-    const modV2 = Math.sqrt(v2.x ** 2 + v2.y ** 2);
-    const modProd = modV1 * modV2;
-
-    const angle = Math.acos(scalarProd / modProd);
-    return angle;
-  }
-
-  public getScreenSpaceFromWorldVector(vector: Vector3): Vector3 {
-    const { scene } = this.context;
-    const camera = scene.activeCamera as ArcRotateCamera;
-    const engine = scene.getEngine();
-
-    const screenSpaceVector = Vector3.Project(
-      vector,
-      Matrix.Identity(),
-      scene.getTransformMatrix(),
-      camera.viewport.toGlobal(
-        engine.getRenderWidth(),
-        engine.getRenderHeight(),
-      ),
-    );
-
-    return screenSpaceVector;
+  public getScreenSpacePoint(point: Vector3): Vector3 {
+    return getScreenSpaceFromWorldPoint(this.context.scene, point);
   }
 }
 
