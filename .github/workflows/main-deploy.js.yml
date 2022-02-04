@@ -12,6 +12,11 @@ name: deploy main branch
 defaults:
   run:
    working-directory: xagon-react-app
+
+env:
+  TARGET_DIR: xagon-js
+  BASE_PATH: /$TARGET_DIR
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,14 +33,14 @@ jobs:
         cache: npm
         cache-dependency-path: xagon-react-app/package-lock.json
     - run: npm ci
-    - run: npm run build --if-present
+    - run:  BASE_PATH=$BASE_PATH; npm run build --if-present
     - name: Push to https://github.com/talex-tnt/talex-tnt.github.io
       uses: cpina/github-action-push-to-another-repository@main
       env:
         API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
       with:
         source-directory: './xagon-react-app/xagon'
-        target-directory: 'xagon-js'
+        target-directory: $TARGET_DIR
         destination-github-username: 'talex-tnt'
         destination-repository-name: 'talex-tnt.github.io'
         user-email: alextinti83@gmail.com
