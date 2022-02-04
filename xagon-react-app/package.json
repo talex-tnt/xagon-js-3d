@@ -49,8 +49,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build:dev": "BASE_PATH=/xagon-js-dev; react-scripts build && mv build xagon",
-    "build": "BASE_PATH=/xagon-js; react-scripts build && mv build xagon",
+    "build": "react-scripts build && mv build xagon",
+    "build:dev": "BASE_PATH=/xagon-js-dev npm run build",
+    "build:main": "BASE_PATH=/xagon-js npm run build",
     "test": "nyc ./node_modules/.bin/_mocha 'tests/**/*.test.ts'",
     "eject": "react-scripts eject"
   },
