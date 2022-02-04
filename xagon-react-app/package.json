@@ -1,6 +1,5 @@
 {
   "name": "xagon-react-app",
-  "version": "0.1.7",
   "version": "0.1.8",
   "private": true,
   "homepage": ".",
@@ -50,7 +49,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && mv build xagon",
+    "build:dev": "BASE_PATH=/xagon-js-dev; react-scripts build && mv build xagon",
+    "build": "BASE_PATH=/xagon-js; react-scripts build && mv build xagon",
     "test": "nyc ./node_modules/.bin/_mocha 'tests/**/*.test.ts'",
     "eject": "react-scripts eject"
   },
