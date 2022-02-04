@@ -1,0 +1,38 @@
+Exporter version: 2.93.4, Blender version: 2.93.4
+========= Conversion from Blender to Babylon.js =========
+	Scene settings used :
+		Inline textures     :  false
+		Material Type       :  PBR
+		Positions Precision :  4
+		Normals Precision   :  3
+		UVs Precision       :  3
+		Vert Color Precision:  3
+		Mat Weight Precision:  2
+		Keep Z-up r-handed  :  no
+		Texture directory   :  /Users/alex/gitarea/games/xagon-js-3d/data/assets/blender/
+	Python World class constructor completed
+	WARNING: No active camera has been assigned, or is not in a currently enabled collection
+	processing begun of skeleton:  Armatura, id:  0
+		processing begun of bone:  Bone, index:  0
+		processing begun of bone:  Bone.001, index:  1
+		processing begun of bone:  Bone.002, index:  2
+	processing begun of mesh:  Triangle
+		WARNING: No materials have been assigned: 
+		num positions      :  7103
+		num normals        :  7103
+		num tangents       :  0
+		num uvs            :  14206
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  2400
+		Skeleton stats:  
+			Total Influencers:  14095
+			Avg # of influencers per vertex:  1.9844
+			Highest # of influencers observed:  2, num vertices with this:  6992
+			exported as 2 influencers
+			num skeletonWeights and skeletonIndices:  28412
+========= Writing of JSON file started =========
+	writing mesh:  Triangle
+========= Writing of JSON file completed =========
+========= end of processing =========
+elapsed time:  0 min, 0.2576 secs
