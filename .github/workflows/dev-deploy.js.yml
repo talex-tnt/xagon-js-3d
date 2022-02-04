@@ -33,7 +33,7 @@ jobs:
         cache: npm
         cache-dependency-path: xagon-react-app/package-lock.json
     - run: npm ci
-    - run: BASE_PATH=${{BASE_PATH}}; npm run build --if-present
+    - run: BASE_PATH=${{ BASE_PATH }}; npm run build --if-present
     - name: Push to https://github.com/talex-tnt/talex-tnt.github.io
       uses: cpina/github-action-push-to-another-repository@main
       env:
