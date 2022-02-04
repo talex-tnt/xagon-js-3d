@@ -14,8 +14,7 @@ defaults:
    working-directory: xagon-react-app
 
 env:
-  TARGET_DIR: xagon-js-dev
-  BASE_PATH: /$TARGET_DIR
+  BASE_PATH: /xagon-js-dev
 
 jobs:
   build:
@@ -40,7 +39,7 @@ jobs:
         API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
       with:
         source-directory: './xagon-react-app/xagon'
-        target-directory: $TARGET_DIR
+        target-directory: xagon-js-dev
         destination-github-username: 'talex-tnt'
         destination-repository-name: 'talex-tnt.github.io'
         user-email: alextinti83@gmail.com
