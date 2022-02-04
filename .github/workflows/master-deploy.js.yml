@@ -1,14 +1,14 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Node.js CI
+name: deploy master branch
 'on':
   push:
     branches:
-    - develop
+    - master
   pull_request:
     branches:
-    - develop
+    - master
 defaults:
   run:
    working-directory: xagon-react-app
@@ -28,7 +28,7 @@ jobs:
         cache: npm
         cache-dependency-path: xagon-react-app/package-lock.json
     - run: npm ci
-    - run: npm run build --if-present   
+    - run: npm run build --if-present
     - name: Push to https://github.com/talex-tnt/talex-tnt.github.io
       uses: cpina/github-action-push-to-another-repository@main
       env:

@@ -2,7 +2,7 @@
   "name": "xagon-react-app",
   "version": "0.1.7",
   "private": true,
-  "homepage": "/xagon-js",
+  "homepage": ".",
   "dependencies": {
     "@babel/core": "^7.15.5",
     "@babylonjs/core": "^4.2.0",
