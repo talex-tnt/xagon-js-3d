@@ -5,10 +5,10 @@ import './index.css';
 import { Route, BrowserRouter, Routes } from 'react-router-dom';
 import GameComponent from './components/GameComponent/index';
 import reportWebVitals from './reportWebVitals';
-console.log('process.env.BASE_PATH', process.env.BASE_PATH);
+
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter basename={process.env.BASE_PATH}>
+    <BrowserRouter basename={process.env.REACT_APP_BASE_PATH}>
       <Routes>
         <Route path="/" element={<GameComponent />} />
       </Routes>
