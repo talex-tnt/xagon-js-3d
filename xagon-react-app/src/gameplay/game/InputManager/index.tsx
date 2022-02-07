@@ -16,13 +16,9 @@ class InputManager {
 
   private gesturesMap: Record<GestureId, Gesture> = {};
 
-  public constructor(
-    scene: Scene,
-    camera: ArcRotateCamera,
-    triangles: Triangle[],
-  ) {
+  public constructor(scene: Scene, triangles: Triangle[]) {
     this.scene = scene;
-    setupInput(scene, camera, triangles);
+    setupInput(scene, triangles);
   }
 
   public onMeshLoaded(triangleMesh: AbstractMesh): void {
