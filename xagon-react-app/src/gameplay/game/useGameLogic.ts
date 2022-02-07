@@ -1,12 +1,7 @@
-import {
-  Vector3,
-  Scene,
-  SceneLoader,
-  ArcRotateCameraPointersInput,
-} from '@babylonjs/core';
+import { Scene, SceneLoader } from '@babylonjs/core';
 import {
   k_triangleAssetName,
-  k_triangleAssetDebugFileName,
+  k_triangleAssetFileName,
   k_triangleAssetPath,
 } from 'game-constants/identifiers';
 import Icosahedron from 'models/Icosahedron';
@@ -20,9 +15,9 @@ import {
   Hexagons,
 } from 'gameplay/ShapeDetector/shapesVerify';
 import Triangle from 'models/Triangle';
-import setupCamera from 'components/GameComponent/setupCamera';
-import setupLight from 'components/GameComponent/setupLight';
-import InputManager from 'components/GameComponent/InputManager';
+import setupCameras from 'gameplay/game/setupCamera';
+import setupLight from 'gameplay/game/setupLight';
+import InputManager from 'gameplay/game/InputManager';
 import { DEBUG_RENDERING_ADJS_TRIANGLES_BY_ID } from 'game-constants/debug';
 import { adjsTrianglesDebug } from 'utils';
 
@@ -58,10 +53,8 @@ const useGameLogic = (): {
 
   const onSceneReady = async (sceneArg: Scene) => {
     const scene: Scene = sceneArg;
-    const target = new Vector3(0, 0, 0);
-    const camera = setupCamera(scene, target);
-    (camera.inputs.attached.pointers as ArcRotateCameraPointersInput).buttons =
-      [1];
+    setupCameras(scene);
+
     const icosahedron = await loadIcosahedron();
     // console.log('Icosahedron loaded');
     icosahedron.registerOnTriangleChanged((triangles) => {
@@ -84,13 +77,13 @@ const useGameLogic = (): {
 
     scene.metadata = { icosahedron };
 
-    const inputManager = new InputManager(scene, camera, triangles);
-    setupLight(scene, target);
+    const inputManager = new InputManager(scene, triangles);
+    setupLight(scene);
 
     SceneLoader.ImportMeshAsync(
       k_triangleAssetName,
       k_triangleAssetPath,
-      k_triangleAssetDebugFileName,
+      k_triangleAssetFileName,
     ).then(({ meshes, skeletons }) => {
       if (meshes && meshes.length > 0 && skeletons) {
         const assetMesh = meshes[0];

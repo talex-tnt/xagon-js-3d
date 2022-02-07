@@ -11,7 +11,7 @@ import {
   StandardMaterial,
   Matrix,
 } from '@babylonjs/core';
-import { Direction } from 'components/GameComponent/InputManager/FlipGesture';
+import { Direction } from 'gameplay/game/InputManager/FlipGesture';
 import {
   DEBUG_RENDERING_TRIANGLES_CENTER_DURING_ROTATION,
   DEBUG_RENDERING_BONES_IDENTIFIER,

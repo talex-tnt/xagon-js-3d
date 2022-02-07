@@ -48,9 +48,9 @@
     "prettier": "^2.4.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "REACT_APP_BUILD_ENV=development react-scripts start",
     "build": "react-scripts build && mv build xagon",
-    "build:dev": "REACT_APP_BASE_PATH=/xagon-js-dev npm run build",
+    "build:dev": "REACT_APP_BUILD_ENV=development REACT_APP_BASE_PATH=/xagon-js-dev npm run build",
     "build:main": "REACT_APP_BASE_PATH=/xagon-js npm run build",
     "test": "nyc ./node_modules/.bin/_mocha 'tests/**/*.test.ts'",
     "eject": "react-scripts eject"
