@@ -6,6 +6,7 @@ import {
   Vector3,
   MeshBuilder,
   HemisphericLight,
+  ArcRotateCameraPointersInput,
 } from '@babylonjs/core';
 
 const onSceneMount = (e: SceneEventArgs) => {
@@ -24,6 +25,10 @@ const onSceneMount = (e: SceneEventArgs) => {
       scene,
     );
     camera.attachControl(canvas, true);
+    const input = camera.inputs.attached
+      .pointers as ArcRotateCameraPointersInput;
+    input.multiTouchPanAndZoom = true;
+    input.multiTouchPanning = true;
   }
   {
     const direction = new Vector3(0, 1, 0);
