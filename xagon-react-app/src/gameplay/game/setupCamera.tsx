@@ -34,11 +34,14 @@ const setupArcRotateCamera = (
   );
   camera.minZ = 0.1;
   camera.lowerRadiusLimit = 1.5; // we dont' want to get too close
-  (camera.inputs.attached.pointers as ArcRotateCameraPointersInput).buttons = [
-    1,
-  ];
+
   const canvas = scene.getEngine().getRenderingCanvas();
   camera.attachControl(canvas, true);
+
+  const input = camera.inputs.attached.pointers as ArcRotateCameraPointersInput;
+  input.multiTouchPanAndZoom = true;
+  input.multiTouchPanning = true;
+  input.buttons = [1];
   return camera;
 };
 
